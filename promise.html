@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		
+		function fn1(){
+			console.log('fn1');
+		}
+
+		function fn2(){
+			console.log('fn2');
+		}
+		function fn3(){
+			console.log('fn3');
+		}
+		setTimeout(fn1,1000);
+		setTimeout(fn2,0);
+		setTimeout(fn3,0);
+
+
+		setTimeout(function(){
+			var promise = new Promise(function(resolve,reject){
+				setTimeout(function(){
+					resolve('test1');
+				},3000)
+			})
+			console.log('promise1');
+		},1000);
+
+
+		var promise = new Promise(function(resolve,reject){
+			setTimeout(function(){
+				resolve('test2');
+				console.log('promise2');
+			},5000);
+			console.log('promise3')
+		})
+
+		/*
+		----promise3
+		---fn2
+		---fn3
+		---fn1
+		---promise1
+		---promise2
+
+		*/
+
+		
+		
+		
+	var arr = [1,2,3];
+	//debugger;
+	console.log(arr);
+	arr.push(4);
+
+
+	function test1(){
+		 x=3
+		setTimeout(()=>{
+			x++;
+			console.log(x);
+			console.log('---');
+		},2000)
+
+
+	}
+
+	function test2(){
+		test1();
+		console.log(x)
+	}
+
+	</script>
+</body>
+</html>
