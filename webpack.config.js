@@ -1,36 +1,56 @@
 var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var CleanWebpackPlugin = require('clean-webpack-plugin');
 var path = require('path');
 
 module.exports = {
-    //context:__dirname +"/src",
-    entry:'./src/js/root.js',
+    mode:'development',
+    entry:{
+        index:'./src/root.js'
+    },
+    devtool:'inline-source-map',
     module:{
-        loaders:[
+        rules:[
             {
                 test:/\.js?$/,
-                exclude:/(node_modules)/,
-                loader:'babel-loader',
-                query:{
-                        presets:['react','es2015']
-                    }
+                exclude:/node_modules/,
+                use:{
+                    loader:'babel-loader',
+                   
+                }
             },
+            /*
             {
-                test:/\.css$/,
-                loader:'style-loader!css-loader'
-                //loader:'style-loader!css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
-                
+                test:/\.js?$/,
+                exclude:/node_modules/,
+                use:{
+                    loader:'babel-loader'
+                    
+                }
+            },
+            */
+            {
+                test:/\.css?$/,
+                exclude:/node_modules/,
+                use:['style-loader','css-loader']
             }
         ]
-    },
-    output:{
-        path:__dirname,
-        filename:"./src/bundle.js"
-
+        
     },
     devServer:{
-      hot:true,
-      histroryApiFallback:true,
-      inline:true,
-      port:9000
-    }
+        contentBase:'./dist'
+    },
+    output:{
+        path:path.resolve(__dirname,'dist'),
+        filename:"[name].bundle.js"
+
+    },
+    plugins:[
+        new CleanWebpackPlugin(['dist']),
+        new HtmlWebpackPlugin({
+            title:'react-news',
+            template:'index.html'
+        })
+    ]
+    
 }
