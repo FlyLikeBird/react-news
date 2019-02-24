@@ -1,10 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Link } from 'react-router';
+
+import { Link } from 'react-router-dom';
 import { Row,Col } from 'antd';
 import { Menu, Icon, Tabs, message, Form, Input, Button, CheckBox, Modal } from 'antd';
 
 //import Login from './pc_login';
+
+import imgURL from './../../images/logo.png';
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
@@ -31,7 +33,7 @@ class PCHeader extends React.Component {
 
     componentWillMount(){
       //console.log(this);
-      if ( localStorage.userid != ''){
+      if ( localStorage.userid != null ){
         this.setState({hasLogined:true});
         this.setState({userNickName:localStorage.userNickName,userid:localStorage.userid});
                
@@ -106,16 +108,16 @@ class PCHeader extends React.Component {
     }
 
     render() {
-        console.log(this.state.activeKey);
-        let {getFieldDecorator} = this.props.form;
+
+        let { getFieldDecorator } = this.props.form;
         //console.log(getFieldDecorator);
         const styleObj = {
           width:'80px',
           whiteSpace: 'nowrap', 
           overflow: 'hidden', 
           textOverflow: 'ellipsis'
-        }
-
+        } ;
+        console.log(this.state.hasLogined )
         const userShow = this.state.hasLogined 
                         ?
                         <Menu.Item key="logout" className="register">
@@ -126,19 +128,19 @@ class PCHeader extends React.Component {
                           </Link>
                           &nbsp;&nbsp;
                           <Button type="ghost" htmlType="button" onClick={this.logout.bind(this)}>退出</Button>
-                        </Menu.Item>
+                        </Menu.Item> 
                         :
                         <Menu.Item key="register" className="register">
                           <Icon type="user"/>注册/登录
                         </Menu.Item>
 
         return (
-            <header>
+            <header className="scrollDown">
                 <Row>
                     <Col span={2}></Col>
                     <Col span={4}>
                         <a href="/" className="logo">
-                          <img src="./src/images/logo.png" alt="logo" />
+                          <img src={ imgURL } alt="logo" />
                           <span>ReactNews</span>
                         </a>    
                     </Col>
@@ -152,9 +154,9 @@ class PCHeader extends React.Component {
                           <Menu.Item key="yule"><Icon type="shop" />娱乐</Menu.Item>
                           <Menu.Item key="tiyu"><Icon type="rocket" />体育</Menu.Item>
                           <Menu.Item key="keji"><Icon type="mobile" />科技</Menu.Item>
-                          <Menu.Item key="shishang"><Icon type="tags" />时尚</Menu.Item>
                           
-                          {userShow}                      
+                          
+                          { userShow }                      
                         </Menu>
                       </div>
 
@@ -220,6 +222,11 @@ class PCHeader extends React.Component {
     
 }
 
-//console.log(this);
-//export var hasLogined = this;
 export default PCHeader = Form.create()(PCHeader);
+
+
+
+
+
+
+

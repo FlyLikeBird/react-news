@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Row,Col } from 'antd';
 import { Menu, Icon, Tabs, message, Form, Input, Button, CheckBox, Modal, Card, notification } from 'antd';
+
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
 
@@ -28,7 +29,7 @@ class CommonComments extends React.Component{
 		var limitComments = this.state.limitComments;
 		this.state.loadComments(index+1,limitComments);
 	}
-
+	/*
 	componentDidMount(){
 		var fetchOptions = {
 			method:'GET'
@@ -51,11 +52,11 @@ class CommonComments extends React.Component{
 			//console.log('step1');
 			var that = this;
 			function loadComments(index=0,limitComments=[]){
-				/*
+		
 
-				数组去重处理，避免同一用户显示过多评论，用户名作为去重标准
+				//数组去重处理，避免同一用户显示过多评论，用户名作为去重标准
 
-				*/
+				
 
 				//console.log(index);
 				for( ; index < sourceLength ;index++){
@@ -119,7 +120,19 @@ class CommonComments extends React.Component{
 
 		})
 	}
-	
+	*/
+
+	componentDidMount(){
+		var fetchOptions = {
+			method:'GET'
+		};
+		fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getcomments&uniquekey="+this.props.uniquekey,fetchOptions)
+		.then(response=>response.json())
+		.then(json=>{
+			console.log(json);
+			this.setState({comments:json});
+		})
+	}
 	
 
 	handleSubmit(e){
@@ -158,12 +171,16 @@ class CommonComments extends React.Component{
 	render(){
 
 		let {getFieldDecorator} = this.props.form;
-		const commentsList = this.state.commentsList;
+		//const commentsList = this.state.commentsList;
+		const comments = this.state.comments;
+		console.log(comments);
+		/*
 		return(
 			<div className="comment">
 				<Row>
 					<Col span={24}>
 						<div id="commentsContainer">
+
 							{ commentsList ? commentsList:'评论正在加载中……'}
 							<div style={{textAlign:'center',paddingTop:'10px'}}>
 								<Button onClick={this.handleClick.bind(this)}>加载更多评论</Button>
@@ -176,14 +193,40 @@ class CommonComments extends React.Component{
                                   <Input id="comments" type="textarea" placeholder="请发表您的评论"/> 
                                 )}
                             </FormItem>
-                            <Button type="primary" style={{margin:'0 2px'}}htmlType="submit">提交评论</Button>
+                            <Button type="primary" style={{margin:'0 2px'}} htmlType="submit">提交评论</Button>
                             <Button type="primary" style={{backgroundColor:'#d1dade',borderColor:'#c7cacc'}} htmlType="button" onClick={this.addCollection.bind(this)}>收藏文章</Button>
 
 						</Form>
 					</Col>
 				</Row>
 			</div>
+			*/
+			return (
+			<div className="comment">
+				<Row>
+					<Col span={24}>
+						<div id="commentsContainer">
+							{
+								comments.map((item,index)=>(
+									<span>item.Comments</span>
+								))
+							}
+							
+						</div>
+						
+						<Form onSubmit={this.handleSubmit.bind(this)} style={{textAlign:'center'}}>
+							<FormItem label="您的评论">
+                                {getFieldDecorator('comments')(
+                                  <Input id="comments" type="textarea" placeholder="请发表您的评论"/> 
+                                )}
+                            </FormItem>
+                            <Button type="primary" style={{margin:'0 2px'}} htmlType="submit">提交评论</Button>
+                            <Button type="primary" style={{backgroundColor:'#d1dade',borderColor:'#c7cacc'}} htmlType="button" onClick={this.addCollection.bind(this)}>收藏文章</Button>
 
+						</Form>
+					</Col>
+				</Row>
+			</div>
 
 		)
 	}

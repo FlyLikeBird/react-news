@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Icon } from 'antd';
 
-import { Router, Route, Link, hashHistory } from 'react-router';
+import { Link } from 'react-router-dom';
 
 export default class PCNewsImageBlock extends React.Component {
 	constructor(){
@@ -12,22 +12,14 @@ export default class PCNewsImageBlock extends React.Component {
 			
 		}
 	}
-
+	
 	componentWillMount(){
 
-		const styleImage = {
-			display:'block',
-			width:this.props.imageWidth,
-			height:'90px'
-		}
-
-		const styleH3 = {
-			width:this.props.imageWidth,
-			whiteSpace:'nowrap',
-			overflow:'hidden',
-			textOverflow:'ellipsis'
-		};
-
+		const imageContainer = {
+			
+			width:this.props.imageWidth
+			
+		}	
 
 		var fetchOptions = {
 			method:'GET'
@@ -43,45 +35,41 @@ export default class PCNewsImageBlock extends React.Component {
 			const newsList = news.length
 						?
 						news.map((newsItem,index)=>(
-							<div key={index} className="imageblock">
-								<Link to={'details/${newsItem.uniquekey}'} target="_blank">
-									<div className="custom-image">
-										<img alt=""  style={styleImage} src={newsItem.thumbnail_pic_s} />
+							<div key={index} className="imageblock" style={imageContainer}>
+								<Link to={`details/${newsItem.uniquekey}`}>
+									<div className="custom-image" >
+										<img alt="" src={newsItem.thumbnail_pic_s} />
 									</div>
 									<div className="custom-card">
-										<h3 style={styleH3}>{newsItem.title}</h3>
-										<p style={styleH3}>{newsItem.author_name}</p>
+										<h3>{newsItem.title}</h3>
+										<p>{newsItem.author_name}</p>
 									</div>
 								</Link>
 							</div> 
 						))				
 						:
 						'没有加载到任何新闻!';
+
 			this.setState({newsList:newsList});
 		})
 		
 		
 		
 	}
-
+	
 	render() {
 
-		
-
-		//console.log(newsList);
-
-		
 		const newsList = this.state.newsList;
+		
 		return(
 			<div className="topNewsList">
-				<Card title={this.props.cardTitle} bordered={true} style={{width:this.props.width}} extra={<a href="#">换一换<Icon type="home"/></a>}>
-					
+				<Card title={this.props.cardTitle} style={{width:this.props.width}} extra={<a href="#">换一换<Icon type="home"/></a>}>
+					<div className="block-container">
 						{ newsList ? newsList :'头条正在加载中....'}
-					
+					</div>
 				</Card>
 			</div>
-
-
 		)
+		
 	}
 }

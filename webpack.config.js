@@ -6,7 +6,12 @@ var path = require('path');
 module.exports = {
     mode:'development',
     entry:{
-        index:'./src/root.js'
+        index:'./src/root.js',
+        vendor:[
+            'react',
+            'react-dom',
+            'react-router-dom'
+        ]
     },
     devtool:'inline-source-map',
     module:{
@@ -14,37 +19,58 @@ module.exports = {
             {
                 test:/\.js?$/,
                 exclude:/node_modules/,
-                use:{
-                    loader:'babel-loader',
-                   
-                }
-            },
-            /*
-            {
-                test:/\.js?$/,
-                exclude:/node_modules/,
+
                 use:{
                     loader:'babel-loader'
-                    
+
+                   
                 }
-            },
-            */
+            },           
             {
                 test:/\.css?$/,
-                exclude:/node_modules/,
+                
+                
                 use:['style-loader','css-loader']
+            },
+            {
+
+                test:/\.(png|svg|jpg|gif|ico|woff|eot|ttf)$/,               
+                use: [{
+                    loader: 'url-loader',
+                    options: {
+
+                        limit:8000000,   //小于50K的 都打包
+
+                        name:'[hash:8].[name].[ext]',
+                           
+                    }
+                }]            
             }
         ]
         
     },
     devServer:{
-        contentBase:'./dist'
+        contentBase:'./dist',
+        historyApiFallback:true
     },
     output:{
         path:path.resolve(__dirname,'dist'),
-        filename:"[name].bundle.js"
+        filename:"[name].[chunkhash].js"
 
     },
+    /*
+    optimization:{
+        splitChunks:{
+            cacheGroups:{
+                vendors:{
+                    test:/node_modules/,
+                    name:'vendors',
+                    chunks:'all'
+                }
+            }
+        }
+    },
+    */
     plugins:[
         new CleanWebpackPlugin(['dist']),
         new HtmlWebpackPlugin({

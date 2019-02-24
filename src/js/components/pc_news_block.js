@@ -1,7 +1,9 @@
 import React from 'react';
 import { Card, Icon } from 'antd';
 
-import { Router, Route, Link, hashHistory } from 'react-router';
+import { Link  } from 'react-router-dom';
+
+import imgURL from './../../images/firstIcon.png';
 
 export default class PCNewsBlock extends React.Component {
 	constructor(){
@@ -33,11 +35,10 @@ export default class PCNewsBlock extends React.Component {
 								
 									{
 										(()=>{
-											//console.log('---');
-											//console.log(newsItem);
+											
 											switch (index) {
 
-												case 0:return <div><img src="./src/images/firstIcon.png" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
+												case 0:return <div><img src={imgURL} style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
 												case 1:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
 												case 2:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
 												default:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;

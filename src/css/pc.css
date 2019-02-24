@@ -9,6 +9,11 @@ body {
 	------header部分样式
  */
 
+header {
+    background-color:#fff;
+    
+}
+
 .logo {
   display:flex;
   align-items:center;
@@ -22,10 +27,12 @@ body {
 .logo span {
   font-size:24px;
   padding-left:4px;
+  color:#1890ff;
 }
 
 header ul.ant-menu-horizontal {
 	/* width:1200px; */
+    background-color:transparent;
 }
 
 header ul.ant-menu-horizontal .ant-menu-item a{
@@ -34,10 +41,13 @@ header ul.ant-menu-horizontal .ant-menu-item a{
 
 header .menu ul.login li {
     padding:0 14px;
+    color:#fff;
 }
 
-header div.menu ul.logout li {
-    padding:0 20px;
+header div.menu ul li {
+    padding:0 24px;
+    font-size:0.3rem;
+    font-weight:500;
 }
 
 header .menu ul li.register {
@@ -49,6 +59,45 @@ header .menu ul li.register {
  */
 
 
+
+/*
+
+  -------header scroll 样式开始
+*/
+
+header.scrollDown {
+    background-color: rgba(24, 144, 255,.8);
+}
+
+header.scrollDown .logo span {  
+  color:#fff;
+}
+
+header.scrollDown ul.ant-menu-horizontal {
+    /* width:1200px; */
+    background-color:transparent;
+}
+
+header.scrollDown ul.ant-menu-horizontal .ant-menu-item a{
+    display:inline-block;
+}
+
+header.scrollDown .menu ul.login li {
+    padding:0 14px;
+    color:#fff;
+}
+
+header div.menu ul li {
+    color:#fff;
+}
+
+header div.menu ul li:hover {
+    color:#fff;
+}
+/*
+
+    -----header scroll 样式结束
+*/
  /* 
 
 	------section部分样式
@@ -103,15 +152,39 @@ section .leftContainer {
 -----卡片容器样式－－－－开始－－－
 
 */
-.topNewsList .ant-card-head {
-    height:34px;
-    line-height:34px;
-
-}
 
 .topNewsList .ant-card{
+  border:none;
   margin-top: 5px !important;
 }
+
+.topNewsList .ant-card-head {
+    height:36px;
+    line-height:36px;
+    min-height:36px;
+    border-bottom:none;
+    padding:0;
+}
+
+.topNewsList .ant-card-head:before {
+    content: '';
+    display: table;
+    width: 5px;
+    background-color:rgba(0, 0, 0, 0.85);
+    height: 16px;
+    position: absolute;
+    top: 10px;
+}
+
+.topNewsList .ant-card-body {
+    padding:0;
+    padding-top:4px;
+}
+
+.topNewsList .ant-card-head .ant-card-head-wrapper{
+    height:100%;
+}
+
 
 .topNewsList .ant-card-head-title{
   text-align: left !important;
@@ -121,9 +194,12 @@ section .leftContainer {
   text-align: left !important;
 }
 
+
+
 .topNewsList .ant-card-extra{
   right:10px;
   top:10px;
+  font-size:0.6em;
 }
 
 .topNewsList .ant-card-extra .anticon{
@@ -174,13 +250,14 @@ section .leftContainer {
 }
 
 .tabs_product {
-    width: 280px;
+    
     padding-left: 10px;
-    float: left;
+    
 }
 
 .tabs_news ul {
     width:100%;
+    padding-left:20px;
 }
 .tabs_news li , .tabs_news li div {
     height: 27px;
@@ -211,9 +288,6 @@ section .leftContainer {
     margin-bottom: 0 !important;
 }
 
-.ant-card-body {
-    padding: 10px 14px !important;
-}
 
 .leftContainer{
   width:400px;
@@ -221,13 +295,37 @@ section .leftContainer {
 }
 
 /*image block******START*****/
-.imageblock {
-    float: left;
-    padding:2px;
+.block-container {
+    
 }
 
+.imageblock {
+    display:inline-block;
+    padding-right:4px;
+}
+
+.imageblock .custom-image img {
+    width:100%;
+    height:100%;
+}
 .custom-card {
-    padding: 5px;
+    
+}
+
+.imageblock .custom-card h3 {
+    font-size:1em;
+    margin-bottom:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.imageblock .custom-card p {
+    font-size:0.8em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    
 }
 
 .custom-card p {
@@ -273,7 +371,7 @@ iframe {
 }
 
  .article-src-time {
-    font-size: 0.3rem !important;
+    font-size: 0.2rem !important;
 }
 
  .article-content .txt {
@@ -286,7 +384,7 @@ iframe {
     width: 298px;
     height: 380px;
     margin-top: 6px;
-    background: #F7F7F7;
+    
     -webkit-transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -299,8 +397,8 @@ iframe {
     width: 290px;
     position: relative;
     z-index: 1;
-    padding: 8px 0 8px 10px;
-    line-height: 25px;
+    padding: 10px 0 10px 12px;
+    line-height: 30px;
     -webkit-transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -374,6 +472,14 @@ iframe {
 
 .ntes-nav-select-unfold .productlinks-mail-fold {
     display: block;
+}
+
+#layout-product .productlinks .item-game {
+    background-color:#F7F7F7;
+}
+
+#layout-product .productlinks .item-recommend {
+    background-color:#F7F7F7;
 }
 
 .productlinks-mail-fold {
@@ -518,4 +624,24 @@ iframe {
 }
 
 
+.articleContainer article #content a{
+    padding-bottom:0 !important;
+    height:260px;
+}
 
+.productlinks{
+    width:auto;
+}
+
+.productlinks-item  {
+    width:auto;
+}
+
+.productlinks-item  a{
+    font-size:10px;
+    color:#868484;
+}
+
+.productlinks-item  a:hover{
+    text-decoration: underline;
+}
