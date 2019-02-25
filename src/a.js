@@ -185,7 +185,8 @@ class App extends React.Component {
     super(props);
     this.state = {
       desc: 'start',
-      color: 'blue'
+      color: 'blue',
+      ceshi:[]
     };
     /*
     this.timer = setTimeout(
@@ -219,20 +220,27 @@ class App extends React.Component {
     */
   }
 
-  handleHeaderClick(){
-    
+  handleButtonClick(){
+    var result = Math.random();
+    this.state.ceshi.push(result);
+    this.setState({ceshi:this.state.ceshi})
   }
   render() {
-    console.log(this);
+    
+    console.log(this.state.ceshi);
     return (
       <div className="App" onClick={this.handleClick.bind(this)}>
-        <div className="App-header" onClick={this.handleHeaderClick.bind(this)}>
+        <div className="App-header">
           
           <h1> "Welcom to React" </h1>
         </div>
         <p className="App-intro" style={{color: this.state.color}}>
           { this.state.desc }
         </p>
+        <p>
+            { this.state.ceshi.map((item,index)=>(<span key={index}>{ item }</span>)) }
+        </p>
+        <button onClick={this.handleButtonClick.bind(this)}>add </button>
       </div>
     );
   }
