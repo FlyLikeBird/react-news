@@ -74,6 +74,7 @@ class CommonComments extends React.Component{
 		};
 		fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getcomments&uniquekey="+this.props.uniquekey,fetchOptions)
 		.then(response=>response.json())
+		/*
 		.then(json=>{
 			console.log(json);
 			comments = json;
@@ -91,6 +92,7 @@ class CommonComments extends React.Component{
 			}
 			
 		})
+		*/
 	}
 	
 
