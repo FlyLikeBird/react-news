@@ -84,7 +84,7 @@ class CommonComments extends React.Component{
 			for(var i=1;i<sourceLength;i++){
 				for(var j=0;j<limitComments.length;j++) {
 					if ( limitComments[j].UserName != comments[i].UserName){
-						limitComments.push(comments[i])
+						limitComments.push(comments[i]);
 					}
 
 				}
