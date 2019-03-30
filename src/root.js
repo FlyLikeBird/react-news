@@ -27,7 +27,7 @@ import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
 import './css/pc.css';
 import './css/mobile.css';
 
-/*
+
 export default class Root extends React.Component {
     render(){
         
@@ -54,7 +54,7 @@ export default class Root extends React.Component {
     }
 }
 
-*/
+
 /*
 
 <MediaQuery query='(max-device-width:1224px)'>
@@ -68,14 +68,6 @@ export default class Root extends React.Component {
               </MediaQuery>
 
 */
-
-
-export default class Root extends React.Component {
-    render(){
-        
-        return <Button>hello</Button>
-    }
-}
 
 
 ReactDOM.render(
