@@ -26,6 +26,7 @@ import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
 
 import './css/pc.css';
 import './css/mobile.css';
+
 /*
 export default class Root extends React.Component {
     render(){
@@ -43,15 +44,8 @@ export default class Root extends React.Component {
                 
               </MediaQuery>
 
-              <MediaQuery query='(max-device-width:1224px)'>
-                <Router>
-                  <div>
-                     <Route path="/" component={MobileIndex}></Route>
-                     <Route path="/details/:uniquekey" component={MobileNewsDetails}></Route>
-                     <Route path="/usercenter" component={MobileUserCenter}></Route>
-                  </div>
-                </Router>
-              </MediaQuery>
+
+              
             
             </div>
             
@@ -61,28 +55,25 @@ export default class Root extends React.Component {
 }
 
 */
+/*
+
+<MediaQuery query='(max-device-width:1224px)'>
+                <Router>
+                  <div>
+                     <Route path="/" component={MobileIndex}></Route>
+                     <Route path="/details/:uniquekey" component={MobileNewsDetails}></Route>
+                     <Route path="/usercenter" component={MobileUserCenter}></Route>
+                  </div>
+                </Router>
+              </MediaQuery>
+
+*/
+
 
 export default class Root extends React.Component {
     render(){
         
-        return (
-            <div>
-              <MediaQuery query='(min-device-width:1224px)'>
-                <Router>
-                  <Switch>
-                      <Route exact path="/" component={PCIndex} />
-                      <Route path="/details/:uniquekey" component={PCNewsDetails} />
-                  </Switch>
-                </Router>
-                
-              </MediaQuery>
-
-              
-            
-            </div>
-            
-            
-        )
+        return <Button>hello</Button>
     }
 }
 
