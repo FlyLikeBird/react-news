@@ -94,7 +94,7 @@ export default class PCNewsDetails extends React.Component {
 					<Col span={2}></Col>
 					<Col span={14}>
 						<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
-						
+						<CommonComments />
 					</Col>
 					<Col span={6} style={{marginLeft:'10px'}}>
 						<PCNewsImageBlock count={40} type="top" width="100%" cardTitle="相关新闻" imageWidth="130px" />

@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+var ceshi = 'hello world';
+
 class Header extends React.Component {
     constructor(){
         super();
@@ -240,7 +242,7 @@ class App extends React.Component {
         <p>
             { this.state.ceshi.map((item,index)=>(<span key={index}>{ item }</span>)) }
         </p>
-        <button onClick={this.handleButtonClick.bind(this)}>add </button>
+        <button onClick={this.handleButtonClick.bind(this)}>add {ceshi}</button>
       </div>
     );
   }

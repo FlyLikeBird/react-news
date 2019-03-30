@@ -645,3 +645,92 @@ iframe {
 .productlinks-item  a:hover{
     text-decoration: underline;
 }
+
+
+/*
+
+    ------评论组件样式开始
+*/
+
+.comment {
+    padding-right:40px;
+
+}
+
+.commentsContainer {
+    padding-top:40px;
+}
+
+.commentsContainer .ant-card{
+    border:none;
+    border-bottom:1px solid #e8e8e8;
+}
+
+.comment .commentActions {
+    padding-top:10px;
+    font-size:10px;
+}
+
+.commentsContainer .ant-card-meta-description button {
+    border-radius:20px;
+    margin-right: 8px;
+    font-size:10px;
+}
+
+.commentsContainer .ant-card-meta-description span.comment_date {
+    float:right;
+
+}
+
+.commentsContainer .iconAction {
+    position: fixed;
+    left:50%;
+    top:50%;
+    width:100px;
+    height:100px;
+    margin-left:-50px;
+    margin-top:-50px;
+    font-size:100px;
+    display:none;
+    
+
+    
+}
+
+.commentsContainer .iconAction.start {
+    
+    animation:iconAction 0.5s ease-in;
+   
+}
+
+@keyframes iconAction{
+    0% {
+        opacity:0;
+
+        transform:rotate(30deg) scale(0);
+        -ms-transform:rotate(30deg) scale(0);     /* IE 9 */
+        -moz-transform:rotate(30deg) scale(0);    /* Firefox */
+        -webkit-transform:rotate(30deg)scale(0); /* Safari 和 Chrome */
+        -o-transform:rotate(30deg) scale(0);  /* Opera */
+    }
+    50% {
+        opacity:1;
+        transform:rotate(-30deg) scale(2);
+        -ms-transform:rotate(-30deg) scale(2);     /* IE 9 */
+        -moz-transform:rotate(-30deg) scale(2);    /* Firefox */
+        -webkit-transform:rotate(-30deg) scale(2); /* Safari 和 Chrome */
+        -o-transform:rotate(-30deg) scale(2);  /* Opera */
+    }
+    100% {
+        opacity:0;
+        transform:rotate(30deg) scale(0);
+        -ms-transform:rotate(30deg) scale(0);     /* IE 9 */
+        -moz-transform:rotate(30deg) scale(0);    /* Firefox */
+        -webkit-transform:rotate(30deg) scale(0); /* Safari 和 Chrome */
+        -o-transform:rotate(30deg) scale(0);  /* Opera */
+    }
+}    
+/*
+
+    ------评论组件样式结束
+*/

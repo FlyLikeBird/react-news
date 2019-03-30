@@ -1,52 +1,37 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Row,Col } from 'antd';
+import { Row,Col, Avatar } from 'antd';
 import { Menu, Icon, Tabs, message, Form, Input, Button, CheckBox, Modal, Card, notification } from 'antd';
+
+import CommmentButton from './pc_comment_button';
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
 
 const FormItem = Form.Item;
 const TabPane = Tabs.TabPane;
+const { Meta } = Card;
 
 var comments;
-var limitComments = [];
+var sourceLength;
 
-function loadComments(index=0,limitComments=[]){		
+var limitComments =[];
 
-				//数组去重处理，避免同一用户显示过多评论，用户名作为去重标准
+var mount = 10 ; // 每次读取的评论数量
+var count = 0 ;// 计数器
+var alreadyHasId = {}
 
-				//console.log(index);
-				for( ; index < sourceLength ;index++){
-					//console.log(comments[i]);
-					//debugger;
-					let commentsUser = comments[index].UserName;
-					let repeat = false;
-					
-					for(let j=0,length=limitComments.length; j<=length;j++){
-						if ( limitComments[j] && (commentsUser == limitComments[j].UserName )) {
-							repeat = true;
-							break;
-
-						}
-					}
-
-					if(!repeat){
-						limitComments.push(comments[index]);
-						count++;
-						//console.log(count);
-						//console.log('---');
-					}
-
-					if( count > mount ) {
-						//console.log(index);
-						//console.log(count);
-						count=0;
-						that.setState({index:index});
-						break;
-					}
+function getComments(){
+	for(var i=1;i<sourceLength;i++){
+		if (!alreadyHasId[comments[i].UserId]){
+			limitComments.push(comments[i]);
+			alreadyHasId[comments[i].UserId] = true;
+		}
+	}
 }
+
+
 
 class CommonComments extends React.Component{
 	constructor(){
@@ -54,50 +39,64 @@ class CommonComments extends React.Component{
 		this.state={
 			comments:'',
 			commentsList:'',
-			//loadComments:'',  //加载评论的函数 
-			
-			mount:9,  // 每次读取的评论数量
-			count:0,  // 计数器
-			index:0   //  从原数组取值的索引号
+			buttonType:'like'	
 		}
 	}
 
 	handleClick(){
-		var index = this.state.index;
-		var limitComments = this.state.limitComments;
-		this.state.loadComments(index+1,limitComments);
+		
+		this.loadComments();
 	}
 	
+	loadComments(){
+		count++;
+		var countArr = limitComments.slice(0,count*10);
+		var commentsList = limitComments.length?
+			countArr.map((item,index)=>(
+					
+					<Card key={index}>
+						<Meta 
+							avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />}
+							title={item.UserName}
+							description={<div><div>{item.Comments}</div><div className="commentActions"><CommmentButton type="like" text="赞成" handleButtonType={this.handleButtonType.bind(this)} /><CommmentButton type="dislike" text="反对" handleButtonType={this.handleButtonType.bind(this)} /><span className="comment_date">{item.datetime}</span></div></div>}
+						/>
+						
+					</Card>
+
+				))
+			:
+			'还没有人评论！';
+		this.setState({commentsList:commentsList});
+	}
+
+	handleButtonType(buttonType){
+		
+		this.setState({buttonType:buttonType});
+	}
+
 	componentDidMount(){
 		var fetchOptions = {
 			method:'GET'
 		};
 		fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getcomments&uniquekey="+this.props.uniquekey,fetchOptions)
 		.then(response=>response.json())
-		/*
+		
 		.then(json=>{
-			console.log(json);
+			
 			comments = json;
 
-			const sourceLength = comments.length;
-			limitComments.push(comments[0]);
-
-			for(var i=1;i<sourceLength;i++){
-				for(var j=0;j<limitComments.length;j++) {
-					if ( limitComments[j].UserName != comments[i].UserName){
-						limitComments.push(comments[i]);
-					}
-
-				}
-			}
+			sourceLength = comments.length;
 			
+
+			limitComments.push(comments[0]);
+			alreadyHasId[limitComments[0].UserId] = true;
+
+			getComments();
+			this.loadComments();
+			//console.log(limitComments);
 		})
-		*/
+		
 	}
-	
-
-
-	
 
 	handleSubmit(e){
 		e.preventDefault();
@@ -133,19 +132,24 @@ class CommonComments extends React.Component{
 	}
 
 	render(){
-
+		
 		let {getFieldDecorator} = this.props.form;
 		const commentsList = this.state.commentsList;
+		
 		
 		return(
 			<div className="comment">
 				<Row>
 					<Col span={24}>
-						<div id="commentsContainer">
+						<div className="commentsContainer">
 
 							{ commentsList ? commentsList:'评论正在加载中……'}
 							<div style={{textAlign:'center',paddingTop:'10px'}}>
 								<Button onClick={this.handleClick.bind(this)}>加载更多评论</Button>
+							</div>
+
+							<div id="iconAction" className="iconAction">
+								<Icon type={this.state.buttonType} />								
 							</div>
 						</div>
 						
@@ -165,7 +169,9 @@ class CommonComments extends React.Component{
 			
 			
 		)
+		
 	}
+}
 
 
 export default CommonComments = Form.create()(CommonComments);

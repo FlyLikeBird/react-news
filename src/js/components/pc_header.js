@@ -117,7 +117,7 @@ class PCHeader extends React.Component {
           overflow: 'hidden', 
           textOverflow: 'ellipsis'
         } ;
-        console.log(this.state.hasLogined )
+        
         const userShow = this.state.hasLogined 
                         ?
                         <Menu.Item key="logout" className="register">
