@@ -1,6 +1,7 @@
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin'); 
 var path = require('path');
 
 module.exports = {
@@ -27,25 +28,29 @@ module.exports = {
                 }
             },           
             {
-                test:/\.css?$/,
+                test:/\.css$/,
                 
-                
-                use:['style-loader','css-loader']
+                use:[
+                   MiniCssExtractPlugin.loader,
+                   {loader:'css-loader'}
+                ]
             },
             {
 
                 test:/\.(png|svg|jpg|gif|ico|woff|eot|ttf)$/,               
                 use: [{
-                    loader: 'url-loader',
+                    loader: 'file-loader',
                     options: {
 
                         limit:8000000,   //小于50K的 都打包
-
+                        outputPath:'images/',
                         name:'[hash:8].[name].[ext]',
                            
                     }
-                }]            
+                }]
+                          
             }
+
         ]
         
     },
@@ -76,6 +81,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             title:'react-news',
             template:'index.html'
+        }),
+        new MiniCssExtractPlugin({
+            filename:'[name].css'
         })
     ]
     
