@@ -1,13 +1,18 @@
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin'); 
+var MiniCssExtractPlugin = require('mini-css-extract-plugin'); 
 var path = require('path');
+
+//const ExtractTextPlugin = require("extract-text-webpack-plugin");//用来抽离单独抽离css文件
+//const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+var hotMiddlewareScript = 'webpack-hot-middleware/client?reload=true';
 
 module.exports = {
     mode:'development',
     entry:{
-        index:'./src/root.js',
+        index:['./src/root.js',hotMiddlewareScript],
         vendor:[
             'react',
             'react-dom',
@@ -21,18 +26,16 @@ module.exports = {
                 test:/\.js?$/,
                 exclude:/node_modules/,
 
-                use:{
-                    loader:'babel-loader'
-
-                   
-                }
+                use:[
+                    'babel-loader'
+                ]
+                    
             },           
             {
-                test:/\.css$/,
-                
+                test: /\.css$/,
                 use:[
-                   MiniCssExtractPlugin.loader,
-                   {loader:'css-loader'}
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
                 ]
             },
             {
@@ -54,13 +57,17 @@ module.exports = {
         ]
         
     },
+    /*
     devServer:{
+        hot:true,
         contentBase:'./dist',
         historyApiFallback:true
     },
+    */
     output:{
         path:path.resolve(__dirname,'dist'),
-        filename:"[name].[chunkhash].js"
+        publicPath:'/',
+        filename:"[name].[hash].js"
 
     },
     /*
@@ -80,10 +87,13 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         new HtmlWebpackPlugin({
             title:'react-news',
-            template:'index.html'
+            template:'./src/template.html'
+            
         }),
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoEmitOnErrorsPlugin(),
         new MiniCssExtractPlugin({
-            filename:'[name].css'
+            filename:'[name]_[hash:8].css'
         })
     ]
     

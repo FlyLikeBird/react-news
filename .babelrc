@@ -2,5 +2,8 @@
   "presets": [
     "@babel/env","@babel/react"
   ],
-  "plugins":["@babel/plugin-transform-runtime",["import",{"libraryName":"antd","style":"css"}]]
+  "plugins":
+  ["@babel/plugin-transform-runtime",["import",{"libraryName":"antd","style":"css"}]]
+  
+  
 }
