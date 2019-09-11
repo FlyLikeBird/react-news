@@ -25,25 +25,25 @@ export default class PCUserCenter extends React.Component{
 
 	_loadUserInfo(props){
 		var params = props.match.params.userid;
-		fetch(`/usr/usercenter?userid=${params}`)
+		var isSelf = localStorage.getItem('userid') === params ? true :false;
+		fetch(`/usr/usercenter?userid=${params}&isSelf=${isSelf}`)
 			.then(response=>response.json())
 			.then(json=>{
 				//console.log(data);
 				var user = json.data;
 				//console.log(responseData);
-				var { userFollow, userFans, userAction, userHistory, userCollect, username, comments } = user;
-				//console.log(userFollow);console.log(userFans);
-
-
-				var isSelf = localStorage.getItem('username') === username ? true :false;
+				var { userFollow, userFans, userAction, userHistory, userCollect, username, comments } = user;				
 				this.setState({user, userFollow, userFans, userAction, userCollect, userHistory,userComments:comments,isSelf,isLoad:false})
 		})
 
 	}
 
 	componentWillReceiveProps(newProps){
-		this.setState({isLoad:true});
-		this._loadUserInfo(newProps);
+		var params = this.props.match.params.userid;
+		if ( params != newProps.match.params.userid){
+			this.setState({isLoad:true});
+			this._loadUserInfo(newProps);
+		}	
 		
 	}
 
@@ -57,8 +57,7 @@ export default class PCUserCenter extends React.Component{
 
 		return(
 
-			<div>
-				
+			<div>				
 				<Row style={{paddingTop:'30px'}}>
 					<Col span={2}></Col>
 					<Col span={20} style={{textAlign:'center'}}>
@@ -71,7 +70,7 @@ export default class PCUserCenter extends React.Component{
 								<Col span={8}>
 									<PCUserAvatar user={user}/>
 								</Col>
-								<Col span={16} style={{position:'relative'}}>
+								<Col span={16} style={{position:'relative',textAlign:'left'}}>
 							
 									<PCUserCenterContainer 
 										userFollow={userFollow}
@@ -91,13 +90,9 @@ export default class PCUserCenter extends React.Component{
 							</Row>
 						}
 						
-					</Col>
-					
-									
+					</Col>									
 					<Col span={2}></Col>
-
-				</Row>
-					
+				</Row>					
 				<PCFooter/>
 			</div>
 

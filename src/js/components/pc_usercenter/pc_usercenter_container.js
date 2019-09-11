@@ -42,7 +42,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf
                                 ?
                                 <TabPane tab={<Badge count={msg.total}><span>我的消息</span></Badge>} key="message">
-                                    <MessageContainer socket={socket} />
+                                    <MessageContainer socket={socket} msg={msg}/>
                                 </TabPane>
                                 :
                                 null
@@ -56,7 +56,7 @@ export default class PCUserCenterContainer extends React.Component{
                             </TabPane>
                         
                             <TabPane className="background-color" tab="我的评论" key="comment">
-                                <MyCommentsList data={userComments} text="还没有发布过任何评论!" />
+                                <MyCommentsList data={userComments} history={history} text="还没有发布过任何评论!" />
                             </TabPane>
                             {
                                 isSelf

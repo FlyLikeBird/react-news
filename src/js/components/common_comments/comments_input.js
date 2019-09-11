@@ -129,24 +129,20 @@ class CommentsInput extends React.Component{
       }    
     }
     
-    handleKeyDown(e){
-        
+    handleKeyDown(e){        
         if(e.keyCode === 50 && e.shiftKey){
-
             if(this.textArea && this.textArea.textAreaRef){
-
                 var textarea = this.textArea.textAreaRef;
                 var start = textarea.selectionStart;               
                 var leftPosition = start * 10 + 'px';
-                this.setState({showSelect:true,leftPosition});
                 
+                    this.setState({showSelect:true,leftPosition});
+                              
             }
             
         }
     }
-    
-
-    
+     
     handleCloseUserSelect(){
         this.setState({showSelect:false})
     }
@@ -182,33 +178,41 @@ class CommentsInput extends React.Component{
       });
     }
     
-    handlePreview(file){
-    
-        if (!file.url && !file.thumbUrl) {
-            
-          var promise = this.getBase64(file.originFileObj);
-          promise.then(()=>{
+    handlePreview(file){    
+        if (!file.url && !file.preview) {            
+          var promise = getBase64(file.originFileObj);
+          promise.then(data=>{
+            file.preview = data;
             this.setState({
-                previewImage: file.thumbUrl,
+                previewImage: file.url || file.preview,
                 previewVisible: true,
-            })
+            });
           })
         } else {
             this.setState({
-                previewImage: file.thumbUrl,
+                previewImage: file.url || file.preview,
                 previewVisible: true,
             });
-        }       
+        }         
     }   
         
     handleChange({ fileList }){
         this.setState({ fileList });
     } 
 
+    setTextareaValue(value){
+        var { form } = this.props;
+        var result = '';
+        var { getFieldValue, setFieldsValue } = form;
+        var prevValue = getFieldValue('comments');
+        result = prevValue + value;
+        setFieldsValue({'comments':result});
+    }
+
     render(){
         
         var  {getFieldDecorator} = this.props.form;
-        var { leftPosition, showSelect, fileList } = this.state;
+        var { leftPosition, showSelect, fileList, value } = this.state;
         const selectStyle = {
             display:'none',
             width:'180px',
@@ -237,7 +241,7 @@ class CommentsInput extends React.Component{
                                 validator:this.checkComments
                             }]
                         })(
-                          <TextArea rows={2} ref={textArea=>this.textArea = textArea} onKeyDown={this.handleKeyDown.bind(this)} placeholder="请发表您的评论"/> 
+                          <TextArea rows={2} ref={textArea=>this.textArea = textArea} onKeyDown={this.handleKeyDown.bind(this)} placeholder="请发表您的评论" /> 
                         )}
                     </FormItem>
                     <FormItem>
@@ -265,7 +269,11 @@ class CommentsInput extends React.Component{
                 {
                     showSelect
                     ?
-                    <CommentUserSelect leftPosition={leftPosition} onClose={this.handleCloseUserSelect.bind(this)}/>
+                    <CommentUserSelect 
+                        leftPosition={leftPosition} 
+                        onSelect={this.setTextareaValue.bind(this)}
+                        onClose={this.handleCloseUserSelect.bind(this)} 
+                    />
                     :
                     null
                 }               

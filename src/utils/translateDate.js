@@ -24,27 +24,42 @@ export function formatDate (date) {
         return y + '-' + m + '-' + d+'  '+h+':'+minute ;   
 }
 
+export function getElementTop (el) {
+
+　　　　var actualTop = el.offsetTop
+
+　　　　var current = el.offsetParent
+
+　　　　while (current !== null) {
+
+　　　　　　actualTop += current.offsetTop
+
+　　　　　　current = current.offsetParent
+
+　　　　}
+　　　　return actualTop
+}
+
 export function translateType(type){
-    var text='';
+    var str = '';
     switch(type){
-        case 'topic':
-            text = '话题';
-            break;
         case 'news':
-            text = '新闻';
+            str =  '新闻';
             break;
-        case 'collect' :
-            text = '收藏夹';
+        case 'collect':
+            str = '收藏夹';
             break;
-        case 'comment' :
-            text = '评论';
+        case 'topic':
+            str = '话题';
             break;
-        case 'action':
-            text='动态';
+        case 'comment':
+            str = '评论';
             break;
 
     }
-    return text;
+    return str;
 }
+
+
 
 

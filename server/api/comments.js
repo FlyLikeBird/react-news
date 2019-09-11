@@ -182,14 +182,36 @@ router.get('/getcomments',(req,res)=>{
 router.get('/getOneComment',(req,res)=>{
     var { commentid } = req.query;
     Comment.findOne({_id:commentid},(err,comment)=>{
-      var data = [comment];
-      util.responseClient(res,200,0,'ok',data);
+      comment.replies = sortList(comment.replies);
+      util.responseClient(res,200,0,'ok',[comment]);
     })
 })
 
 router.get('/getCommentPagenum',(req,res)=>{
-  var { commentid, uniquekey } = req.query;
-  util.responseClient(res,200,0,'ok');
+  var { commentid, parentcommentid, uniquekey } = req.query;
+  var index = 0,pageNum = 0;
+  if (parentcommentid){
+
+  } else {
+      Comment.find({uniquekey},(err,comments)=>{
+          sortList(comments);
+          for(var i=0,len=comments.length;i<len;i++){
+              if (comments[i]._id == commentid){
+                  index = i;
+                  break;
+              }
+          }
+          // 判断该评论的页码数
+          index += 1;
+          if (index>10) {
+            pageNum = Math.floor(index / 10) + 1;
+          } else {
+            pageNum = 1;
+          }
+          util.responseClient(res,200,0,'ok',pageNum);
+      })
+  }
+  
 })
 
 router.get('/getCommentInfo',(req,res)=>{
@@ -273,27 +295,16 @@ router.get('/operatecomment',(req,res)=>{
 })
 
 router.get('/delete',(req,res)=>{
-  let { commentid, parentcommentid, user } = req.query;
+  let { commentid, parentcommentid } = req.query;
   if (parentcommentid){
-
-      Comment.updateOne({_id:parentcommentid},{$pull:{replies:{_id:commentid}}},err=>{      
-          getUserComments(user,res);
-      })
+      Comment.updateOne({_id:parentcommentid},{$pull:{replies:{_id:commentid}}},(err)=>{
+          util.responseClient(res,200,1,'ok');
+      });
   } else {
-      Comment.deleteOne({_id:commentid},(err,result)=>{
-          getUserComments(user,res);
+      Comment.deleteOne({_id:commentid},(err)=>{
+          util.responseClient(res,200,1,'ok');
       })
-  }  
+  }   
 })
-
-router.get('/deleteReply',(req,res)=>{
-    let { commentid, parentcommentid } = req.query;
-    Comment.updateOne({_id:parentcommentid},{$pull:{replies:{_id:commentid}}},(err,result)=>{
-        Comment.findOne({_id:parentcommentid},(err,comment)=>{
-          util.responseClient(res,200,0,'ok',sortList(comment.replies));
-        })
-    })
-})
-
 
 module.exports = router;

@@ -12,7 +12,7 @@ export default class DeleteModal extends React.Component{
   }
 
   handleDelete(deleteId){
-    var { deleteType, onVisible, onDelete } = this.props;
+    var { deleteType, onVisible, onDelete, parentcommentid } = this.props;
     if ( deleteType === 'news'){
         fetch(`/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${deleteId}`)
         .then(response=>response.json())
@@ -58,18 +58,34 @@ export default class DeleteModal extends React.Component{
                 }
                 
         })
+    } else if ( deleteType === 'comment') {
+        fetch(`/comment/delete?commentid=${deleteId}&parentcommentid=${parentcommentid?parentcommentid:''}`)
+          .then(response=>response.json())
+          .then(json=>{
+              if (onDelete) onDelete();
+              if (onVisible) onVisible(false);
+          })
     }
     
   }
   
   render(){
-    var { visible, onVisible, deleteType, deleteId } = this.props;
+    var { visible, onVisible, deleteType, deleteId, parentcommentid } = this.props;
     
     return(
       
       
       <Modal visible={visible} footer={null} onCancel={()=>onVisible(false)}>
-          <p>{`确定要删除这条${translateType(deleteType)}吗？`}</p>
+          <p>
+              <span>{`确定要删除这条${translateType(deleteType)}吗？`}</span>
+              { 
+                  deleteType == 'comment' && !parentcommentid
+                  ?
+                  <div><span style={{display:'inline-block',transform:'scale(0.7)',transformOrigin:'left'}}>删除此评论会同时删除该评论下的所有回复评论</span></div>
+                  :
+                  null
+              }
+          </p>
           <Button style={{marginRight:'4px'}} type="primary" onClick={this.handleDelete.bind(this,deleteId)}>删除</Button>
           <Button onClick={()=>onVisible(false)}>取消</Button>
       </Modal>   

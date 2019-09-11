@@ -27,20 +27,17 @@ function showNotReadMsg(type,msg,user,obj){
 }
 
 function deepFilter(arr,user,userList={}){
-
     arr.map(item=>{
-                        // 先判断此条消息是发送方还是接收方
-         if(item.fromUser === user){
+        // 先判断此条消息是发送方还是接收方
+         if(item.fromUser == user){
              if(!userList[item.toUser]) {
                  var userArr = [];
                  userArr.push(item);
                  userList[item.toUser] = userArr;
              } else {
                  userList[item.toUser].push(item);
-             }
-             
+             }             
          } else {
-
              if(!userList[item.fromUser]){
                  var userArr = [];
                  userArr.push(item);
@@ -48,25 +45,20 @@ function deepFilter(arr,user,userList={}){
              } else {
                  userList[item.fromUser].push(item);
              }
-
-         }
-    
+         }    
     });
 
     return userList;
 }
 
 function storeMsg(fromUser,toUser,content,resolve){
-
         var date = new Date().toString();
         var option = {
-
             fromUser:fromUser,
             content:content,
             toUser:toUser,
             msgtype:'user',
             msgtime:date,
-
         };
 
             User.updateOne({username:fromUser},{$push:{message:option}},(err,result)=>{
@@ -95,62 +87,51 @@ function sendActionMsg(user,sender){
     })
 }
 
-function showMsg(socket,user){
-    
-    
+function getMsg(socket,user){  
     var promise = new Promise((resolve,reject)=>{
-
-        User.findOne({'username':user},(err,result)=>{
-            
-            if (result) {
-                    
+        User.findOne({username:user},(err,userInfo)=>{            
+            if (userInfo) {                   
                     /*
-                        旧版消息数据格式
-                        msg = {
-                           
+                        消息数据格式
+                        msg = {                           
                                 systemMsg:[],
                                 actionMsg:[],
-                                userMsg:[]
-                            
-                            
+                                userMsg:{
+                                    '001':[],
+                                    '002':[],
+                                    ...
+                                }                                               
                                 systemNotRead:{
                                     'system1':0,
                                     'system2':10
                                 },
-                                actionNotRead:[],
+                                @NotRead:[],
                                 userNotRead:{
                                     'user1':0,
                                     'user2':10
                                 },
-                                total:
-                            
-                        }
-
-                    
+                                total:                            
+                        }                    
                     */
 
-                    var msg = {};
-                    
-                    result = result.message;
-                    var systemMsg = result.filter(filterMsgType('system'));
-                    var userMsg =result.filter(filterMsgType('user'));
+                    var msg = {},username = userInfo.username;                    
+                    var result = userInfo.message;
+                    var allSystemMsg = result.filter(filterMsgType('system'));
+                    var allUserMsg =result.filter(filterMsgType('user'));
                     var actionMsg = result.filter(filterMsgType('action'));
-                    
-                    
-                    var userMsg = deepFilter(userMsg,user);
-                    var systemMsg = deepFilter(systemMsg,user);
+                            
+                    var userMsg = deepFilter(allUserMsg,username);
+                    var systemMsg = deepFilter(allSystemMsg,username);
 
-                    //console.log(userList);
-                    
                     msg['systemMsg'] = systemMsg;
                     msg['userMsg'] = userMsg;
                     msg['actionMsg'] = actionMsg;
 
                     msg['total'] = 0;
 
-                    showNotReadMsg('userNotRead',userMsg,user,msg);
-                    showNotReadMsg('systemNotRead',systemMsg,user,msg);
-                    showNotReadMsg('actionNotRead',actionMsg,user,msg);
+                    showNotReadMsg('userNotRead',userMsg,username,msg);
+                    showNotReadMsg('systemNotRead',systemMsg,username,msg);
+                    showNotReadMsg('actionNotRead',actionMsg,username,msg);
                     resolve(msg);
                         
             } 
@@ -165,24 +146,17 @@ function showMsg(socket,user){
 }
 
 function socketIndex(socket,io){
-    //console.log('connect: '+socket.id);
-    //console.log(io);
-    socket.on('user-login',(usr)=>{
-        onlineUsers[usr] = {
+    
+    socket.on('user-login',(user)=>{
+        onlineUsers[user] = {
             id:socket.id
         };
-        //console.log(onlineUsers);
-
-        showMsg(socket,usr);
-        
+        getMsg(socket,user);       
     })
     
 
-    socket.on('user-loginout',(usr)=>{
-        
-        onlineUsers[usr] = null;
-        //console.log(onlineUsers);
-    
+    socket.on('user-loginout',(user)=>{       
+        onlineUsers[user] = null;   
     })
 
     socket.on('isChatting',(fromUser,toUser)=>{
@@ -275,27 +249,24 @@ function socketIndex(socket,io){
 
     socket.on('markMsgIsRead',(otherUser,selfUser)=>{
         
-        var _filter = {
-            'username':selfUser,
-            $or:[
-                {'message.fromUser':otherUser},
-                {'message.toUser':otherUser}
-            ]
-        }
-        User.findOne(_filter,(err,user)=>{
-            var msgs = user.message;
-            for(var i=0,len=msgs.length;i<len;i++){
-                if ((msgs[i].fromUser ===otherUser || msgs[i].toUser===otherUser) && msgs[i].isRead===false) {
-                    msgs[i].isRead = true;
+        User.findOne({username:selfUser},(err,user)=>{
+            /*
+            for(var i=0,len=user.message.length;i<len;i++){
+                
+                if ((user.message[i].fromUser == otherUser || user.message[i].toUser ==otherUser) && user.message[i].isRead==false) {
+                    
+                    
+                    user.message[i].isRead = true;
                     user.markModified('isRead');
+                    
                 }
+                
             }
-            user.save((err)=>{
-                showMsg(socket,selfUser);
-            });
-
-
+            */
+            
         })
+        
+        
     })   
     
     socket.on('send-message',(msg)=>{
@@ -340,7 +311,7 @@ function socketIndex(socket,io){
                          
                          // 通知聊天的另一端客户端接收消息
                          var toSocket = io.to(onlineUsers[toUser].id);
-                         showMsg(toSocket,toUser);
+                         getMsg(toSocket,toUser);
                      }
                 })
                    

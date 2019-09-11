@@ -397,13 +397,10 @@ router.get('/operatecomment',(req,res)=>{
 })
 
 router.get('/getUserFollows',(req,res)=>{
-	var { user } = req.query;
-
-	User.findOne({'username':user},(err,user)=>{
+	var { userid } = req.query;
+	User.findOne({_id:userid},(err,user)=>{
 		var follows = user.userFollow;
-		var ids = follows.map(item=>item.id);
-		
-		User.find({'_id':{$in:ids}},(err,users)=>{
+		User.find({'_id':{$in:follows}},(err,users)=>{
 			var users = users.map(item=>{
 				var obj = {};
 				obj.id = item._id;

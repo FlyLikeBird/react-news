@@ -17,7 +17,7 @@ class  CommentUserSelect extends React.Component{
 
     
     componentDidMount(){
-        fetch(`/usr/getUserFollows?user=${localStorage.getItem('username')}`)
+        fetch(`/usr/getUserFollows?userid=${localStorage.getItem('userid')}`)
             .then(response=>response.json())
             .then(json=>{
                 var userList = json.data;
@@ -83,17 +83,27 @@ class  CommentUserSelect extends React.Component{
     }
 
     handleBlur(){
-        /*
-        if(this.props.onClose){
-            this.props.onClose()
+        var { onClose, onSelect, form } = this.props;
+        var { getFieldValue } = form;
+        var str = '';
+        var selectedUsers = getFieldValue('user-select');
+        if (selectedUsers.length){
+            var format = selectedUsers.map(item=>{
+                return '@'+item;
+            });
+            str = format.join(' ') + ' ';
+            if(onSelect) onSelect(str)
+        } else {
+            
         }
-        */
+        if(onClose) onClose();
+        
     }
 
     render(){
         
         var {getFieldDecorator} = this.props.form;
-        var { userList } = this.state;
+        var { userList, open } = this.state;
         var { leftPosition } = this.props;
         
         const selectStyle = {
@@ -104,7 +114,7 @@ class  CommentUserSelect extends React.Component{
         }
         
         var userContent = userList.map((item,index)=>(
-                            <Option className="hello" key={index} value={item.id}>{item.username}</Option>
+                            <Option className="hello" key={index} value={item.username}>{item.username}</Option>
                         ))
 
         
@@ -117,7 +127,7 @@ class  CommentUserSelect extends React.Component{
                         <Select 
                             mode="tags" 
                             onBlur={this.handleBlur.bind(this)} 
-                            open={this.state.open}
+                            open={open}
                             dropdownMatchSelectWidth={false} 
                         >
                             { userContent }

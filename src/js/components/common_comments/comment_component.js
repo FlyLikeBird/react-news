@@ -7,56 +7,8 @@ import { Row,Col, Avatar, List, Card, Popover, Modal, Icon } from 'antd';
 import  CommentsList  from './comments_list';
 import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
-import { parseDate, formatDate } from '../../../utils/translateDate';
+import { parseDate, formatDate, getElementTop } from '../../../utils/translateDate';
 const { Meta } = Card;
-
-function sortList(arr){
-  arr.sort((a,b)=>{
-    var time1 = Date.parse(a.date);
-    var time2 = Date.parse(b.date);
-    return time2 - time1
-  })
-  
-}
-
-class ListContent extends React.Component {
-  constructor(){
-    super();
-    this.state = {
-      comments:[]
-    }
-  }
-
-  componentDidMount(){
-    var { commentid } = this.props;
-    fetch(`/comment/getOneComment?commentid=${commentid}`)
-      .then(response=>response.json())
-      .then(json=>{
-          var comments = json.data;
-          comments = comments.map(item=>{
-
-              var username = localStorage.getItem('username');
-              item.replies = item.replies.map(reply=>{
-                reply['owncomment'] = reply.fromUser === username ? true : false;
-                return reply;
-              })
-              sortList(item.replies);
-              return item
-                    
-          })
-          //console.log(comments);
-          this.setState({comments});
-      })
-  }
-
-  render(){
-    var { comments } = this.state;
-    var { commentid } = this.props;
-    return (
-        <CommentsList comments={comments} isSub={false} hasDelete={true}/>
-    )
-  }
-}
 
 export default class CommentComponent extends React.Component{
   constructor(){
@@ -66,7 +18,6 @@ export default class CommentComponent extends React.Component{
       content:'',
       img:'',
       previewVisible:false,
-      listVisible:false,
       showReplies:true
     }
   }
@@ -99,10 +50,6 @@ export default class CommentComponent extends React.Component{
     
   }
 
-  openCommentList(boolean){
-      this.setState({listVisible:boolean});
-  }
-
   handlePreview(boolean,img){
       this.setState({previewVisible:boolean,img})
   }
@@ -120,7 +67,21 @@ export default class CommentComponent extends React.Component{
   }
 
   componentDidMount(){
-    let { replies } = this.props.comment;
+    var { setScrollTop, comment, forTrack } = this.props;
+    let { replies, selected } = comment;
+    if (selected){
+        var selectedDom = document.getElementsByClassName('comment selected')[0];
+        if (selectedDom){
+            var scrollTop = getElementTop(selectedDom);
+            if (setScrollTop) setScrollTop(scrollTop);
+            setTimeout(()=>{
+                selectedDom.classList.remove('selected');
+            },3000)
+        }   
+    }
+    if (forTrack) {
+      this.setState({showReplies:selected});
+    }
     this.setState({replies})
   }
   
@@ -131,15 +92,14 @@ export default class CommentComponent extends React.Component{
 
   render(){
     
-    let { username, content, date, _id, like, dislike, replies, fromUser, toUser, fromSubTextarea, avatar, images, uniquekey, newstime, auth, type, title, thumbnail, fathercommentid, owncomment} = this.props.comment;
+    let { username, content, date, _id, like, dislike, replies, fromUser, toUser, selected, fromSubTextarea, avatar, images, uniquekey, newstime, auth, type, title, thumbnail, fathercommentid, owncomment} = this.props.comment;
 
-    let { parentcommentid, isSub, socket, history, index, forUser, grayBg, onDelete, onVisible, hasDelete }= this.props;
-    let { previewVisible, img, listVisible, showReplies  } = this.state;
+    let { parentcommentid, isSub, socket, history, index, forUser, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
+    let { previewVisible, img, showReplies  } = this.state;
     let commentDate = formatDate(parseDate(date));
-    //console.log(this.state.replies);
+    
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
     parentcommentid = parentcommentid ? parentcommentid : fathercommentid ? fathercommentid : '';
-
     const buttonProps = {
       isSub,
       username,
@@ -147,10 +107,12 @@ export default class CommentComponent extends React.Component{
       onDelete,
       onVisible,
       socket,
+      uniquekey,
       replies:this.state.replies,
       history,
       hasDelete,
       grayBg,
+      owncomment,
       commentid:_id,
       parentcommentid,
       like,
@@ -169,7 +131,7 @@ export default class CommentComponent extends React.Component{
     return (
       
 
-      <Card style={{background:grayBg?'#f9f9f9':'#fff'}} className={forUser?'comment user':'comment'}>
+      <Card className={forUser?'comment user':selected ? 'comment selected' :'comment'}>
                 <div>
                     <div style={{display:'flex',alignItems:'center'}}>
                       <Popover content={<CommentPopoverUserAvatar user={username?username:fromUser}/>}><div className="avatar-container"><img src={avatar} /></div></Popover>
@@ -184,7 +146,7 @@ export default class CommentComponent extends React.Component{
                           forUser
                           ?
                           
-                          <span className="comment-button" onClick={this.openCommentList.bind(this,true)}>查看评论列表<Icon type="caret-right" /></span>
+                          <span className="comment-button" onClick={()=>onShowList(true,_id,parentcommentid)}>管理评论列表<Icon type="caret-right" /></span>
                           :
                           null
                           
@@ -251,25 +213,15 @@ export default class CommentComponent extends React.Component{
                             comments={this.state.replies} 
                             hasDelete={hasDelete} 
                             onVisible={onVisible}
+                            onDelete={onDelete}
                             onUpdateFromSub={this.handleUpdateReplies.bind(this)} 
                             grayBg={grayBg}/>
-                      </div>
-                      
-                      
+                      </div>                      
                     }
                     <Modal className="no-bg" visible={previewVisible} maskClosable={true} onCancel={()=>this.handlePreview(false)} footer={null}>
                       <img src={img} />
                     </Modal>
-                    {
-                      forUser
-                      ?
-                      <Modal visible={listVisible} maskClosable={true} footer={null} onCancel={()=>this.openCommentList(false)} destroyOnClose={true}>
-                        <ListContent commentid={parentcommentid?parentcommentid:_id}/>
-                      </Modal>
-                      :
-                      null
-
-                    }
+                    
                     
                 </div>
             

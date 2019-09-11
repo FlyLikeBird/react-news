@@ -60,7 +60,6 @@ export default class Root extends React.Component {
         var socket = io.connect('http://localhost:8080');       
         socket.on('connect',()=>{
            socket.emit('user-login',localStorage.getItem('username'));
-
            socket.on('receive-message',(msg)=>{
               //console.log(msg);
               this.setState({msg,socket});
@@ -72,6 +71,14 @@ export default class Root extends React.Component {
       var target = e.currentTarget;
       //console.log(target.scrollTop);
       
+    }
+
+    _setScrollTop(top){
+        var container = this.container;
+        if (container){
+            console.log(top);
+            container.scrollTop = top;
+        }
     }
 
     componentDidMount(){
@@ -98,9 +105,9 @@ export default class Root extends React.Component {
                               props.onsocket=this.connectSocket.bind(this);
                               props.socket=socket;
                               props.msg=msg;
-                              return  <div className="detail-container" style={{height:bodyHeight}} onScroll={this.handleScroll.bind(this)}>
+                              return  <div className="detail-container" ref={container=>this.container=container} style={{height:bodyHeight}} onScroll={this.handleScroll.bind(this)}>
                                         <PCHeader {...props} />
-                                        <PCNewsDetails {...props}/>
+                                        <PCNewsDetails {...props} setScrollTop={this._setScrollTop.bind(this)}/>
                                       </div>
                               }}>
                       </Route>

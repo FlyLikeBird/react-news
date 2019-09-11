@@ -18,7 +18,9 @@ export default class CommentsListContainer extends React.Component{
       visible:false,
       text:'',
       translateData:[],
-      isLoad:true    
+      currentPageNum:1,
+      isLoad:true,
+      forTrack:false    
     }
   }
 
@@ -28,30 +30,29 @@ export default class CommentsListContainer extends React.Component{
 
   _loadComments(num=1,order='time'){
     //console.log(order);
-    var { uniquekey, pageNum } = this.props;
+    var { uniquekey, location } = this.props;
     var finalPageNum = num;
-    if (pageNum) finalPageNum = pageNum;
+    var forTrack = false;
+    if (location.state && location.state.pageNum){
+        var { pageNum } = location.state;
+        finalPageNum = pageNum;
+        forTrack = location.state.forTrack;
+    }
     var username = localStorage.getItem('username');
     //console.log(uniquekey);
     if (uniquekey){
-
+      
       fetch(`/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
       .then(response=>response.json())
       .then(data=>{
         var data = data.data;
-        var { comments, total } = data;
-  
-        for(var i=0;i<comments.length;i++){
-              if (comments[i].replies.length){
-                comments[i].replies.sort((a,b)=>{
-                   var time1 = Date.parse(a.date),time2 = Date.parse(b.date);
-                    return time2 - time1;
-                })
-              }
-              
-        }       
+        var { comments, total } = data; 
+        if (location.state){
+            var { commentid, parentcommentid } = location.state;
+        } 
         comments = comments.map(item=>{
             item['owncomment'] = username === item.username ? true : false;
+            item['selected'] = item._id == commentid ? true : false;
             item.replies = item.replies.map(reply=>{
               reply['owncomment'] = reply.fromUser === username ? true : false;
               return reply;
@@ -59,7 +60,8 @@ export default class CommentsListContainer extends React.Component{
             return item;
         })
         
-        this.setState({comments,total,isLoad:false});
+        this.setState({comments,total,isLoad:false,currentPageNum:finalPageNum,forTrack});
+        location.state = null;
       })
     }
     
@@ -67,7 +69,7 @@ export default class CommentsListContainer extends React.Component{
  }
 
 handlePageChange(num){
-    this.setState({isLoad:true});
+    this.setState({isLoad:true,currentPageNum:num});
     this._loadComments(num,this.state.order);
 }
 
@@ -111,8 +113,9 @@ handleShareVisible(boolean,commentid,parentcommentid){
 }
 
 render(){
-  var { socket, uniquekey, hasCommentInput, text, shareType, history } = this.props;
-  var { comments, total, value, visible, text, translateData, isLoad } = this.state;
+  var { socket, uniquekey, hasCommentInput, text, shareType, history, setScrollTop } = this.props;
+  var { comments, total, value, visible, text, translateData, isLoad, currentPageNum, forTrack } = this.state;
+  
   const dropdownStyle = {
     width:'160px',
     fontSize:'12px'
@@ -155,14 +158,22 @@ render(){
            ?
            <Spin/>
            :
-           <CommentsList isSub={false}  socket={socket} history={history} comments={comments} onVisible={this.handleShareVisible.bind(this)} text="还没有用户评论呢!快来抢沙发吧～" />
+           <CommentsList 
+              isSub={false}  
+              socket={socket} 
+              history={history} 
+              comments={comments} 
+              onVisible={this.handleShareVisible.bind(this)}
+              forTrack={forTrack}
+              setScrollTop={setScrollTop} 
+              text="还没有用户评论呢!快来抢沙发吧～" />
         }  
         
          
         {
           comments.length
           ?
-          <Pagination style={{padding:'20px 0'}} size="small" showQuickJumper defaultPageSize={10} total={total} onChange={this.handlePageChange.bind(this)}/>
+          <Pagination style={{padding:'20px 0'}} size="small" showQuickJumper current={currentPageNum} defaultPageSize={10} total={total} onChange={this.handlePageChange.bind(this)} hideOnSinglePage={true}/>
           :
           null
         }
