@@ -1,10 +1,6 @@
 import React from 'react';
-
 import { Card, Avatar, Badge } from 'antd';
-
 import { parseDate, formatDate } from '../../../utils/translateDate';
-
-const { Meta } = Card;
 
 export default class MessageItem extends React.Component{
     constructor(){
@@ -38,29 +34,24 @@ export default class MessageItem extends React.Component{
     }
 
     render(){
-        
-        let { data, msgCount, msgKey, socket  } = this.props;
-        
+        var { avatar } = this.state;
+        var { data, msgCount, msgKey, socket, text  } = this.props;
+        var latestMsg = data[data.length-1];
         
         return(
             data.length
             ?
-            <Card size="small" bordered={false} onClick={this.handleClick.bind(this,msgKey)}>
-                <Meta
-                    avatar={<Badge count={msgCount}><Avatar src={this.state.avatar} /></Badge>}
-                    title = {msgKey}
-                    description={
-
-                        <div>
-                            <span className="ant-text">{data[data.length-1].content}</span>
-                            <span style={{position:'absolute',right:'0',top:'0'}} className="ant-text">{formatDate(parseDate(data[data.length-1].msgtime))}</span>
-                        </div>
-                    
-                    }
-                />
-            </Card>
+            <div className="msg-container" onClick={this.handleClick.bind(this,msgKey)}>       
+                <Badge count={msgCount}><div className="avatar-container"><img src={avatar} /></div></Badge>
+                <div>
+                    <div><span>{msgKey}</span></div>
+                    <div><span>{latestMsg.content}</span></div>
+                    <span className="text">{`发布于 ${formatDate(parseDate(latestMsg.msgtime))}`}</span>
+                </div>
+                        
+            </div>
             :
-            <div>{this.props.text}</div>
+            <div>{text}</div>
         
 
         )

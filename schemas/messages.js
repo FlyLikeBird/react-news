@@ -5,13 +5,17 @@
 var mongoose = require('mongoose');
 
 module.exports = new mongoose.Schema({
+    
     fromUser:String,
     toUser:String,
     msgtype:String,
-
-    message:[{content:String,fromUser:String,msgtime:String,isRead:{type:Boolean,default:false}}], 
-    
-    avatar:{type:String,default:'http://localhost:8080/logo.png'}   
+    msgtime:String,
+    //  指@消息时的内容Id, articleId,topicId,actionId
+    uniquekey:String,
+    isRead:{type:Boolean,default:false},
+    content:String
+            
+        
 });
 
 

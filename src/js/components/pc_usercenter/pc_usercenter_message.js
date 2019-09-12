@@ -49,7 +49,7 @@ export default class MessageContainer extends React.Component{
             
             <div>
                 <Collapse className="message-container" bordered={false} defaultActiveKey={['system','update','user']}>
-                    <Panel header="动态消息" key="update">
+                    <Panel header="@我的消息" key="update">
                         {
                             actionKeys.map((msgKey,index)=>(
                                 <MessageItem key={index}  data={actionMsg[msgKey]} msgCount={actionNotRead[msgKey]} msgKey={msgKey} socket={socket} onShowChatList={this.handleShowChatList.bind(this)} text="暂无动态消息" />

@@ -198,7 +198,7 @@ export default class UpdateItem extends React.Component{
                 <Card className="action-card">
                     
                     <div>
-                        <div style={{display:'flex'}}>
+                        <div style={{display:'flex',alignItems:'center'}}>
                             <div className="avatar-container"><img src={avatar} /></div>
                             <div>
                                 <div><span style={{color:'#000',fontWeight:'500'}}>{username}</span></div>

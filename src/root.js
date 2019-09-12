@@ -41,13 +41,13 @@ export default class Root extends React.Component {
     }
     
     componentWillMount(){
-
-      if (localStorage.getItem('username')){
+      var username = localStorage.getItem('username');     
+      if ( username  ){
         var socket = io.connect('http://localhost:8080');
         socket.on('connect',()=>{
-           socket.emit('user-login',localStorage.getItem('username'));
+           socket.emit('user-login',username);
            socket.on('receive-message',(msg)=>{
-              //console.log(msg);
+              console.log(msg);
               this.setState({msg,socket});
            });
            
@@ -76,7 +76,6 @@ export default class Root extends React.Component {
     _setScrollTop(top){
         var container = this.container;
         if (container){
-            console.log(top);
             container.scrollTop = top;
         }
     }

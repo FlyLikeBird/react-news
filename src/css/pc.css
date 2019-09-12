@@ -1035,22 +1035,6 @@ span.ant-text {
     font-size:10px;
 }
 
-.message-container  .ant-collapse-content-box {
-    padding:10px 0 4px 20px;
-}
-
-.message-container ul>li.ant-list-item {
-    padding:6px;
-}
-
-.message-container ul>li.ant-list-item .ant-list-item-meta-content{
-    position:relative;
-}
-
-.message-container ul>li.ant-list-item .ant-list-item-meta-content{
-    position:relative;
-}
-
 .chatRecord-container{
     top:50px;
 }
@@ -2140,6 +2124,52 @@ span.ant-text {
 .ant-select.filter {
     font-size:12px;
     margin-left:10px;
+}
+
+/*
+    消息列表样式
+*/
+
+.message-container  .ant-collapse-content-box {
+    padding:0;
+}
+
+.message-container .ant-ant-collapse-item.ant-collapse-item-active .ant-collapse-header{
+    padding:4px 16px;
+}
+
+.msg-container {
+    padding:10px 40px;
+    position:relative;
+    display:flex;
+    align-items: center;
+    font-size:12px;
+    border-bottom:1px solid #f9f9f9;
+}
+
+.msg-container .avatar-container {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.msg-container .avatar-container img {
+    width:100%;
+    height:100%;
+}
+
+.msg-container:last-of-type{
+    border-bottom:none;
+}
+
+.msg-container .text{
+    position:absolute;
+    right:0;
+    top:10px;
+    display:inline-block;
+    transform:scale(0.7);
 }
 
 @keyframes selectedComment {

@@ -3,6 +3,7 @@
  */
 
 var mongoose = require('mongoose');
+var messageSchema = require('./messages');
 
 module.exports = new mongoose.Schema({
     username:String,
@@ -13,19 +14,7 @@ module.exports = new mongoose.Schema({
     userAction:[String],
     userHistory:[{articleId:String,viewtime:String}],
     userTopic:[String],
-    message:[
-        {
-            fromUser:String,
-            toUser:String,
-            msgtype:String,
-            msgtime:String,
-            //  指@消息时的内容Id, articleId,topicId,actionId
-            uniquekey:String,
-            isRead:{type:Boolean,default:false},
-            content:String
-            
-        }
-    ],
+    message:[messageSchema],
     description:{type:String,default:'还未设置签名～'},
     level:{type:Number,default:0},
     userImage:{type:String,default:"https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png",trim:true},

@@ -148,6 +148,7 @@ function getMsg(socket,user){
 function socketIndex(socket,io){
     
     socket.on('user-login',(user)=>{
+        
         onlineUsers[user] = {
             id:socket.id
         };
@@ -167,14 +168,12 @@ function socketIndex(socket,io){
                 toUser
             }
         }
-        console.log(onlineUsers);
 
         socket.on('chattingClosed',()=>{
             onlineUsers[fromUser] = {
                 id:socket.id,
                 isChatting:null
             }
-            console.log(onlineUsers);
         })
     })
 
@@ -247,26 +246,22 @@ function socketIndex(socket,io){
     });
 
 
-    socket.on('markMsgIsRead',(otherUser,selfUser)=>{
-        
-        User.findOne({username:selfUser},(err,user)=>{
-            /*
-            for(var i=0,len=user.message.length;i<len;i++){
-                
-                if ((user.message[i].fromUser == otherUser || user.message[i].toUser ==otherUser) && user.message[i].isRead==false) {
-                    
-                    
-                    user.message[i].isRead = true;
-                    user.markModified('isRead');
-                    
+    socket.on('markMsgIsRead',(otherUser,selfUser)=>{       
+        User.findOne({'username':selfUser},(err,user)=>{
+            var messages = user.message;            
+            for(var i=0,len=messages.length;i<len;i++){
+                if((messages[i].fromUser == otherUser || messages[i].toUser == otherUser) && messages[i].isRead == false){
+                    messages[i].isRead = true;
+
                 }
-                
             }
-            */
+            user.markModified('isRead');
+            user.save(()=>{
+                getMsg(socket,selfUser);
+            })
             
         })
-        
-        
+                
     })   
     
     socket.on('send-message',(msg)=>{

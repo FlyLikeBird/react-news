@@ -50,11 +50,8 @@ router.post('/register',(req,res)=>{
 		loginTime:date
 
 	});
-
 	user.save()
 		.then(()=>{
-
-
 			User.findOne({username:r_userName},(err,userInfo)=>{
 				let data = {};
 				data.username = userInfo.username;
