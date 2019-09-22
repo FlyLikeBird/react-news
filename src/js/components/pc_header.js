@@ -71,13 +71,13 @@ const TabPane = Tabs.TabPane;
    
     handleLogined(userInfo){
       
-      localStorage.setItem('username',userInfo.data.username);
-      localStorage.setItem('userid',userInfo.data.userId);
+      localStorage.setItem('username',userInfo.username);
+      localStorage.setItem('userid',userInfo.userid);
       if (this.props.onsocket){
         this.props.onsocket();
       }
 
-      this.setState({hasLogined:true,modalVisible:false,username:userInfo.data.username,userid:userInfo.data.userId});
+      this.setState({hasLogined:true,modalVisible:false,username:userInfo.username,userid:userInfo.userid});
       
     }
     

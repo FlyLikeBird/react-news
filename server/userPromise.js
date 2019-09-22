@@ -178,10 +178,8 @@ function getUserComments(username,resolve){
         
       })
       
-      Article.find({articleId:{$in:ids}},(err,articles)=>{
-          
-          data = data.map(item=>{
-            
+      Article.find({articleId:{$in:ids}},(err,articles)=>{          
+          data = data.map(item=>{           
             for(var i=0,len=articles.length;i<len;i++){
               if(item.uniquekey === articles[i].articleId){
                 item['newstime'] = articles[i].newstime;
@@ -258,10 +256,46 @@ function getUserCollect(userid,resolve){
     })
 }
 
+function getUserActionMsg(msgDoc,resolve){
+    var obj = {},uniquekey = msgDoc.uniquekey;
+    obj.username = msgDoc.fromUser;
+    obj._id = msgDoc._id;
+    obj.content = msgDoc.content;
+    obj.date = msgDoc.msgtime;
+    obj.uniquekey = msgDoc.uniquekey;
+    obj.isRead = msgDoc.isRead;
+    var commentType = msgDoc.commentType;
+    /*
+    User.findOne({username:msgDoc.fromUser},(err,user)=>{
+        var avatar = user.userImage;
+        obj.avatar = avatar;
+        if (commentType =='news'){
+            Article.findOne({articleId:uniquekey},(err,article)=>{
+                obj.newstime = article.newstime;
+                obj.title = article.title;
+                obj.auth = article.auth;
+                obj.type = article.type;
+                obj.thumbnail = selectImgByUniquekey(article.content)[0];
+                resolve(obj);
+    
+            })
+        } else if (commentType == 'topic') {
+    
+        } else if (commentType == 'action') {
+    
+        }
+    })
+    */
+    resolve(obj);
+    
+
+}
+
 module.exports = {
     getUserFollows,
     getUserActions,
     getUserComments,
     getUserHistory,
-    getUserCollect
+    getUserCollect,
+    getUserActionMsg
 }

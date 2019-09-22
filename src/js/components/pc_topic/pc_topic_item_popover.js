@@ -3,7 +3,7 @@ import React from 'react';
 export default class TopicItemPopover extends React.Component{
     
     render(){
-       var { data, hasText } = this.props;
+       var { data, text, hasText } = this.props;
         
         return(
 
@@ -32,7 +32,7 @@ export default class TopicItemPopover extends React.Component{
                         }
                     </ul>
                     :
-                    null
+                    <p>{text}</p>
                 }
             </div>
                        

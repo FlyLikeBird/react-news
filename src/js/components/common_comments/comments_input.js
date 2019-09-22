@@ -1,12 +1,20 @@
 import React from 'react';
 import { Form, Input, Button ,Select, Icon, Upload } from 'antd';
 
+import { formatContent } from '../../../utils/translateDate';
 import  CommentUserSelect from './comments_user_select';
 const FormItem = Form.Item;
 const { TextArea } = Input;
 
-var selectItem = '';
-var timeoutId = 0;
+var pattern = /(.*?)@([^@|\s]+)/g;
+
+function sendActionMsg(content, commentid, socket){
+    var data = formatContent(pattern,content);
+    if (data.length){
+        var users = data.map(item=>item.user);              
+        socket.emit('send@Msg',users, localStorage.getItem('username'), commentid);
+    }           
+}
 
 class CommentsInput extends React.Component{
     constructor(){
@@ -24,7 +32,7 @@ class CommentsInput extends React.Component{
     handleSubmit(e){
         e.preventDefault();
         var { validateFields, setFieldsValue } = this.props.form;
-        var { socket, uniquekey, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
+        var { socket, uniquekey, commentType, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
         var { fileList } = this.state;
         validateFields(['comments'],(errs,values)=>{
             var username = localStorage.getItem('username');
@@ -38,15 +46,16 @@ class CommentsInput extends React.Component{
                     }
                     formData.append('username',localStorage.getItem('username'));
                     formData.append('content',comments);
-                    formData.append('uniquekey',uniquekey)
-                    
+                    formData.append('commentType',commentType);
+                    formData.append('uniquekey',uniquekey)                    
                     fetch('/comment/addcomment',{
                         method:'post',
                         body:formData
                     })
                     .then(response=>response.json())
                     .then(json=>{
-                        var comments = json.data;                        
+                        var data = json.data;
+                        var { comments, commentid } = data;                       
                         comments = comments.map(item=>{
                             item['owncomment'] = username === item.username ? true : false;
                             item.replies = item.replies.map(reply=>{
@@ -57,16 +66,11 @@ class CommentsInput extends React.Component{
                         })
                         if(onAddComment) onAddComment(comments);
                         if(onShowReply) onShowReply();
-                                              
+                        sendActionMsg(values['comments'], commentid, socket);                                               
                     })
                 } else {
                     //  回复评论逻辑
                     var { fromUser, toUser, isSub, parentcommentid, commentid } = this.props;
-                    /*
-                    console.log(fromUser,toUser,isSub);
-                    console.log(parentcommentid);
-                    console.log(commentid);
-                    */
                     var formData = new FormData();
                     for(var i=0,len=fileList.length;i<len;i++){
                         formData.append('images',fileList[i].originFileObj);
@@ -77,8 +81,7 @@ class CommentsInput extends React.Component{
                     formData.append('parentcommentid',parentcommentid?parentcommentid:'');
                     formData.append('commentid',commentid);
                     formData.append('isSub',isSub?true:'');
-                    formData.append('uniquekey',uniquekey)
-        
+                    formData.append('uniquekey',uniquekey)        
                     fetch(`/comment/addreplycomment`,{
                         method:'post',
                         body:formData
@@ -101,17 +104,6 @@ class CommentsInput extends React.Component{
                     
                 }
 
-                //  向@的用户发送动态消息
-                /*
-                var match = content.match(/@([^@]+)/g);
-
-                if (match) {
-                    var pattern = /(^\s*)|(\s*$)/g;
-                    match = match.map(item=>item.replace(pattern,''))
-
-                    socket.emit('send-@msg',match,localStorage.getItem('username'));
-                }
-                */
                 setFieldsValue({'comments':''});
                 this.setState({fileList:[]})
             }
@@ -129,20 +121,20 @@ class CommentsInput extends React.Component{
       }    
     }
     
-    handleKeyDown(e){        
+    handleKeyUp(e){        
         if(e.keyCode === 50 && e.shiftKey){
             if(this.textArea && this.textArea.textAreaRef){
                 var textarea = this.textArea.textAreaRef;
                 var start = textarea.selectionStart;               
                 var leftPosition = start * 10 + 'px';
                 
-                    this.setState({showSelect:true,leftPosition});
+                this.setState({showSelect:true,leftPosition});
                               
             }
             
         }
     }
-     
+    
     handleCloseUserSelect(){
         this.setState({showSelect:false})
     }
@@ -205,8 +197,18 @@ class CommentsInput extends React.Component{
         var result = '';
         var { getFieldValue, setFieldsValue } = form;
         var prevValue = getFieldValue('comments');
-        result = prevValue + value;
+        if (value){
+            prevValue = prevValue.substring(0,prevValue.length-1);
+            result = prevValue + value;
+        } else {
+            
+            result = prevValue;
+        }        
         setFieldsValue({'comments':result});
+        if(this.textArea && this.textArea.textAreaRef){
+            var textarea = this.textArea.textAreaRef;
+            textarea.focus();
+        }
     }
 
     render(){
@@ -241,7 +243,13 @@ class CommentsInput extends React.Component{
                                 validator:this.checkComments
                             }]
                         })(
-                          <TextArea rows={2} ref={textArea=>this.textArea = textArea} onKeyDown={this.handleKeyDown.bind(this)} placeholder="请发表您的评论" /> 
+                          <TextArea 
+                                rows={2} 
+                                ref={textArea=>this.textArea = textArea} 
+                                //onKeyDown={this.handleKeyDown.bind(this)} 
+                                onKeyUp={this.handleKeyUp.bind(this)}
+                                placeholder="发表你的看法吧~输入@可通知其他用户" 
+                            /> 
                         )}
                     </FormItem>
                     <FormItem>

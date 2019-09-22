@@ -103,57 +103,59 @@ export default class CommentPopoverUserAvatar extends React.Component{
                           <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleAddFollow.bind(this,id)}><Icon type="plus" />互相关注</div>
     return (
       
-      <Card 
-          className="popover-card" 
-          bordered={false}
-      >
-          
-            <div className="popover-card-imgContainer">
-              <img src={userImage} />
-            </div>
-            <div>
-              <div><h3 style={{margin:'0'}}>{username}</h3></div>
-              <div className="user-level-rightTop">
-                  <div><span style={ levelStyle } ><span className="num">{level?totalLevel.levelNum:0}</span><span style={{marginRight:'10px'}} className="ant-text">{ levelArr[level?totalLevel.levelNum:0].text } <Popover trigger="hover" content={content}><Icon type="question-circle"/></Popover></span></span></div>           
-              </div>
-              <div className="user-text-container">
-                <span className="ant-text">签名: {description}</span>
-              </div>
-
-              <div className="user-follow-container" style={{marginTop:'10px',marginLeft:'0'}}>
-                <div className="user-follow">
-                  <p><span style={{color:'#000'}} className="ant-text">关注者</span></p>
-                  <p><span> {userFollow?userFollow.length:0} </span></p>
-                </div>
-                <div className="user-fans">
-                  <p><span style={{color:'#000'}} className="ant-text">追随者</span></p>
-                  <p><span>{ userFans?userFans.length:0}</span></p>
-                </div>
-              </div>
-
-              
-              {
-                  isSelf
-                  ?
-                  <div className="user-bottom-container">
-                  
-                    <div>
-                      <Link to={`/usercenter/${id}`}><Icon type="idcard"/>我的空间</Link>
-                    </div>
-    
+      <Card className="popover-card" bordered={false}>
+          {
+              username && id
+              ?
+              <div>
+                  <div className="popover-card-imgContainer">
+                      <img src={userImage} />
                   </div>
-                  :
-                  <div className="user-bottom-container">
-                    { followContent }
-                    <div>
-                      <Link to={`/usercenter/${id}`}><Icon type="idcard"/>TA的空间</Link>
-                    </div>
-    
+                  <div>
+                      <div><h3 style={{margin:'0'}}>{username}</h3></div>
+                      <div className="user-level-rightTop">
+                          <div><span style={ levelStyle } ><span className="num">{level?totalLevel.levelNum:0}</span><span style={{marginRight:'10px'}} className="ant-text">{ levelArr[level?totalLevel.levelNum:0].text } <Popover trigger="hover" content={content}><Icon type="question-circle"/></Popover></span></span></div>           
+                      </div>
+                      <div className="user-text-container">
+                        <span className="ant-text">签名: {description}</span>
+                      </div>
+        
+                      <div className="user-follow-container" style={{marginTop:'10px',marginLeft:'0'}}>
+                        <div className="user-follow">
+                          <p><span style={{color:'#000'}} className="ant-text">关注者</span></p>
+                          <p><span> {userFollow?userFollow.length:0} </span></p>
+                        </div>
+                        <div className="user-fans">
+                          <p><span style={{color:'#000'}} className="ant-text">追随者</span></p>
+                          <p><span>{ userFans?userFans.length:0}</span></p>
+                        </div>
+                      </div>                      
+                      {
+                          isSelf
+                          ?
+                          <div className="user-bottom-container">
+                          
+                            <div>
+                              <Link to={`/usercenter/${id}`}><Icon type="idcard"/>我的空间</Link>
+                            </div>
+            
+                          </div>
+                          :
+                          <div className="user-bottom-container">
+                            { followContent }
+                            <div>
+                              <Link to={`/usercenter/${id}`}><Icon type="idcard"/>TA的空间</Link>
+                            </div>
+            
+                          </div>
+                      }
+                      
                   </div>
-              }
-              
-            </div>
-          
+              </div>
+              :
+              <p>该用户不存在!</p>
+          }
+                   
       </Card>
   
     )

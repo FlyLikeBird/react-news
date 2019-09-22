@@ -25,17 +25,11 @@ export function formatDate (date) {
 }
 
 export function getElementTop (el) {
-
 　　　　var actualTop = el.offsetTop
-
 　　　　var current = el.offsetParent
-
 　　　　while (current !== null) {
-
 　　　　　　actualTop += current.offsetTop
-
 　　　　　　current = current.offsetParent
-
 　　　　}
 　　　　return actualTop
 }
@@ -55,9 +49,44 @@ export function translateType(type){
         case 'comment':
             str = '评论';
             break;
+        case 'msg':
+            str = '消息';
+            break;
+        case 'actionMsg':
+            str = '消息';
+            break;
 
     }
     return str;
+}
+
+export function formatContent(pattern,content){   
+    var str = content;
+    var remainStr = '';
+    var data = [];
+    var result = pattern.exec(str);
+    if(result){
+        while(result){
+            var obj = {};
+            obj['text'] = result[1];
+            obj['user'] = result[2];
+            data.push(obj);
+            //  获取匹配后的剩余字符串
+            if(result.index<str.length){
+                remainStr = str.substring(result['index']+result[0].length,str.length);
+            }  
+    
+            result = pattern.exec(str);
+        }
+        if(remainStr&&remainStr.length){
+            data.push({
+              text:remainStr,
+              user:null
+            })
+        }
+       
+    }
+    return data; 
 }
 
 

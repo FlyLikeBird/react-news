@@ -5,6 +5,8 @@ import CommentsList  from './comments_list';
 import CommentsInput from './comments_input';
 import ShareModal from './comment_share_modal';
 
+import { formatContent } from '../../../utils/translateDate';
+
 const { Option, OptGroup } = Select;
 
 export default class CommentsListContainer extends React.Component{
@@ -44,11 +46,13 @@ export default class CommentsListContainer extends React.Component{
       
       fetch(`/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
       .then(response=>response.json())
-      .then(data=>{
-        var data = data.data;
+      .then(json=>{
+        var data = json.data;
         var { comments, total } = data; 
+        var commentid = '',parentcommentid = '';
         if (location.state){
-            var { commentid, parentcommentid } = location.state;
+            commentid = location.state.commentid;
+            parentcommentid = location.state.parentcommentid;
         } 
         comments = comments.map(item=>{
             item['owncomment'] = username === item.username ? true : false;
@@ -89,23 +93,12 @@ handleAddComment(list){
 
 handleShareVisible(boolean,commentid,parentcommentid){
     if (boolean === true){
-
       fetch(`/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}`)
       .then(response=>response.json())
-      .then(json=>{
-          var text= json.data;
-          var data = [];
-          var pattern = /@([^:]+):([^@]+)/g;
-          var result = pattern.exec(text);
-          while(result){              
-              data.push({
-                username:result[1],
-                content:result[2]
-              });              
-              result = pattern.exec(text);
-          }     
-              
-          this.setState({visible:boolean,text,translateData:data})
+      .then(json=>{   
+          var str = json.data;      
+          var data = formatContent(/(.*?)@([^@|\s|:]+:*)/g,str);      
+          this.setState({visible:boolean,text:str,translateData:data})
       })    
     } else {
       this.setState({visible:boolean})
@@ -113,7 +106,7 @@ handleShareVisible(boolean,commentid,parentcommentid){
 }
 
 render(){
-  var { socket, uniquekey, hasCommentInput, text, shareType, history, setScrollTop } = this.props;
+  var { socket, uniquekey, hasCommentInput, text, shareType, item, commentType, history, setScrollTop } = this.props;
   var { comments, total, value, visible, text, translateData, isLoad, currentPageNum, forTrack } = this.state;
   
   const dropdownStyle = {
@@ -149,7 +142,7 @@ render(){
         {
           hasCommentInput
           ?
-          <CommentsInput isAddComment socket={socket} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>
+          <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>
           :
           null
         }
@@ -162,7 +155,8 @@ render(){
               isSub={false}  
               socket={socket} 
               history={history} 
-              comments={comments} 
+              comments={comments}
+              commentType={commentType} 
               onVisible={this.handleShareVisible.bind(this)}
               forTrack={forTrack}
               setScrollTop={setScrollTop} 
@@ -186,6 +180,7 @@ render(){
               toId={uniquekey}         
               onVisible={this.handleShareVisible.bind(this)} 
               text={text}
+              item={item}
               data={translateData}
               shareType={shareType}
           />

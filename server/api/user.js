@@ -9,7 +9,6 @@ var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Collect = require('../../models/Collect');
 
-
 var createFolder = function(folder){
     try{
         fs.accessSync(folder); 
@@ -79,28 +78,23 @@ router.post('/register',(req,res)=>{
 		})
 })
 
-router.post('/login',(req,res)=>{
-
-	let { username, password } = req.body;
-	
-	User.findOne({username:username})
-		.then(userInfo=>{
-			if(!userInfo){
-				util.responseClient(res,200,1,'')
+router.get('/login',(req,res)=>{
+	var { username, password } = req.query;	
+	User.findOne({username:username},(err,userInfo)=>{
+		var obj = {};
+		if(!userInfo){
+				util.responseClient(res,200,1,'该用户不存在!',obj);
+		} else {
+			if (userInfo.password === util.md5(password)) {
+				obj.username = userInfo.username;
+				obj.userid = userInfo._id;	
+				util.responseClient(res,200,0,'',obj);
 			} else {
-				if (userInfo.password === util.md5(password)) {
-						let data = {};
-						data.username = userInfo.username;
-
-						data.userId = userInfo._id;	
-					util.responseClient(res,200,0,'',data);
-				} else {
-					util.responseClient(res,200,1,'密码输入错误!')
-				}
+				util.responseClient(res,200,1,'密码输入错误!')
 			}
-		})
-	
-	
+		}
+	})
+		
 })
 
 router.get('/getChatList',(req,res)=>{
@@ -128,18 +122,15 @@ router.get('/getUserAvatar',(req,res)=>{
 
 	User.findOne({'username':other},(err,otherUser)=>{
 		var avatar = {};
-
 		if (!user){
 			if(!otherUser){
 				avatar.otherAvatar = "http://localhost:8080/logo.png";
 			} else {
 				avatar.otherAvatar = otherUser.userImage;
-			}
-			
+			}			
 			util.responseClient(res,200,0,'ok',avatar);
 			return ;
 		}
-
 		User.findOne({'username':user},(err,selfUser)=>{
 
 			if(!otherUser){
@@ -206,27 +197,29 @@ router.get('/getUserInfo',(req,res)=>{
 	User.findOne({'username':localUser},(err,localUser)=>{
 		var follows = localUser.userFollow.map(item=>item.id);
 		var fans = localUser.userFans.map(item=>item.id);
-
 		User.findOne({'username':user},(err,user)=>{
-			var userid = user._id;
 			var obj = {};
-			var status = 0;
-			if (follows.includes(userid)) {
-				if ( fans.includes(userid)){
-					status = 2;
-				} else {
-					status = 1;
+			if(user){
+				var userid = user._id;				
+				var status = 0;
+				if (follows.includes(userid)) {
+					if ( fans.includes(userid)){
+						status = 2;
+					} else {
+						status = 1;
+					}
 				}
+				obj.userFollow = user.userFollow;
+				obj.userFans = user.userFans;
+				obj.description = user.description;
+				obj.level = user.level;
+				obj.username = user.username;
+				obj.userImage = user.userImage;
+				obj.id = user._id;
+				obj.status = status;
+	
+				
 			}
-			obj.userFollow = user.userFollow;
-			obj.userFans = user.userFans;
-			obj.description = user.description;
-			obj.level = user.level;
-			obj.username = user.username;
-			obj.userImage = user.userImage;
-			obj.id = user._id;
-			obj.status = status;
-
 			util.responseClient(res,200,0,'ok',obj);
 
 		})
@@ -249,18 +242,12 @@ router.get('/editSign',(req,res)=>{
 })
 
 router.get('/checkusername',(req,res)=>{
-	let { username } = req.query;
-  //console.log(username);
+	var { username } = req.query;
 	User.findOne({username:username})
 		.then(user=>{
-			//console.log(user);
-			
-			if (user) {
-				
-				
+			if (user) {							
 				util.responseClient(res,200,1,'用户已存在')
-			} else {
-				
+			} else {				
 				util.responseClient(res,200,0,'该用户还未注册！请先完成注册!');
 			}
 			
@@ -305,11 +292,8 @@ router.get('/removeFollow',(req,res)=>{
 
 })
 
-
-
 router.post('/upload',upload.single('file'),(req,res)=>{
-	//console.log(req.file);
-	//console.log(req.file);
+	
 	console.log(req.file);
 	var { username } = req.body;
 	var imgUrl = 'http://localhost:8080/userAvatar/'+req.file.filename;
@@ -330,8 +314,7 @@ router.post('/upload',upload.single('file'),(req,res)=>{
 					util.responseClient(res,200,0,'ok',data);
 				}
 
-			})
-	
+			})	
 	})
 	
 })
@@ -407,6 +390,14 @@ router.get('/getUserFollows',(req,res)=>{
 			
 			util.responseClient(res,200,0,'ok',users);
 		})
+	})
+})
+
+router.get('/removeActionMsg',(req,res)=>{
+	var { userid, msgId } = req.query;
+	User.updateOne({'_id':userid},{$pull:{message:{'_id':msgId}}},(err,result)=>{
+		console.log(result);
+		util.responseClient(res,200,0,'ok');
 	})
 })
 module.exports = router

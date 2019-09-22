@@ -347,15 +347,12 @@ router.get('/getArticleList',(req,res)=>{
 
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
-
   Article.findOne({'articleId':uniquekey})
           .exec((err,article)=>{
-            if (article){
-              
+            if (article){             
               var data = {};
               data.content = article.content;
               data.viewcount = article.viewcount;
-              data.isCollect = article.isCollect;
               data.articleId = article.articleId;
               data.auth = article.auth;
               data.title = article.title;             

@@ -1,9 +1,5 @@
 import React from 'react';
-
-import { Form, Input, Button, Message } from 'antd';
-
-var fetch = require('../../fetch/fetch.js');
-
+import { Form, Input, Button, message } from 'antd';
 const FormItem = Form.Item;
 
 class LoginForm extends React.Component {
@@ -14,61 +10,51 @@ class LoginForm extends React.Component {
 
   handleLoginSubmit(e){
      e.preventDefault();
-
-    var formData = this.props.form.getFieldsValue();
-
-    this.props.form.validateFields(['username','password'],(err,values)=>{
+     var { onLogined, form } = this.props;
+     form.validateFields(['username','password'],(err,values)=>{
        if(!err){
-         //console.log(formData);
-         fetch.post('/usr/login',formData)
-         //.then(response=>response.json())
-         .then((response)=>{
-           var data = response.data;
-           var { username, userid } = response.data;
-           
-           if (response&& data.code == 0){
-             if(this.props.onLogined){
-             this.props.onLogined(data);
-             }
-           }
-
-       });
+         var { username, password } = values; 
+         fetch(`/usr/login?username=${username}&password=${password}`)
+            .then(response=>response.json())
+            .then(json=>{    
+                           
+                if (json.code == 0){
+                  if (onLogined) onLogined(json.data);
+                } else {
+                  message.error(json.message);
+                }
+            })
+         
        }
      })
    }
 
    handleUsername(fieldName){     
       const { form } = this.props;
-
-      let username = form.getFieldValue(fieldName);
-     
-      form.validateFields([fieldName],(err,values)=>{
-         
-          fetch.get('/usr/checkusername?username='+username)
-            .then(response=>{
-
-              let data = response.data;
-              if (response && data.code == 0) {
-                // 用户还没注册
-                
-                form.setFields({
-                  [fieldName]:{
-                    value:username,
-                    errors:[new Error(data.message)]
+      var username = form.getFieldValue(fieldName);    
+      form.validateFields([fieldName],(err,values)=>{         
+            fetch('/usr/checkusername?username='+username)
+              .then(response=>response.json())
+              .then(json=>{
+                  if ( json.code == 0) {
+                    // 用户还没注册                  
+                    form.setFields({
+                      [fieldName]:{
+                        value:username,
+                        errors:[new Error(json.message)]
+                      }
+                    });                    
+                  } else {
+                    form.setFields({
+                      [fieldName]:{
+                        value:username,
+                        errors:null
+                      }
+                    })
+                  
                   }
-                });
-
-                
-              } else {
-                form.setFields({
-                  [fieldName]:{
-                    value:username,
-                    errors:null
-                  }
-                })
-              
-              }
-            })
+              })
+            
       })
       
   }
@@ -79,11 +65,8 @@ class LoginForm extends React.Component {
       if (value && value.match(/\s+/)){
         callback('用户名不能包含空格等格式字符！');
       } else {
-        callback();
-        
-      }
-
-      
+        callback();       
+      }      
     }
 
   render(){

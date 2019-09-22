@@ -10,8 +10,9 @@ module.exports = new mongoose.Schema({
     toUser:String,
     msgtype:String,
     msgtime:String,
-    //  指@消息时的内容Id, articleId,topicId,actionId
-    uniquekey:String,
+    //  指@消息对应的评论id
+    commentid:String,
+    //  标识评论针对的内容类型，如新闻/话题/动态
     isRead:{type:Boolean,default:false},
     content:String
             

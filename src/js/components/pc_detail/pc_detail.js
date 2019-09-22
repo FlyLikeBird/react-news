@@ -46,8 +46,12 @@ export default class PCNewsDetails extends React.Component {
 	}
 	
 	componentWillReceiveProps(newProps){
-		this.setState({isLoad:true})
-		this._loadArticle(newProps);
+		var params = this.props.match.params.uniquekey;
+		if ( params != newProps.match.params.uniquekey){
+			this.setState({isLoad:true})
+			this._loadArticle(newProps);
+		}
+		
 	}
 
 	createMarkup(){
@@ -88,7 +92,7 @@ export default class PCNewsDetails extends React.Component {
 										?
 										<div>
 											<ArticleAction uniquekey={uniquekey} item={newsItem}/>
-											<CommonComments {...this.props}/>
+											<CommonComments {...this.props} item={newsItem}/>
 										</div>
 										:
 										<p>您还未登录！请先完成<span style={styleObj}>注册</span>或<span style={styleObj}>登录</span>查看评论！</p>

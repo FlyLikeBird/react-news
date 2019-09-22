@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from 'antd';
+import { Icon, Popover } from 'antd';
 import CommentsInput from './comments_input';
 
 import { parseDate, formatDate } from '../../../utils/translateDate';
@@ -8,20 +8,19 @@ var isAllowed = true ;
 
 export default class CommentsComponentButton extends React.Component{
   constructor(){
-    super();
-   
+    super();   
     this.state={
       isLiked:false,
       isdisLiked:false,
       likeNum:0,
       dislikeNum:0,
-      visible:false     
+      visible:false,
+      isRead:false,
+      iconType:'caret-left'     
     }
   }
 
- 
-  handleUserAction(commentid,action,isCancel,parentcommentid){
-    
+  handleUserAction(commentid,action,isCancel,parentcommentid){    
     fetch('/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel +'&parentcommentid='+parentcommentid)
       .then(response=>response.json())
       .then(json=>{
@@ -73,9 +72,12 @@ export default class CommentsComponentButton extends React.Component{
           i.classList.add('addFlash'); 
           setTimeout(()=>i.classList.remove('addFlash'),500)
         }
-      }
-      
-      
+      }     
+  }
+
+  componentDidMount(){
+      var { isRead } = this.props;
+      this.setState({isRead})
   }
 
   componentWillReceiveProps(newprops){
@@ -101,6 +103,12 @@ export default class CommentsComponentButton extends React.Component{
     }
   }
 
+  handleMarkIsRead(id){
+    var { socket } = this.props;
+    socket.emit('markActionMsg',localStorage.getItem('userid'),id);
+    this.setState({isRead:!this.state.isRead})
+  }
+
   handleGotoDetail(commentid,parentcommentid){
     var { history, uniquekey } = this.props;
     fetch(`/comment/getCommentPagenum?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}&uniquekey=${uniquekey}`)
@@ -108,6 +116,7 @@ export default class CommentsComponentButton extends React.Component{
       .then(json=>{
           var pageNum = json.data;
           if (history){
+              console.log(history);
               history.push(`/details/${uniquekey}`,{
                   pageNum,
                   commentid,
@@ -119,14 +128,15 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   render(){
-    var { isLiked, isdisLiked, likeNum, dislikeNum, hide, visible } = this.state;
-    var { username, fromUser, toUser, isSub,  commentid, showReplies, onShowReplies, socket,  forUser, replies, commentid, parentcommentid, fathercommentid, owncomment, hasDelete, grayBg } = this.props;
+    var { isLiked, isdisLiked, likeNum, dislikeNum, hide, isRead, iconType, visible } = this.state;
+    var { username, fromUser, toUser, isSub,  commentid, commentType, showReplies, onShowReplies, socket, shareBy, forUser, forMsg, replies, commentid, parentcommentid, fathercommentid, owncomment, hasDelete, grayBg } = this.props;
     var _id = this.props.commentid;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
       isParentReplyComment:isSub ? false : true,
       socket,
       isSub,
+      commentType,
       fromUser,
       toUser,
       commentid,
@@ -140,16 +150,24 @@ export default class CommentsComponentButton extends React.Component{
       <div>
           <div className="comment-user-action">
                {
-                  forUser
+                  forUser && !forMsg
                   ?
                   <div>
-                      <span onClick={this.handleGotoDetail.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="edit" />回复</span> </span>
-                      <span onClick={this.handleDelete.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="close" />删除</span></span>
+                      <span onClick={this.handleGotoDetail.bind(this,commentid,parentcommentid)} ><Icon type="edit" />回复</span>
+                      <span onClick={this.handleDelete.bind(this,commentid,parentcommentid)} ><Icon type="close" />删除</span>
+                  </div>
+                  :
+                  forMsg
+                  ?
+                  <div>
+                      <span onClick={this.handleGotoDetail.bind(this,commentid,parentcommentid)} ><Icon type="edit" />回复</span>
+                      <span onClick={this.handleMarkIsRead.bind(this,_id)} ><Icon type="edit" />{ isRead ? '标为未读':'标为已读'}</span>
+                      <span onClick={this.handleDelete.bind(this,_id)} ><Icon type="close" />删除</span>
                   </div>
                   :
                   <div>
-                      <span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeNum  }</span></span>
-                      <span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeNum }</span></span>
+                      <Popover content={<div>hello</div>}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeNum  }</span><Icon className="caret" type={iconType}/></span></Popover>
+                      <Popover content={<div>hello</div>}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeNum }</span><Icon className="caret" type={iconType}/></span></Popover>
                       {
                           isSub && hasDelete
                           ?
@@ -163,7 +181,7 @@ export default class CommentsComponentButton extends React.Component{
                           ?
                           null
                           :
-                          <span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><Icon type="export" />转发 </span>
+                          <span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span>
                       }
                       
                       {
@@ -186,22 +204,13 @@ export default class CommentsComponentButton extends React.Component{
                           null
                       }
                   </div>
-               }
-
-               
-
-               
+               }              
           </div>
-          {
-            visible
-            
-            ?
+
+          <div style={{display:visible?'block':'none'}}>
             <CommentsInput {...commentsInputProps}/>
-            :
-            null
-          }
-          
-        
+          </div>
+                  
       </div>
     )
     

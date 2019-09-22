@@ -10,8 +10,8 @@ class  CommentUserSelect extends React.Component{
     constructor(){
         super();
         this.state= {
-            userList:[],
-            open:true
+            userList:[]
+            
         }
     }
 
@@ -87,14 +87,16 @@ class  CommentUserSelect extends React.Component{
         var { getFieldValue } = form;
         var str = '';
         var selectedUsers = getFieldValue('user-select');
-        if (selectedUsers.length){
+        if (selectedUsers && selectedUsers.length){
             var format = selectedUsers.map(item=>{
-                return '@'+item;
+                return '@'+item+' ';
             });
-            str = format.join(' ') + ' ';
+            format.map(item=>{
+                str += item;
+            })
             if(onSelect) onSelect(str)
         } else {
-            
+            if (onSelect) onSelect(false);
         }
         if(onClose) onClose();
         
@@ -103,7 +105,7 @@ class  CommentUserSelect extends React.Component{
     render(){
         
         var {getFieldDecorator} = this.props.form;
-        var { userList, open } = this.state;
+        var { userList } = this.state;
         var { leftPosition } = this.props;
         
         const selectStyle = {
@@ -125,10 +127,11 @@ class  CommentUserSelect extends React.Component{
 
                     })(
                         <Select 
-                            mode="tags" 
+                            mode="tags"
+                            className="forUser" 
                             onBlur={this.handleBlur.bind(this)} 
-                            open={open}
-                            dropdownMatchSelectWidth={false} 
+                            open={true}
+                            
                         >
                             { userContent }
                         </Select>

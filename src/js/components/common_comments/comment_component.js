@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Row,Col, Avatar, List, Card, Popover, Modal, Icon } from 'antd';
-
+import { Row,Col, Avatar, List, Card, Popover, Modal, Icon, Badge } from 'antd';
 
 import  CommentsList  from './comments_list';
 import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
-import { parseDate, formatDate, getElementTop } from '../../../utils/translateDate';
+import { NewsListItem } from '../pc_usercenter/pc_newslist';
+import { parseDate, formatDate, getElementTop, formatContent } from '../../../utils/translateDate';
 const { Meta } = Card;
 
 export default class CommentComponent extends React.Component{
@@ -15,38 +15,16 @@ export default class CommentComponent extends React.Component{
     super();
     this.state = {
       replies:[],
-      content:'',
+      item:{},
       img:'',
       previewVisible:false,
-      showReplies:true
+      showReplies:true,
+      translateData:[]
     }
   }
 
   handleUpdateReplies(replies){
-    //onsole.log(replies);
     this.setState({replies});
-    
-  }
-
-  formatContent(content,fromSubTextarea,toUser){
-    var str = content;
-    var match = content.match(/@([^@]+)/g);
-    if(!match){
-      if(fromSubTextarea){
-          return `回复<span style="color:#1890ff">@${toUser}</span>:`+str;
-      } else {
-          return str;
-      }
-    }
-    for(var i=0,len=match.length;i<len;i++){
-      str = str.replace(match[i],'<span style="color:#1890ff">'+match[i]+'</span>')
-    }
-    if(fromSubTextarea){
-        return `回复<span style="color:#1890ff">@${toUser}</span>:`+str;
-
-    } else {
-        return str;
-    }
     
   }
 
@@ -67,8 +45,9 @@ export default class CommentComponent extends React.Component{
   }
 
   componentDidMount(){
-    var { setScrollTop, comment, forTrack } = this.props;
-    let { replies, selected } = comment;
+    var { setScrollTop, comment, forTrack, forUser, forMsg } = this.props;
+    var { replies, selected, content, commentType, uniquekey } = comment;
+    var data = formatContent(/(.*?)@([^@|\s]+)/g,content);
     if (selected){
         var selectedDom = document.getElementsByClassName('comment selected')[0];
         if (selectedDom){
@@ -82,28 +61,52 @@ export default class CommentComponent extends React.Component{
     if (forTrack) {
       this.setState({showReplies:selected});
     }
-    this.setState({replies})
+    if ( forUser || forMsg ) {
+        //  加载评论相关的内容信息，如话题/新闻/动态
+        if (commentType === 'topic'){
+            fetch(`/topic/getTopicDetail?topicId=${uniquekey}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    this.setState({item:data})
+                })
+        } else if (commentType === 'news'){
+            fetch(`/article/getArticleContent?uniquekey=${uniquekey}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data= json.data;
+                    this.setState({item:data});
+                })
+        } else if (commentType === 'action') {
+
+        }
+    }
+    this.setState({replies,translateData:data})
   }
   
   componentWillReceiveProps(newProps){
-      var { replies } = newProps.comment;
-      this.setState({replies});
+      var { replies, content } = newProps.comment;
+      var data = formatContent(/(.*?)@([^@|\s]+)/g,content);
+
+      this.setState({replies,translateData:data});
   }
 
   render(){
     
-    let { username, content, date, _id, like, dislike, replies, fromUser, toUser, selected, fromSubTextarea, avatar, images, uniquekey, newstime, auth, type, title, thumbnail, fathercommentid, owncomment} = this.props.comment;
-
-    let { parentcommentid, isSub, socket, history, index, forUser, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
-    let { previewVisible, img, showReplies  } = this.state;
+    let { username, content, date, _id, like, dislike, replies, fromUser, toUser, commentType, shareBy, selected, isRead, fromSubTextarea, avatar, images, uniquekey, newstime, auth, type, title, thumbnail, fathercommentid, owncomment} = this.props.comment;
+    let { parentcommentid, isSub, socket, history, index, forUser, forMsg, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
+    let { previewVisible, img, showReplies, translateData, item  } = this.state;
     let commentDate = formatDate(parseDate(date));
-    
+    console.log(commentType);
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
     parentcommentid = parentcommentid ? parentcommentid : fathercommentid ? fathercommentid : '';
     const buttonProps = {
       isSub,
       username,
       forUser,
+      forMsg,
+      isRead,
+      shareBy,
       onDelete,
       onVisible,
       socket,
@@ -111,6 +114,7 @@ export default class CommentComponent extends React.Component{
       replies:this.state.replies,
       history,
       hasDelete,
+      commentType,
       grayBg,
       owncomment,
       commentid:_id,
@@ -126,26 +130,42 @@ export default class CommentComponent extends React.Component{
       onUpdateFromSub:this.props.onUpdateFromSub
     };
     
-    
-
     return (
-      
 
       <Card className={forUser?'comment user':selected ? 'comment selected' :'comment'}>
                 <div>
                     <div style={{display:'flex',alignItems:'center'}}>
-                      <Popover content={<CommentPopoverUserAvatar user={username?username:fromUser}/>}><div className="avatar-container"><img src={avatar} /></div></Popover>
-                      <div>
+                      <Popover content={<CommentPopoverUserAvatar user={username?username:fromUser}/>}>
+                          <Badge count={forMsg?isRead?0:1:0}><div className="avatar-container"><img src={avatar} /></div></Badge>
+                      </Popover>
+                      <div style={{marginLeft:'10px'}}>
                           <div><span style={{color:'#000',fontWeight:'500'}}>{username?username:fromUser}</span>{owncomment?<span className="label">用户</span>:null}</div>
                           <span className="text">{`发布于 ${commentDate}`}</span>
                       </div>
                     </div>
                     <div className="comment-content">
-                        <span dangerouslySetInnerHTML={{__html:this.formatContent(content,fromSubTextarea,toUser)}}></span>
                         {
-                          forUser
-                          ?
-                          
+                            translateData.length
+                            ?
+                            translateData.map((item,index)=>(
+                                <span key={index}>
+                                    <span>{item.text}</span>
+                                    {
+                                        item.user
+                                        ?
+                                        <Popover content={<CommentPopoverUserAvatar user={item.user}/>}><span className="popover-content">{`@${item.user}`}</span></Popover>
+                                        :
+                                        null
+                                    }
+                                    
+                                </span>
+                            ))
+                            :
+                            <span>{content}</span>
+                        }
+                        {
+                          forUser && !forMsg
+                          ?               
                           <span className="comment-button" onClick={()=>onShowList(true,_id,parentcommentid)}>管理评论列表<Icon type="caret-right" /></span>
                           :
                           null
@@ -176,22 +196,14 @@ export default class CommentComponent extends React.Component{
                     </div>
               
                     {
-                      forUser
+                      forUser || forMsg ? commentType == 'news' ? 
+                      <NewsListItem item={item} hasImg={true} /> 
+                      : 
+                      commentType == 'topic'
                       ?
-                      <div className="comment-article">
-                        <div style={{display:'flex',alignItems:'center'}}>
-                                <div className="article-img"><img src={thumbnail} /></div> 
-                                <div >
-                                    <h4><Link style={{color:'rgba(0, 0, 0, 0.85)'}} to={`/details/${uniquekey}`}>{title}</Link></h4>
-                                    <div>
-                                        <span className="text">发布时间: <span className="mark">{newstime}</span></span>
-                                        <span className="text">来源: <span className="mark">{auth}</span></span>
-                                        <span className="text">类型: <span className="mark">{type}</span></span>
-                                    </div>
-                                    {this.props.isSelfUser?<div style={actionStyle}><a onClick={this.handleRemoveComment.bind(this,item.commentId,item.subCommentId)}>删除</a></div> : null}
-                                </div>
-                            </div>
-                      </div>
+                      <TopicListItem item={item} noAction={true} history={history} forSimple={true}/>
+                      :
+                      null
                       :
                       null
                     }
@@ -210,7 +222,8 @@ export default class CommentComponent extends React.Component{
                         <CommentsList 
                             isSub={true} 
                             commentid={_id} 
-                            comments={this.state.replies} 
+                            comments={this.state.replies}
+                            commentType={commentType} 
                             hasDelete={hasDelete} 
                             onVisible={onVisible}
                             onDelete={onDelete}

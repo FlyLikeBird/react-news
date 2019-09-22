@@ -16,9 +16,7 @@ export default class ShareModal extends React.Component{
         }
     }
 
-    
-    handleShare(){
-        var { item } = this.state;
+    handleShare(){        
         var { toId, text, shareType, onVisible, data, onUpdate, forUserAction, isSelf } = this.props;
         var userid = localStorage.getItem('userid');        
         if(this.textArea){
@@ -37,14 +35,20 @@ export default class ShareModal extends React.Component{
                 })
         } else {
             message.error('请先登录!')
+        }       
+    }
+
+    checkPopoverUsername(username){
+        var str=username;
+        if( username.match(/:$/)){
+            str = username.substring(0,username.length-1)
         }
-        
-        
+        return str;
     }
 
     render(){
         
-        var { shareType, text, data, visible, onVisible, item } = this.props;
+        var { shareType, text, data, visible, item, onVisible } = this.props;
         
         return(
 
@@ -61,8 +65,14 @@ export default class ShareModal extends React.Component{
                                 ?
                                 data.map((item,index)=>(
                                     <span key={index}>
-                                        <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.username} />}><span style={{color:'#1890ff'}}>{`@${item.username}:`}</span></Popover>
-                                        <span>{item.content}</span>
+                                        { item.text ? <span>{item.text}</span> : null}
+                                        {
+                                            item.user
+                                            ?
+                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={this.checkPopoverUsername(item.user)} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                            :
+                                            null
+                                        }
                                     </span>
                                 ))
                                 :

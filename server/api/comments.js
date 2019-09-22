@@ -47,7 +47,7 @@ function sortList(arr){
 
 
 router.post('/addcomment',upload.array('images'),(req,res)=>{
-  let { username, uniquekey, content } = req.body;
+  let { username, uniquekey, content, commentType } = req.body;
   var images = [];
   if(req.files){
         req.files.forEach(item=>{
@@ -62,6 +62,7 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
       username:username,
       uniquekey:uniquekey,
       content:content,
+      commentType,
       avatar:user.userImage,
       images,
       date:new Date().toString()
@@ -71,20 +72,21 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
       .then(()=>{
   
         Comment.find({'uniquekey':uniquekey},(err,comments)=>{
+            var data = {};
             comments.sort((a,b)=>{
                 var time1 = Date.parse(a.date);
                 var time2 = Date.parse(b.date);
                 return time2 - time1;
             })
-            util.responseClient(res,200,1,'ok',comments);
+            data.commentid = comment._id;
+            data.comments = comments;
+            util.responseClient(res,200,1,'ok',data);
         })
         
         User.findOne({'username':username},(err,user)=>{
           var level = user.level;
           level += 5;
-          User.updateOne({'username':username},{$set:{level:level}},(err,result)=>{
-            
-          })
+          User.updateOne({'username':username},{$set:{level:level}},(err,result)=>{})           
         })
         
       })
@@ -240,7 +242,6 @@ router.get('/getCommentInfo',(req,res)=>{
 
 router.get('/operatecomment',(req,res)=>{
   var { action, commentid, isCancel, parentcommentid } = req.query;
- 
   let operate ;
   if (Boolean(isCancel)) {
     operate = -1;

@@ -12,7 +12,7 @@ export default class DeleteModal extends React.Component{
   }
 
   handleDelete(deleteId){
-    var { deleteType, onVisible, onDelete, parentcommentid } = this.props;
+    var { deleteType, onVisible, onDelete, parentcommentid, socket } = this.props;
     if ( deleteType === 'news'){
         fetch(`/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${deleteId}`)
         .then(response=>response.json())
@@ -65,6 +65,9 @@ export default class DeleteModal extends React.Component{
               if (onDelete) onDelete();
               if (onVisible) onVisible(false);
           })
+    } else if ( deleteType === 'actionMsg' && socket ){
+        socket.emit('removeActionMsg',localStorage.getItem('username'),deleteId);
+        if ( onVisible ) onVisible(false);
     }
     
   }
@@ -76,7 +79,7 @@ export default class DeleteModal extends React.Component{
       
       
       <Modal visible={visible} footer={null} onCancel={()=>onVisible(false)}>
-          <p>
+          <div style={{margin:'10px 0'}}>
               <span>{`确定要删除这条${translateType(deleteType)}吗？`}</span>
               { 
                   deleteType == 'comment' && !parentcommentid
@@ -85,7 +88,7 @@ export default class DeleteModal extends React.Component{
                   :
                   null
               }
-          </p>
+          </div>
           <Button style={{marginRight:'4px'}} type="primary" onClick={this.handleDelete.bind(this,deleteId)}>删除</Button>
           <Button onClick={()=>onVisible(false)}>取消</Button>
       </Modal>   

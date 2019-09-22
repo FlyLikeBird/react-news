@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter as Router,  Route, Link, Switch } from 'react-router-dom';
 import MediaQuery from 'react-responsive';
 import { Button } from 'antd';
 
@@ -14,16 +15,9 @@ import PCTopNewsIndex from './js/components/pc_topnews_index';
 import PCTopicIndex from './js/components/pc_topic/pc_topic_index';
 import PCTopicDetail from './js/components/pc_topic/pc_topic_detail';
 
-
 import MobileIndex from './js/components/mobile_index';
 import MobileNewsDetails from './js/components/mobile_detail';
 import MobileUserCenter from './js/components/mobile_usercenter';
-
-
-
-import { BrowserRouter as Router,  Route, Link, Switch } from 'react-router-dom';
-
-//import 'antd/dist/antd.css';
 
 import './css/pc.css';
 import './css/mobile.css';
@@ -48,9 +42,9 @@ export default class Root extends React.Component {
            socket.emit('user-login',username);
            socket.on('receive-message',(msg)=>{
               console.log(msg);
-              this.setState({msg,socket});
+              this.setState({msg});
            });
-           
+           this.setState({socket})           
         })
        
       }
@@ -61,9 +55,9 @@ export default class Root extends React.Component {
         socket.on('connect',()=>{
            socket.emit('user-login',localStorage.getItem('username'));
            socket.on('receive-message',(msg)=>{
-              //console.log(msg);
-              this.setState({msg,socket});
+              this.setState({msg});
            });
+           this.setState({socket})
         })     
     }
 

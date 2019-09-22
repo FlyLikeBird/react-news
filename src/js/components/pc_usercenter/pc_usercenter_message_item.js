@@ -39,21 +39,23 @@ export default class MessageItem extends React.Component{
         var latestMsg = data[data.length-1];
         
         return(
-            data.length
-            ?
-            <div className="msg-container" onClick={this.handleClick.bind(this,msgKey)}>       
-                <Badge count={msgCount}><div className="avatar-container"><img src={avatar} /></div></Badge>
-                <div>
-                    <div><span>{msgKey}</span></div>
-                    <div><span>{latestMsg.content}</span></div>
-                    <span className="text">{`发布于 ${formatDate(parseDate(latestMsg.msgtime))}`}</span>
-                </div>
-                        
+            <div>
+                {
+                    data.length
+                    ?
+                    <div className="msg-container" onClick={this.handleClick.bind(this,msgKey)}>       
+                        <Badge count={msgCount}><div className="avatar-container"><img src={avatar} /></div></Badge>
+                        <div style={{marginLeft:'20px'}}>
+                            <div><span style={{color:'#000'}}>{msgKey}</span></div>
+                            <div><span>{latestMsg.content}</span></div>
+                            <span className="text">{`发布于 ${formatDate(parseDate(latestMsg.msgtime))}`}</span>
+                        </div>
+                                
+                    </div>
+                    :
+                    <div>{text}</div>
+                }
             </div>
-            :
-            <div>{text}</div>
-        
-
         )
     }
 }
