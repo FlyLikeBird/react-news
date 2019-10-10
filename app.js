@@ -20,8 +20,13 @@ var webpack = require("webpack"),
     webpackDevMiddleware = require("webpack-dev-middleware"),
     webpackHotMiddleware = require("webpack-hot-middleware");
 var compiler = webpack(webpackConfig);
+var dbUrl = 'mongodb://120.79.189.123/react-news';
+var env = process.env.NODE_ENV || 'development';
 
-//console.log(compiler);
+if (env === 'development'){
+    console.log('current env:');
+    dbUrl = 'mongodb://localhost:27017/react-news';
+} 
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
@@ -81,7 +86,9 @@ io.on('connection',(socket)=>{
 });
 
 
-mongoose.connect(`mongodb://${config.dbHost}:${config.dbPort}/react-news`, function (err) {
+
+
+mongoose.connect(dbUrl, function (err) {
     if (err) {
         console.log(err, "数据库连接失败");
         return;

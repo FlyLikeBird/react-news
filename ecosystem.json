@@ -2,7 +2,7 @@
     "apps":[
         {
             "name":"react-news",
-            "script":"app2.js",
+            "script":"app.js",
             "env":{
                 "COMMON_VARIABLE":"true"
             },
@@ -19,6 +19,7 @@
             "ref":"origin/master",
             "repo":"git@github.com:FlyLikeBird/react-news.git",
             "path":"/www/react-news/production",
+            "post-deploy":"npm install && npm build && pm2 startOrRestart ecosystem.json --env production ",
             "ssh_options":"StrictHostKeyChecking=no",
             "env":{
                 "NODE_ENV":"production"
