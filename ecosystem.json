@@ -19,7 +19,7 @@
             "ref":"origin/master",
             "repo":"git@github.com:FlyLikeBird/react-news.git",
             "path":"/www/react-news/production",
-            "post-deploy":"npm install && npm build && pm2 startOrRestart ecosystem.json --env production ",
+            "post-deploy":"npm install && npm run-script build && pm2 startOrRestart ecosystem.json --env production ",
             "ssh_options":"StrictHostKeyChecking=no",
             "env":{
                 "NODE_ENV":"production"
