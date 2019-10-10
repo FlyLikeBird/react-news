@@ -2,7 +2,7 @@
     "apps":[
         {
             "name":"react-news",
-            "script":"app.js",
+            "script":"hello.js",
             "env":{
                 "COMMON_VARIABLE":"true"
             },
