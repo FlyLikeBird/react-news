@@ -93,17 +93,52 @@ var storage = multer.diskStorage({
 });
 var upload = multer({storage});
 
-function changeIdsToTags(ids,resolve){
+
+function handleFollowTopic( userid, topicId, isCancel, res){
+    var operate = isCancel ? '$pull' : '$push';
+    var option = isCancel ? { userid : userid } : { userid :userid ,date:new Date().toString()};  
+     
+    User.updateOne({_id:userid},{[operate]:{userTopic:topicId}},(err,result)=>{
+            Topic.updateOne({_id:topicId},{[operate]:{follows:option}},(err,result)=>{ 
+                Topic.findOne({_id:topicId},(err,topic)=>{                    
+                    util.responseClient(res,200,0,'ok',topic.follows)
+                })                              
+            })            
+        })
     
+    /*
+    User.updateOne({_id:userid},{$pull:{userTopic:{}}},(err,result)=>{
+        Topic.updateOne({_id:topicId},{$pull:{follows:{}}},(err,result)=>{
+            console.log(result);
+            util.responseClient(res,200,0,'ok')
+        })
+    })
+    */
+    
+}
+
+function changeIdsToTags(ids,resolve){   
     Tag.find({_id:{$in:ids}},(err,tags)=>{
         resolve(tags); 
     })
 }
 
-function changeIdsToContents(ids,resolve){
-    
-    Comment.find({_id:{$in:ids}},(err,comments)=>{
-        resolve(comments);
+function changeIdsToFollows(follows,resolve){
+    var ids = follows.map(item=>item.userid);
+    User.find({_id:{$in:ids}},(err,users)=>{
+        var data = follows.map(item=>{
+            var obj = {};
+            obj.date = item.date;
+            for(var i=0,len=users.length;i<len;i++){
+                if (item.userid == users[i]._id){
+                    obj.username = users[i].username;
+                    obj.avatar = users[i].userImage;
+                    break;
+                }
+            }
+            return obj;
+        })
+        resolve(data);
     })
 }
 
@@ -113,24 +148,17 @@ function changeIdsToShareBy(ids,resolve){
     })
 }
 
-function getTopic(topic,resolve){
-    
+function getTopic(topic,resolve){   
     var promise1 = new Promise((resolve,reject)=>{
         changeIdsToTags(topic.tag,resolve)
     });
-    var promise2 = new Promise((resolve,reject)=>{
-        changeIdsToContents(topic.content,resolve)
-    });
-    var promise3 = new Promise((resolve,reject)=>{
-        changeIdsToShareBy(topic.shareBy,resolve)
-    });
-
-    Promise.all([promise1,promise2,promise3])
-        .then(([tags,contents,shareBy])=>{
+    
+    Promise.all([promise1])
+        .then(([tags])=>{
             var obj = {};                
             obj.tag = tags.map(item=>item.tag);
-            obj.content = contents;
-            obj.shareBy = shareBy;
+            obj.follows = topic.follows;
+            obj.shareBy = topic.shareBy;
             obj.title = topic.title;
             obj.sponsor = topic.sponsor;
             obj.date = topic.date;
@@ -254,7 +282,6 @@ router.get('/getUserTopic',(req,res)=>{
 })
 
 router.get('/getAllTopics',(req,res)=>{
-
     Topic.find({privacy:0},(err,topics)=>{
         getAllTopics(topics,res)
     })
@@ -263,7 +290,6 @@ router.get('/getAllTopics',(req,res)=>{
 
 router.get('/getTopicsByTag',(req,res)=>{
     var { id } = req.query;
-
     Tag.findOne({_id:id},(err,tag)=>{
         var topicIds = tag.content;
         Topic.find({_id:{$in:topicIds}},(err,topics)=>{
@@ -274,10 +300,9 @@ router.get('/getTopicsByTag',(req,res)=>{
 
 router.get('/checkTopicIsFollowed',(req,res)=>{
     var { userid, topicId } = req.query;
-
     User.findOne({_id:userid},(err,user)=>{
         if (user){
-            var topicIds = user.userTopic.map(item=>item.topicId);
+            var topicIds = user.userTopic;
             if(topicIds.includes(topicId)){
                 util.responseClient(res,200,0,'ok');
             } else {
@@ -307,23 +332,8 @@ router.get('/getTopicDetail',(req,res)=>{
 })
 
 router.get('/followTopic',(req,res)=>{
-    var { userid, topicId, isCancel } = req.query;
-    if(isCancel){
-        User.updateOne({_id:userid},{$pull:{userTopic:topicId}},(err,result)=>{
-            Topic.updateOne({_id:topicId},{$pull:{follows:{userid}}},(err,result)=>{
-                util.responseClient(res,200,0,'ok');
-            })            
-        })
-    } else {
-        User.updateOne({_id:userid},{$push:{userTopic:topicId}},(err,result)=>{
-            Topic.updateOne({_id:topicId},{$push:{follows:{
-                userid,
-                date:new Date().toString()
-            }}},(err,result)=>{
-                util.responseClient(res,200,0,'ok');
-            })            
-        })
-    }  
+    var { userid, topicId, isCancel } = req.query;  
+    handleFollowTopic(userid, topicId, isCancel, res);   
 })
 
 router.get('/removeTopic',(req,res)=>{

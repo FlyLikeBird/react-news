@@ -7,6 +7,8 @@ import  CommentsList  from './comments_list';
 import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
 import { NewsListItem } from '../pc_usercenter/pc_newslist';
+import { TopicListItem } from '../pc_topic/pc_topic_list';
+
 import { parseDate, formatDate, getElementTop, formatContent } from '../../../utils/translateDate';
 const { Meta } = Card;
 
@@ -47,7 +49,7 @@ export default class CommentComponent extends React.Component{
   componentDidMount(){
     var { setScrollTop, comment, forTrack, forUser, forMsg } = this.props;
     var { replies, selected, content, commentType, uniquekey } = comment;
-    var data = formatContent(/(.*?)@([^@|\s]+)/g,content);
+    var data = formatContent(content);
     if (selected){
         var selectedDom = document.getElementsByClassName('comment selected')[0];
         if (selectedDom){
@@ -81,23 +83,24 @@ export default class CommentComponent extends React.Component{
 
         }
     }
+    
     this.setState({replies,translateData:data})
   }
   
-  componentWillReceiveProps(newProps){
-      var { replies, content } = newProps.comment;
-      var data = formatContent(/(.*?)@([^@|\s]+)/g,content);
 
+  componentWillReceiveProps(newProps){
+      var { replies, content  } = newProps.comment;
+      var data = formatContent(content);
       this.setState({replies,translateData:data});
   }
 
   render(){
     
-    let { username, content, date, _id, like, dislike, replies, fromUser, toUser, commentType, shareBy, selected, isRead, fromSubTextarea, avatar, images, uniquekey, newstime, auth, type, title, thumbnail, fathercommentid, owncomment} = this.props.comment;
+    let { username, content, date, _id,  replies, fromUser, toUser, likeUsers, dislikeUsers, commentType, shareBy, selected, isRead, fromSubTextarea, avatar, images, uniquekey, fathercommentid, owncomment} = this.props.comment;
     let { parentcommentid, isSub, socket, history, index, forUser, forMsg, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
     let { previewVisible, img, showReplies, translateData, item  } = this.state;
     let commentDate = formatDate(parseDate(date));
-    console.log(commentType);
+    
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
     parentcommentid = parentcommentid ? parentcommentid : fathercommentid ? fathercommentid : '';
     const buttonProps = {
@@ -110,6 +113,8 @@ export default class CommentComponent extends React.Component{
       onDelete,
       onVisible,
       socket,
+      likeUsers,
+      dislikeUsers,
       uniquekey,
       replies:this.state.replies,
       history,
@@ -119,8 +124,6 @@ export default class CommentComponent extends React.Component{
       owncomment,
       commentid:_id,
       parentcommentid,
-      like,
-      dislike,
       commentDate,
       fromUser:localStorage.getItem('username'),
       toUser:username?username:fromUser,
@@ -194,7 +197,7 @@ export default class CommentComponent extends React.Component{
                         null
                       }
                     </div>
-              
+                    
                     {
                       forUser || forMsg ? commentType == 'news' ? 
                       <NewsListItem item={item} hasImg={true} /> 

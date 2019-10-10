@@ -5,10 +5,10 @@ var Collect = require('../models/Collect');
 var Action = require('../models/Action');
 var Topic = require('../models/Topic');
 
-function sort(arr){
+function sort(arr,prop){
   arr.sort((a,b)=>{
-    var time1 = Date.parse(a.viewtime);
-    var time2 = Date.parse(b.viewtime);
+    var time1 = Date.parse(a[prop]);
+    var time2 = Date.parse(b[prop]);
     return time2 - time1
   })
   return arr; 
@@ -83,44 +83,57 @@ function getUserFollows(ids,resolve){
     })    
 }
 
-function getUserActions(ids,resolve){
+function _translateAction(action,resolve){
+    var promise = new Promise((resolve,reject)=>{
+        User.findOne({_id:action.userid},(err,user)=>{
+            action.username = user.username;
+            action.avatar = user.userImage;
+            action.userLevel = user.level;
+            resolve(action)
+        })
+    });
+    promise.then((action)=>{
+        Comment.find({uniquekey:action.id},(err,comments)=>{
+            action.comments = comments.length;
+            resolve(action);
+        })
+    })
     
+}
+
+function getUserActions(ids,resolve){    
     Action.find({_id:{$in:ids}},(err,actions)=>{
         var data = actions.map(item=>{
               var obj={};
-              obj.actionType = item.actionType;
-              obj.uniquekey = item.uniquekey;
+              obj.contentType = item.contentType;
+              obj.contentId = item.contentId;
+              obj.composeAction = item.composeAction;
+              obj.isCreated = item.isCreated;
               obj.date = item.date;
-              obj.content = item.content;
+              obj.text = item.text;
               obj.value = item.value;
               obj.userid = item.userid;
               obj.id = item._id;
-              obj.replies = item.replies;
-              obj.like = item.like;
-              obj.dislike = item.dislike;
+              obj.likeUsers = item.likeUsers;
+              obj.dislikeUsers = item.dislikeUsers;
               obj.shareBy = item.shareBy;
               return obj;
         });
 
         var userIds = actions.map(item=>item.userid);
-
-        User.find({_id:{$in:userIds}},(err,users)=>{
-            for(var i=0,len=data.length;i<len;i++){
-                users.map(user=>{
-                  if (data[i].userid ==user._id){
-                    data[i].avatar = user.userImage;
-                    data[i].username = user.username;
-                  }
-                })
-            }
-
-            data.sort((a,b)=>{
-              var time1 = Date.parse(a.date);
-              var time2 = Date.parse(b.date);
-              return time2 - time1
-            });
-            resolve(data);            
-        })        
+        var allPromises = [];
+        for(var i=0,len=data.length;i<len;i++){
+          (function(i){
+              var promise = new Promise((resolve,reject)=>{
+                  _translateAction(data[i],resolve);
+              });
+              allPromises.push(promise);
+          })(i)
+        }
+        Promise.all(allPromises)
+          .then(data=>{
+              resolve(sort(data,'date'));
+          })              
     })
 }
 
@@ -146,6 +159,7 @@ function getUserComments(username,resolve){
           obj['avatar'] = item.avatar;
           obj['username'] = item.username;
           obj['content'] = item.content;
+          obj['commentType'] = item.commentType;
           obj['uniquekey'] = item.uniquekey;
           obj['_id'] = item._id;
           obj['like'] = item.like;
@@ -165,6 +179,7 @@ function getUserComments(username,resolve){
               obj['fromUser'] = reply.fromUser;
               obj['toUser'] = reply.toUser;
               obj['avatar'] = reply.avatar;
+              obj['commentType'] = reply.commentType;
               obj['content'] = reply.content;
               obj['uniquekey'] = item.uniquekey;
               obj['_id'] = reply._id;
@@ -232,7 +247,7 @@ function getUserHistory(userid,resolve){
                 
             })
             
-            resolve(sort(data));
+            resolve(sort(data,'viewtime'));
         })
     })
 }
@@ -257,35 +272,11 @@ function getUserCollect(userid,resolve){
 }
 
 function getUserActionMsg(msgDoc,resolve){
-    var obj = {},uniquekey = msgDoc.uniquekey;
+    var obj = {},commentid = msgDoc.commentid;
     obj.username = msgDoc.fromUser;
     obj._id = msgDoc._id;
-    obj.content = msgDoc.content;
     obj.date = msgDoc.msgtime;
-    obj.uniquekey = msgDoc.uniquekey;
     obj.isRead = msgDoc.isRead;
-    var commentType = msgDoc.commentType;
-    /*
-    User.findOne({username:msgDoc.fromUser},(err,user)=>{
-        var avatar = user.userImage;
-        obj.avatar = avatar;
-        if (commentType =='news'){
-            Article.findOne({articleId:uniquekey},(err,article)=>{
-                obj.newstime = article.newstime;
-                obj.title = article.title;
-                obj.auth = article.auth;
-                obj.type = article.type;
-                obj.thumbnail = selectImgByUniquekey(article.content)[0];
-                resolve(obj);
-    
-            })
-        } else if (commentType == 'topic') {
-    
-        } else if (commentType == 'action') {
-    
-        }
-    })
-    */
     resolve(obj);
     
 

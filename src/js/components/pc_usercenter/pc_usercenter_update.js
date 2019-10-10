@@ -3,6 +3,7 @@ import React from 'react';
 import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card  } from 'antd';
 import DeleteModal from './pc_usercenter_delete_modal';
 import ShareModal from '../common_comments/comment_share_modal';
+import { formatContent } from '../../../utils/translateDate';
 
 import UpdateItem from './pc_usercenter_update_item';
 const { Meta } = Card;
@@ -17,11 +18,9 @@ export default class UpdateContainer extends React.Component{
             visible:false,
             shareVisible:false,
             deleteId:0,
-            text:'',
-            actionType:'',
-            uniquekey:'',
-            translateData:[],
-            item:{}
+            actionInfo:{},
+            actionId:'',
+            
         }
     }
 
@@ -36,31 +35,16 @@ export default class UpdateContainer extends React.Component{
     }
 
     handleUpdateAction(data){
-        this.setState({userAction:[]});
         this.setState({userAction:data})
     }
 
     handleShareVisible(boolean,option){
         if ( boolean == true ){
-            var { uniquekey, text,  item, value, username, actionType } = option;
-            var data = [];
-            var pattern = /@([^:]+):([^@]+)/g;
-            var result = pattern.exec(text);
-            while(result){              
-                data.push({
-                  username:result[1],
-                  content:result[2]
-                });              
-                result = pattern.exec(text);
-            }
-            data.unshift({username,content:value}); 
-            text = `@${username}:${text}`;    
-            this.setState({shareVisible:boolean,uniquekey,text,item,actionType,translateData:data})
+            var { actionId } = option;
+            this.setState({shareVisible:boolean, actionInfo:option, actionId })
         } else {
             this.setState({shareVisible:boolean})
-        }
-        
-        
+        }        
     }
 
     handleDelete(){
@@ -75,12 +59,15 @@ export default class UpdateContainer extends React.Component{
         }
         data.splice(deleteIndex,1)
         this.setState({userAction:data})
-  
+    }
+
+    componentWillUnmount(){
+        if (this._updateShareBy) this._updateShareBy = null;     
     }
 
     render(){
         var { history, socket, isSelf } = this.props;
-        var { userAction, visible, deleteId, shareVisible, uniquekey, text, actionType, translateData, item  } = this.state;
+        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible } = this.state;
 
         return(
             
@@ -109,25 +96,30 @@ export default class UpdateContainer extends React.Component{
                     :
                     <div>你还没有发布过任何动态!</div>
                 }
-                <DeleteModal 
+                {
+                    visible
+                    ?
+                    <DeleteModal 
                         visible={visible} 
                         onVisible={this.handleModalVisible.bind(this)} 
                         deleteId={deleteId} 
                         onDelete={this.handleDelete.bind(this)}
                         deleteType="action"
                         forActions={true}
-                />
+                    />
+                    :
+                    null
+                }
+                
                 {
                     shareVisible
                     ?
                     <ShareModal 
                         visible={shareVisible} 
-                        toId={uniquekey}         
+                        actionInfo={actionInfo}
+                        uniquekey={actionId}
+                        history={history}    
                         onVisible={this.handleShareVisible.bind(this)} 
-                        text={text}
-                        data={translateData}
-                        shareType={actionType}
-                        item={item}
                         onUpdate={this.handleUpdateAction.bind(this)}
                         forUserAction={true}
                         isSelf={isSelf}

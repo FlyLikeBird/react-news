@@ -24,9 +24,9 @@ export default class CommentsList extends React.Component {
   render(){
     var { comments, visible, commentid ,parentcommentid } = this.state;
     //  shareType 字段表示分享的内容类型 ，toId 字段表示分享的内容标识
-    var {  isSub, socket, history, commentid, onUpdateFromSub, forUser, forMsg, forTrack, grayBg, onDelete, hasDelete, onVisible, onShowList, setScrollTop, text } = this.props;
+    var {  isSub, socket, history, commentid, onUpdateFromSub, forUser, forMsg, forTrack, grayBg, onDelete, hasDelete, onVisible, onShowList, setScrollTop, warnMsg } = this.props;
     let commentsClassName = isSub ? 'subcommentsContainer':'commentsContainer';
-    
+   
     return(
         <div>
           {
@@ -60,7 +60,7 @@ export default class CommentsList extends React.Component {
                   }                    
               </div>
               :
-              <div>{text}</div>
+              <div>{warnMsg}</div>
           }
         </div>    
     )

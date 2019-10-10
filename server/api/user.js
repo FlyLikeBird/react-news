@@ -216,9 +216,7 @@ router.get('/getUserInfo',(req,res)=>{
 				obj.username = user.username;
 				obj.userImage = user.userImage;
 				obj.id = user._id;
-				obj.status = status;
-	
-				
+				obj.status = status;					
 			}
 			util.responseClient(res,200,0,'ok',obj);
 

@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 module.exports = new mongoose.Schema({
     title:String,
     userid:String,
+    username:String,
     date:String,
     description:String,
     isHot:{type:Boolean,default:false},
@@ -19,9 +20,7 @@ module.exports = new mongoose.Schema({
         originalpath:String
     }],
     follows:[{userid:String,date:String}],
-    shareBy:[String],
-    content:[String]
-   
+    shareBy:[String]   
 });
 
 

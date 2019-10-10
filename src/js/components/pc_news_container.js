@@ -35,7 +35,7 @@ export default class PCNewsContainer extends React.Component {
 						
 						<div>
 							<div style={{width:'36%',float:'left'}}>
-								<PCNewsImageBlock count={4} type="shehui" withoutTitle cardTitle="国际头条" imageWidth="50%" />	
+								<PCNewsImageBlock count={4} type="shehui" cardTitle="国际头条" imageWidth="50%" />	
 							</div>
 							<div style={{width:'64%',float:'left',display:'flex'}}>
 								

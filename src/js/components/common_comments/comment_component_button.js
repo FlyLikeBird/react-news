@@ -1,7 +1,7 @@
 import React from 'react';
-import { Icon, Popover } from 'antd';
+import { Icon, Popover, message } from 'antd';
 import CommentsInput from './comments_input';
-
+import TopicItemPopover from '../pc_topic/pc_topic_item_popover';
 import { parseDate, formatDate } from '../../../utils/translateDate';
 
 var isAllowed = true ;
@@ -12,78 +12,76 @@ export default class CommentsComponentButton extends React.Component{
     this.state={
       isLiked:false,
       isdisLiked:false,
-      likeNum:0,
-      dislikeNum:0,
+      likeUsers:[],
+      dislikeUsers:[],
+      shareBy:[],
       visible:false,
       isRead:false,
       iconType:'caret-left'     
     }
   }
 
-  handleUserAction(commentid,action,isCancel,parentcommentid){    
-    fetch('/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel +'&parentcommentid='+parentcommentid)
-      .then(response=>response.json())
-      .then(json=>{
-        
-        var responseData = json.data;
-        var likeNum = responseData.like;
-        var dislikeNum = responseData.dislike;
-
-        this.setState({likeNum,dislikeNum});
-
-        if (action == 'like' && !Boolean(isCancel)) {
-          this.setState({isLiked:true})
-        } else if (action == 'like' && Boolean(isCancel)){
-          this.setState({isLiked:false})
-        } else if (action == 'dislike' && !Boolean(isCancel)){
-          this.setState({isdisLiked:true})
-        } else if (action == 'dislike' && Boolean(isCancel)){
-          this.setState({isdisLiked:false})
+  handleUserAction(commentid,action,isCancel,parentcommentid){ 
+    var userid = localStorage.getItem('userid');
+    var { onUpdateLikeUsers } = this.props;
+    if (userid){
+        fetch('/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel +'&parentcommentid='+parentcommentid +'&userid='+userid)
+          .then(response=>response.json())
+          .then(json=>{            
+            var data = json.data;           
+            if (action == 'like' && !Boolean(isCancel)) {
+              this.setState({isLiked:true,likeUsers:data});
+            } else if (action == 'like' && Boolean(isCancel)){
+              this.setState({isLiked:false,likeUsers:data})
+            } else if (action == 'dislike' && !Boolean(isCancel)){
+              this.setState({isdisLiked:true,dislikeUsers:data})
+            } else if (action == 'dislike' && Boolean(isCancel)){
+              this.setState({isdisLiked:false,dislikeUsers:data})
+            }
+          })
+        //  用户评论后加积分逻辑     
+        if ( isAllowed ) {
+          if(action === 'like' && !isCancel )
+          fetch(`/usr/operatecomment?user=${localStorage.getItem('username')}`)
+          .then(()=>{
+            isAllowed = false;
+            setTimeout(()=>{
+              isAllowed = true;
+            },60000)
+          })
         }
-      })
-
-      
-      if ( isAllowed ) {
-        if(action === 'like' && !isCancel )
-        fetch(`/usr/operatecomment?user=${localStorage.getItem('username')}`)
-        .then(()=>{
-
-          isAllowed = false;
-
-          setTimeout(()=>{
-            isAllowed = true;
-          },60000)
-        })
-      }
-      
-
-      if(action == 'like') {
         
-        if (this.likeDom){
-            var span = this.likeDom;
+        if(action == 'like') {          
+          if (this.likeDom){
+              var span = this.likeDom;
+              var i = span.getElementsByClassName('anticon')[0];
+              i.classList.add('addFlash');
+              setTimeout(()=>i.classList.remove('addFlash'),500)
+          }
+        } else if(action == 'dislike'){
+          if(this.dislikeDom){
+            var span = this.dislikeDom;
             var i = span.getElementsByClassName('anticon')[0];
-            i.classList.add('addFlash');
+            i.classList.add('addFlash'); 
             setTimeout(()=>i.classList.remove('addFlash'),500)
-        }
-      } else if(action == 'dislike'){
-        if(this.dislikeDom){
-          var span = this.dislikeDom;
-          var i = span.getElementsByClassName('anticon')[0];
-          i.classList.add('addFlash'); 
-          setTimeout(()=>i.classList.remove('addFlash'),500)
-        }
-      }     
+          }
+        }    
+    } else {
+        message.warning('请先登录之后再操作!')
+    } 
+     
+  }
+
+  componentWillReceiveProps(newProps){
+      var { likeUsers, dislikeUsers, shareBy } = newProps;
+      var userid = localStorage.getItem('userid');
+      var isLiked = likeUsers.map(item=>item.userid).includes(userid), isdisLiked = dislikeUsers.map(item=>item.userid).includes(userid);
+      this.setState({likeUsers,dislikeUsers,shareBy, isLiked,isdisLiked});
   }
 
   componentDidMount(){
       var { isRead } = this.props;
       this.setState({isRead})
-  }
-
-  componentWillReceiveProps(newprops){
-   let { like, dislike } = newprops;
-   this.setState({likeNum:like,dislikeNum:dislike})
-
   }
 
   handleReply(){
@@ -99,8 +97,12 @@ export default class CommentsComponentButton extends React.Component{
 
   handleShare(commentid,parentcommentid){
     if(this.props.onVisible){
-      this.props.onVisible(true,commentid,parentcommentid)
+      this.props.onVisible(true,commentid,parentcommentid,this._updateShareByUsers.bind(this))
     }
+  }
+
+  _updateShareByUsers(data){
+      this.setState({shareBy:data})
   }
 
   handleMarkIsRead(id){
@@ -110,26 +112,35 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   handleGotoDetail(commentid,parentcommentid){
-    var { history, uniquekey } = this.props;
+    var { history, uniquekey, commentType } = this.props;
     fetch(`/comment/getCommentPagenum?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}&uniquekey=${uniquekey}`)
       .then(response=>response.json())
       .then(json=>{
           var pageNum = json.data;
           if (history){
-              console.log(history);
-              history.push(`/details/${uniquekey}`,{
-                  pageNum,
-                  commentid,
-                  parentcommentid,
-                  forTrack:true
-              })
+              if (commentType == 'news') {
+                  history.push(`/details/${uniquekey}`,{
+                    pageNum,
+                    commentid,
+                    parentcommentid,
+                    forTrack:true
+                  })
+              } else if (commentType =='topic'){
+                  history.push(`/topic/${uniquekey}`,{
+                    pageNum,
+                    commentid,
+                    parentcommentid,
+                    forTrack:true
+                  })
+              }
+              
           }
       })
   }
 
   render(){
-    var { isLiked, isdisLiked, likeNum, dislikeNum, hide, isRead, iconType, visible } = this.state;
-    var { username, fromUser, toUser, isSub,  commentid, commentType, showReplies, onShowReplies, socket, shareBy, forUser, forMsg, replies, commentid, parentcommentid, fathercommentid, owncomment, hasDelete, grayBg } = this.props;
+    var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, iconType, visible } = this.state;
+    var { username, history, fromUser, toUser, isSub,  commentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, replies, commentid, parentcommentid, fathercommentid, owncomment, hasDelete, grayBg } = this.props;
     var _id = this.props.commentid;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
@@ -166,8 +177,8 @@ export default class CommentsComponentButton extends React.Component{
                   </div>
                   :
                   <div>
-                      <Popover content={<div>hello</div>}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeNum  }</span><Icon className="caret" type={iconType}/></span></Popover>
-                      <Popover content={<div>hello</div>}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeNum }</span><Icon className="caret" type={iconType}/></span></Popover>
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></Popover>
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></Popover>
                       {
                           isSub && hasDelete
                           ?
@@ -181,7 +192,7 @@ export default class CommentsComponentButton extends React.Component{
                           ?
                           null
                           :
-                          <span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span>
+                          <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}><span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span></Popover>
                       }
                       
                       {

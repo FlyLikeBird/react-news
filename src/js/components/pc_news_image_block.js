@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Icon } from 'antd';
+import { Card, Icon, Spin } from 'antd';
 
 
 
@@ -11,13 +11,12 @@ export default class PCNewsImageBlock extends React.Component {
 	constructor(){
 		super();
 		this.state = {
-			//news:'',
-			newsList:''
-			
+			isLoad:true,
+			newsList:[]			
 		}
 	}
 	
-	componentWillMount(){
+	componentDidMount(){
 
 		const imageContainer = {
 			
@@ -47,92 +46,45 @@ export default class PCNewsImageBlock extends React.Component {
 						:
 						'没有加载到任何新闻!';
 
-			this.setState({newsList:newsList});
-			
-			/*
-			for(var i=0,len=json.length;i<len;i++){
-					fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getnewsitem&uniquekey="+json[i].uniquekey)
-						.then(response=>response.json())
-						.then(json=>{
-
-							fetch('/article/addArticle',{
-								method:'post',
-								headers:{
-									'Accept':'application/json',
-									'Content-Type':'application/json'
-								},
-								body:JSON.stringify(json)
-							})
-						})
-
-			}
-			*/
+			this.setState({newsList:newsList,isLoad:false});
 			
 		})
 		
 	}
 	
-	handleChangeNews(e){
-		//e.preventDefault();
-		e.preventDefault();
-		++counter;
-		
-		var { count } = this.props;
-		
-		const imageContainer = {
-			
-			width:this.props.imageWidth,
-			height:'150px'
-			
-		}
-
-		var changeCount = counter*count;
-		//console.log(changeCount);
-		var fetchOptions = {
-			method:'GET'
-		};
-		//var changeCount = 40;
-		fetch("http://newsapi.gugujiankong.com/Handler.ashx?action=getnews&type="+this.props.type+"&count="+changeCount,fetchOptions)
-		.then(response=>response.json())
-		.then(json=>{
-			//console.log(json)
-			
-			var newArr = json.slice(-count);
-			const newsList = newArr.length
-						?
-						newArr.map((newsItem,index)=>(
-							<div key={index} className="imageblock" style={imageContainer}>
-								<Link to={`details/${newsItem.uniquekey}`} style={{display:'inline-block'}}>
-									<div className="custom-image" style={{height:'100px',overflow:'hidden'}}>
-										<img alt="" src={newsItem.thumbnail_pic_s} />
-									</div>
-									<div className="custom-card" style={{height:'50px'}}>
-										<h3>{newsItem.title}</h3>
-										<p>{newsItem.author_name}</p>
-									</div>
-								</Link>
-							</div> 
-						))				
-						:
-						'已无更多新闻！';
-
-			this.setState({newsList:newsList});
-			
-			//this.setState({newsList})
-		})
+	handleChangeNews(){
+		var { newsList } = this.state;
+		var count = newsList.length;
+		var newArr = [];
+		for(var i=0;i<count;i++){
+			var randomIndex = Math.floor(Math.random()*(newsList.length))
+			newArr[i] = newsList[randomIndex];
+			newsList.splice(randomIndex,1);
+		}		
+		this.setState({newsList:newArr})	
 	}
 	
 	render() {
-
-		const newsList = this.state.newsList;
-		
+		var { newsList, isLoad } = this.state;
+		var { iconType, cardTitle, width } = this.props;
 		return(
 			<div className="imgNewsList">
-				<Card title={this.props.withoutTitle?null:<span><Icon type={this.props.iconType} /> {this.props.cardTitle}</span>} style={{width:this.props.width}} extra={this.props.withoutTitle?null:<span style={{cursor:'pointer'}}onClick={this.handleChangeNews.bind(this)}>换一换<Icon type="reload"/></span>}>
-					<div className="block-container">
-						{ newsList ? newsList :'头条正在加载中....'}
+				{
+					isLoad
+					?
+					<Spin />
+					:
+					<div>
+						<div className="news-title">
+							<span className="text"><Icon type={iconType}/>{cardTitle}</span>
+							<span className="button" onClick={this.handleChangeNews.bind(this)}>换一换<Icon type="reload"/></span>
+						</div>
+						<div className="block-container">
+							{ newsList ? newsList :'头条正在加载中....'}
+						</div>
 					</div>
-				</Card>
+				}
+				
 			</div>
 		)
 		

@@ -54,10 +54,16 @@ export default class PCUserCenterContainer extends React.Component{
                             <TabPane tab={isSelf?"我的话题":"TA的话题"} key="like">
                                 <PCUsercenterTopic history={history}/>
                             </TabPane>
-                        
-                            <TabPane className="background-color" tab="我的评论" key="comment">
-                                <MyCommentsList data={userComments} history={history} text="还没有发布过任何评论!" />
-                            </TabPane>
+                            {
+                                isSelf
+                                ?
+                                <TabPane className="background-color" tab="我的评论" key="comment">
+                                    <MyCommentsList data={userComments} history={history} text="还没有发布过任何评论!" />
+                                </TabPane>
+                                :
+                                null
+                            }
+                            
                             {
                                 isSelf
                                 ?

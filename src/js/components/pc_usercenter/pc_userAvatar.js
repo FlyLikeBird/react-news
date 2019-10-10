@@ -80,7 +80,6 @@ export default class PCUserAvatar extends React.Component {
   }
 
   handleMouseOver(e){
-
     //当内部有嵌套结构时处理onmouseover onmouseout事件
     var imgMask = this.refs.maskContainer;
     var inner = e.toElement || e.relatedTarget;
@@ -179,7 +178,7 @@ export default class PCUserAvatar extends React.Component {
             description={<div className="">
                     <div><span style={{color:'#000',fontWeight:'500'}}>{username}</span></div>
                     <div><span className="ant-text">创建时间:  {registertime}</span></div>
-                    <div><span className="ant-text">用户等级:  {level}</span></div>
+                    <div><span className="ant-text">用户等级:  {levelNum}</span></div>
                     <div><span className="ant-text">签名:  { descriptionContent }</span></div>
                     <div className="user-follow-container" style={{marginTop:'20px',marginLeft:'0'}}>
                       <div className="user-follow">

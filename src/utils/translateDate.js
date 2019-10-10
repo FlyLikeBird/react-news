@@ -7,9 +7,7 @@ export function parseDate (date) {
     }  
 };  
 
-export function formatDate (date) {
-    
-    
+export function formatDate (date) {     
         var y = date.getFullYear();  
         var m = date.getMonth() + 1;  
         m = m < 10 ? ('0' + m) : m;  
@@ -49,6 +47,9 @@ export function translateType(type){
         case 'comment':
             str = '评论';
             break;
+        case 'action':
+            str = '动态';
+            break;
         case 'msg':
             str = '消息';
             break;
@@ -60,7 +61,8 @@ export function translateType(type){
     return str;
 }
 
-export function formatContent(pattern,content){   
+export function formatContent(content){ 
+    var pattern = /(.*?)@([^@|\s|:]+)/g;  
     var str = content;
     var remainStr = '';
     var data = [];
@@ -87,6 +89,15 @@ export function formatContent(pattern,content){
        
     }
     return data; 
+}
+
+export function sortByDate(arr){
+  arr.sort((a,b)=>{
+    var time1 = Date.parse(a.date);
+    var time2 = Date.parse(b.date);
+    return time2 - time1
+  })
+  return arr; 
 }
 
 

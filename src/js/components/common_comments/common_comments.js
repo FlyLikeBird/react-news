@@ -12,7 +12,7 @@ export default class CommentsContainer extends React.Component{
 				<Row>
 					<Col span={24}>
 
-						<CommentsListContainer {...this.props} uniquekey={uniquekey} commentType="news" hasCommentInput={true} text="还没有人评论呢!,快来抢沙发吧" shareType="news"/>					
+						<CommentsListContainer {...this.props} uniquekey={uniquekey} commentType="news" hasCommentInput={true} warnMsg="还没有用户评论呢!快来抢沙发吧～" shareType="news"/>					
 						
 					</Col>
 				</Row>

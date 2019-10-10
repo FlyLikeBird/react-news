@@ -40,32 +40,29 @@ export class TopicListItem extends React.Component {
         super();
         this.state = {
             isFollowed:false,
-            iconType:'caret-left'
+            follows:[],
+            shareBy:[],
+            followIcon:'caret-left',
+            shareIcon:'caret-left'          
         }
     }
 
-    handleFollow(_id,isFollowed,e){
+    handleFollow(_id,e){
         e.stopPropagation();
+        var { isFollowed } = this.state;
         var userid=localStorage.getItem('userid');
         if(userid){
             fetch(`/topic/followTopic?topicId=${_id}&userid=${userid}&isCancel=${isFollowed?'true':''}`)
                 .then(response=>response.json())
                 .then(json=>{
-                    this.setState({isFollowed:!isFollowed})
+                    var data = json.data;                
+                    this.setState({follows:data,isFollowed:!isFollowed});                    
                 })
         } else {
             message.error('请先完成登录后再操作!')
         }
     }
 
-    handleReply(_id,e){
-        e.stopPropagation();
-        
-        if(this.props.onShowReply){
-            this.props.onShowReply()
-        }
-    }
-    
     handleRemove(id){
         var { onVisible } = this.props;
         if ( onVisible ) {
@@ -80,20 +77,24 @@ export class TopicListItem extends React.Component {
         }
     }
 
+    _updateShareByUsers(data){
+      this.setState({shareBy:data})
+    }
+
     handleLink(id){
         var { history } = this.props;
         history.push(`/topic/${id}`);
     }
 
-    handleShare(id){
+    handleShare(){
         var { onVisible } = this.props;
         if( onVisible ){
-            onVisible(true,id)
+            onVisible(true,this._updateShareByUsers.bind(this))
         }
     }
 
     componentDidMount(){
-        var { forDetail } = this.props;
+        var { forDetail, item } = this.props;
         var id = this.props.item._id;
         var userid = localStorage.getItem('userid');
         if (userid){
@@ -102,29 +103,38 @@ export class TopicListItem extends React.Component {
                     .then(response=>response.json())
                     .then(json=>{
                         var code = json.code;
+                        var { follows, shareBy } = item;
                         if(code ===0){
                             this.setState({isFollowed:true})
                         } else {
                             this.setState({isFollowed:false})
                         }
+                        this.setState({follows,shareBy})
                     })
             }
-        }
-        
+        }       
     }
 
-    handlePopoverContent(visible){
-        if(visible===true){
-            this.setState({iconType:'caret-down'});
+    handleChangeIcon(type,visible){
+        if (visible===true){
+            if (type=='follow') {
+                this.setState({followIcon:'caret-down'})
+            } else {
+                this.setState({shareIcon:'caret-down'})
+            }
         } else {
-            this.setState({iconType:'caret-left'});
+            if ( type =='follow'){
+                this.setState({followIcon:'caret-left'})
+            } else {
+                this.setState({shareIcon:'caret-left'})
+            }
         }
     }
 
     render(){
         var { item, inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
-        var { shareBy, privacy, sponsor, _id, tag, images, follows, content, title, description, view } = item;
-        var { isFollowed, iconType } = this.state;
+        var {  privacy, username, _id, tag, images,  content, title, description, view } = item;
+        var { isFollowed, followIcon, shareIcon, follows, shareBy } = this.state;
 
         return (
             <div 
@@ -134,16 +144,31 @@ export class TopicListItem extends React.Component {
                     <div className="label"><span>{privacy===0?'公开':privacy===1?'有权限':'私密'}</span></div>                    
                     <div className="topic-card-body" style={{borderBottom:forPreview?'1px solid #e8e8e8':'none'}}>
                         <h3>{title}</h3>                        
-                        <div><span className="text" style={{fontSize:'14px',color:'#000'}}>发起人：{sponsor}</span></div>                       
+                        <div><span className="text" style={{fontSize:'14px',color:'#000'}}>发起人：{username}</span></div>                       
                         <div style={{width:'500px'}}>
                             <span className="text">{view}人浏览</span>
                             <span className="text">{content?content.length:0}人回复</span>
-                            <Popover onVisibleChange={this.handlePopoverContent.bind(this)} content={<TopicItemPopover data={follows}/>} placement="bottom">
-                                <span className="text">{follows?follows.length:0}人关注 <Icon type={iconType} /></span>
-                            </Popover>                                                        
-                            <Popover onVisibleChange={this.handlePopoverContent.bind(this)} content={<TopicItemPopover data={shareBy} hasText={true}/>} placement="bottom">
-                                <span className="text">{shareBy?shareBy.length:0}人转发 <Icon type={iconType} /></span>
-                            </Popover>                        
+                            {
+                                forIndex
+                                ?
+                                null
+                                :
+                                <Popover onVisibleChange={this.handleChangeIcon.bind(this,'follow')} content={<TopicItemPopover data={follows} text="关注" />} placement="bottom">
+                                    <span className="text">{`${follows.length} 人关注`}<Icon type={followIcon}/></span>
+                                </Popover>
+                                
+                            }
+                            {
+                                forIndex
+                                ?
+                                null
+                                :
+                                <Popover onVisibleChange={this.handleChangeIcon.bind(this,'shareBy')} content={<TopicItemPopover data={shareBy} text="转发" forShare={true}/>} placement="bottom">
+                                    <span className="text">{`${shareBy.length} 人转发`} <Icon type={shareIcon} /></span>
+                                </Popover>
+                                 
+                            }                                                    
+                                                   
 
                         </div>
                         
@@ -172,7 +197,7 @@ export class TopicListItem extends React.Component {
                                 ?
                                 inline
                                 ?
-                                <div className="topic-img-container">
+                                <div className="topic-img-container" style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33%'}}>
                                     <img src={images[0]['filename']} />
                                 </div>
                                 :
@@ -194,48 +219,45 @@ export class TopicListItem extends React.Component {
                         forIndex
                         ?
                         <div className="topic-card-extra">
-                            <div style={{display:'inline-block',width:'50%',borderRight:'1px solid rgb(197, 195, 195)'}} onClick={this.handleLink.bind(this,_id)}>
-                                <Icon type="edit" />前往话题
+                            <div onClick={this.handleLink.bind(this,_id)}>
+                                <span className="text"><Icon type="arrow-right" />前往话题</span>
                             </div>
                         </div>
                         :
                         forUser
                         ?
                         <div className="topic-card-extra">                            
-                            <div style={{display:'inline-block',width:'33%',borderRight:'1px solid rgb(197, 195, 195)'}} onClick={this.handleEdit.bind(this,_id)}>
-                                <Icon type="edit" />编辑话题
+                            <div onClick={this.handleEdit.bind(this,_id)}>
+                                <span className="text"><Icon type="edit" />编辑话题</span>
                             </div>
-                            <div style={{display:'inline-block',width:'33%',borderRight:'1px solid rgb(197, 195, 195)'}} onClick={this.handleLink.bind(this,_id)}>
-                                <Icon type="arrow-right" />前往话题
+                            <div onClick={this.handleLink.bind(this,_id)}>
+                                <span className="text"><Icon type="arrow-right" />前往话题</span>
                             </div>
-                            <div style={{display:'inline-block',width:'33%'}} onClick={this.handleRemove.bind(this,_id)}>
-                                <Icon type="close" />删除话题
+                            <div onClick={this.handleRemove.bind(this,_id)}>
+                                <span className="text"><Icon type="close" />删除话题</span>
                             </div>                           
                         </div>
                         :
                         forDetail
                         ?
                         <div className="topic-card-extra">
-                            <div style={{display:'inline-block',width:'33%',borderRight:'1px solid rgb(197, 195, 195)'}}>
+                            <div>
                                 {
                                     
-                                    <div onClick={this.handleFollow.bind(this,_id,isFollowed)}>
+                                    <div onClick={this.handleFollow.bind(this,_id)}>
                                         {
                                             isFollowed
                                             ?
-                                            <span style={{color:'#1890ff'}}><Icon type="check" />已关注</span>
+                                            <span className="text"><Icon type="check" />已关注</span>
                                             :
-                                            <span><Icon type="plus" />关注话题</span>
+                                            <span className="text" style={{color:'#1890ff'}}><Icon type="plus" />关注话题</span>
                                         }
                                     </div>
                                     
                                 }
                             </div>
-                            <div style={{display:'inline-block',width:'33%',borderRight:'1px solid rgb(197, 195, 195)'}} onClick={this.handleReply.bind(this,_id)}>
-                                <Icon type="edit" />参与话题
-                            </div>
-                            <div style={{display:'inline-block',width:'33%'}} onClick={this.handleShare.bind(this,_id)}>
-                                <Icon type="export" />转发话题
+                            <div onClick={this.handleShare.bind(this,_id)}>
+                                <span className="text"><Icon type="export" />转发话题</span>
                             </div>
                         </div>
                         :
@@ -252,42 +274,51 @@ export default class TopicList extends React.Component{
         
     }
 
-
     componentDidUpdate(){
-        var { inline, columns } = this.props;
+        this._sortTopicList(this.props);
+    }
 
-        if(inline){
-            var container = this.cardContainer;
-
+    _sortTopicList(props){
+        var { inline, columns } = props;
+        var container = this.cardContainer;
+        if(container){ 
             var cardContainers = container.childNodes;
             var cardWidth = container.offsetWidth/columns;
             // 放置每一列的高度数据
             var cardsColHeight = [];
-
-            for(var i=0,len=cardContainers.length;i<len;i++){
-                var cardContainer = cardContainers[i];
-                if(i<columns){
-                    console.log(cardContainer.offsetHeight);
-                    cardsColHeight.push(cardContainer.offsetHeight);
-                    cardContainer.style.left = i*cardWidth + 'px';
-                    cardContainer.style.top = '0px';
-                } else {
-                    
-                    var minHeight = getMinValueOfArr(cardsColHeight);
-                    
-                    var minHeightIndex = getMinIndexOfArr(cardsColHeight,minHeight);
-                    cardContainer.style.left = minHeightIndex * cardWidth + 'px';
-                    cardContainer.style.top = minHeight + 'px';
-                    cardsColHeight[minHeightIndex] = cardsColHeight[minHeightIndex] + cardContainer.offsetHeight;
+            if ( inline ) {
+                for(var i=0,len=cardContainers.length;i<len;i++){
+                    var cardContainer = cardContainers[i];
+                    if(i<columns){                   
+                        cardsColHeight.push(cardContainer.offsetHeight);
+                        cardContainer.style.left = i*cardWidth + 'px';
+                        cardContainer.style.top = '0px';
+                        cardContainer.style.display = 'inline-block';
+                    } else {                    
+                        var minHeight = getMinValueOfArr(cardsColHeight);                    
+                        var minHeightIndex = getMinIndexOfArr(cardsColHeight,minHeight);
+                        cardContainer.style.left = minHeightIndex * cardWidth + 'px';
+                        cardContainer.style.top = minHeight + 'px';
+                        cardsColHeight[minHeightIndex] = cardsColHeight[minHeightIndex] + cardContainer.offsetHeight;
+                    }
+                
                 }
-            
-
+                
+            } else {
+                for(var i=0,len=cardContainers.length;i<len;i++){
+                    cardContainers[i].style.left = '0px';
+                    cardContainers[i].style.top = '0px';
+                    cardContainers[i].style.display = 'block';
+                }
             }
             var maxHeight = getMaxValueOfArr(cardsColHeight);
             container.style.height = maxHeight + 'px';
+                       
+        } 
+    }
 
-            
-        }
+    componentDidMount(){
+        this._sortTopicList(this.props);
     }
     
     render(){

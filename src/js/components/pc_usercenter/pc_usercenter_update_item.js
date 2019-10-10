@@ -2,12 +2,12 @@ import React from 'react';
 import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card, Popover, Menu, Dropdown  } from 'antd';
 
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
-import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
-import CommentsInput from '../common_comments/comments_input';
-import CommentsList  from '../common_comments/comments_list';
-
+import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
+import CommentsListContainer  from '../common_comments/comments_list_container';
+import TopicItemPopover from '../pc_topic/pc_topic_item_popover';
 import { TopicListItem } from '../pc_topic/pc_topic_list';
 import { NewsListItem } from './pc_newslist';
+import UpdateInnerItem from './pc_usercenter_inner_update_item';
 
 var isAllowed = true;
 
@@ -19,84 +19,59 @@ export default class UpdateItem extends React.Component{
             item:{},
             isLiked:false,
             isdisLiked:false,
-            likeNum:0,
-            dislikeNum:0,
-            contentData:[],
+            likeUsers:[],
+            dislikeUsers:[],
+            shareBy:[],
+            translateData:[],
             visible:false,
-            replies:[]
+            likeIconType:'caret-left',
+            dislikeIconType:'caret-left',
+            shareByIconType:'caret-left'
+
         }
+    }
+
+    _loadItemData(props){
+        var { data } = props;
+        var { contentType, contentId, text, value, composeAction, likeUsers, dislikeUsers, shareBy, id } = data;
+        var userid = localStorage.getItem('userid');
+        var translateData;
+        if(contentType === 'action' && !composeAction){
+            translateData = formatContent(value);
+            this.setState({translateData});
+        } else if (contentType ==='action' && composeAction){
+            translateData = formatContent(value+'//'+text);
+            this.setState({translateData});
+        } else {
+            translateData = formatContent(value+"//"+text);
+            this.setState({translateData})
+        }
+        
+        var isLiked = likeUsers.map(item=>item.userid).includes(userid),isdisLiked = dislikeUsers.map(item=>item.userid).includes(userid);
+        this.setState({likeUsers,dislikeUsers,shareBy,isLiked,isdisLiked});  
     }
 
     componentDidMount(){
-        var { data } = this.props;
-        var { actionType, uniquekey, content, like, dislike, shareBy, id } = data;
-        var username = localStorage.getItem('username');
-        //  加载动态相关的信息
-        if (actionType === 'topic'){
-            fetch(`/topic/getTopicDetail?topicId=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data = json.data;
-                    this.setState({item:data})
-                })
-        } else if (actionType === 'news'){
-            fetch(`/article/getArticleContent?uniquekey=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data= json.data;
-                    this.setState({item:data});
-                })
-        } else if (actionType === 'collect') {
-
-        }
-        //  加载动态的评论
-        fetch(`/comment/getcomments?uniquekey=${id}&pageNum=1`)
-            .then(response=>response.json())
-            .then(json=>{
-                var data = json.data;
-                var replies = data.comments;
-
-                replies = replies.map(item=>{
-                            item['owncomment'] = username === item.username ? true : false;
-                            item.replies = item.replies.map(reply=>{
-                              reply['owncomment'] = reply.fromUser === username ? true : false;
-                              return reply;
-                            })
-                            return item;
-                        })
-                this.setState({replies})
-            })
-        //  将content从文本解析成组件结构
-        var pattern = /@([^:]+):([^@]+)/g;
-        var contentData = []
-        var result = pattern.exec(content);
-        while(result){              
-            contentData.push({
-                username:result[1],
-                content:result[2]
-            })    
-            result = pattern.exec(content);
-        }   
-        this.setState({contentData,likeNum:like,dislikeNum:dislike})  
+        this._loadItemData(this.props);
     }
 
     handleUserAction(id,action,isCancel){
-        var { likeNum, dislikeNum } = this.state;
-        fetch('/action/operate?action='+action+'&id='+ id +'&isCancel='+isCancel)
+        
+        fetch('/action/operate?action='+action+'&id='+ id +'&isCancel='+isCancel+'&userid='+localStorage.getItem('userid'))
         .then(response=>response.json())
         .then(json=>{ 
-
+            var data = json.data;
             if (action == 'like' && !Boolean(isCancel)) {
-              this.setState({isLiked:true,likeNum:++likeNum})
+              this.setState({isLiked:true,likeUsers:data});
             } else if (action == 'like' && Boolean(isCancel)){
-              this.setState({isLiked:false,likeNum:--likeNum})
+              this.setState({isLiked:false,likeUsers:data})
             } else if (action == 'dislike' && !Boolean(isCancel)){
-              this.setState({isdisLiked:true,dislikeNum:++dislikeNum})
+              this.setState({isdisLiked:true,dislikeUsers:data})
             } else if (action == 'dislike' && Boolean(isCancel)){
-              this.setState({isdisLiked:false,dislikeNum:--dislikeNum})
+              this.setState({isdisLiked:false,dislikeUsers:data})
             }
         })
-      
+        
         if ( isAllowed ) {
           if(action === 'like' && !isCancel )
           fetch(`/usr/operatecomment?user=${localStorage.getItem('username')}`)
@@ -132,10 +107,6 @@ export default class UpdateItem extends React.Component{
         this.setState({visible:!this.state.visible})
     }
 
-    handleAddComment(data){
-        this.setState({replies:data})
-    }
-
     handleRemove(id){
         if(this.props.onVisible){
             this.props.onVisible(true,id);
@@ -146,19 +117,23 @@ export default class UpdateItem extends React.Component{
         window.confirm('别举报了，逻辑我还没写完.....from 阿山')
     }
 
+    
+    componentWillReceiveProps(newProps){
+        this._loadItemData(newProps);
+    }
+
     handleShareVisible(){
         var { data, onShareVisible } = this.props;
-        var { item } = this.state;
-        var { uniquekey, value, content, actionType, username } = data;
-        var text = value + content;
+        var { contentType, composeAction, value, text, contentId, id, username } = data;
         if (onShareVisible){
             var option = {
-                uniquekey,
+                contentType,
                 text,
-                actionType,
-                item,
                 value,
-                username
+                contentId,
+                composeAction,
+                actionId:id,
+                username                     
             }
             onShareVisible(true,option)
         }
@@ -166,9 +141,9 @@ export default class UpdateItem extends React.Component{
 
     render(){
 
-        var { item, contentData, isLiked, isdisLiked, likeNum, dislikeNum, visible, replies } = this.state;
-        var { data, history, socket, isSelf } = this.props;
-        var { actionType, username, avatar, content, value, id, uniquekey, date, like, dislike,  shareBy } = data;
+        var { translateData, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
+        var { data, history, socket, loaction, forDetail, isSelf } = this.props;
+        var { contentType, composeAction, username, avatar, text, value, id, comments, isCreated, contentId, date } = data;
         
         const menu = (
             <Menu>
@@ -187,97 +162,133 @@ export default class UpdateItem extends React.Component{
         return(
             
             <div className="action">
-                <div className="operation">
-                    <span className="text">{translateType(actionType)}</span>
-                    <Dropdown overlay={menu} trigger={['click']}>
-                        <span className="ant-dropdown-link button text">
-                            <Icon type="setting" />
-                        </span>
-                    </Dropdown>
-                </div>
-                <Card className="action-card">
-                    
-                    <div>
-                        <div style={{display:'flex',alignItems:'center'}}>
-                            <div className="avatar-container"><img src={avatar} /></div>
-                            <div>
-                                <div><span style={{color:'#000',fontWeight:'500'}}>{username}</span></div>
-                                <span className="text">{`发布于 ${formatDate(parseDate(date))}`}</span>
-                            </div>
+                {
+                    forDetail
+                    ?
+                    null
+                    :
+                    <div className="action-head">
+                        <span className="text">{ isCreated ? '发布动态':`转发${translateType(contentType)}`}</span>
+                        <Dropdown overlay={menu} trigger={['click']}>
+                            <span className="ant-dropdown-link button text">
+                                <Icon type="setting" />
+                            </span>
+                        </Dropdown>
+                    </div>
+                }                                  
+                <div className="action-body">
+                    <div style={{display:'flex',alignItems:'center'}}>
+                        <div className="avatar-container"><img src={avatar} /></div>
+                        <div>
+                            <div><span style={{color:'#000',fontWeight:'500'}}>{username}</span></div>
+                            <span className="text">{`发布于 ${formatDate(parseDate(date))}`}</span>
                         </div>
-                        {
-                            actionType == 'comment' || actionType == 'action'
-                            ?
-                            <div style={{margin:'4px 0',fontSize:'12px'}}>
+                    </div>
+                    {
+                        contentType == 'action' 
+                        ?
+                        <div style={{margin:'2px 0'}}>
+                            {
+                                translateData.length
+                                ?
+                                translateData.map((item,index)=>(
+                                    <span key={index}>
+                                        <span>{item.text}</span>
+                                        {
+                                            item.user
+                                            ?
+                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                            :
+                                            null
+                                        }
+                                        
+                                    </span>
+                                ))
+                                :
                                 <span>{value}</span>
+                            }
+                            <UpdateInnerItem uniquekey={contentId} />
+                        </div>
+                        :
+                        <div style={{margin:'2px 0'}}>
+                            {
+                                translateData.length
+                                ?
+                                translateData.map((item,index)=>(
+                                    <span key={index}>
+                                        <span>{item.text}</span>
+                                        {
+                                            item.user
+                                            ?
+                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                            :
+                                            null
+                                        }
+                                        
+                                    </span>
+                                ))
+                                :
+                                <span>{value+text}</span>
+                            }
+                            <div style={{padding:'10px 20px',backgroundColor:'rgb(249, 249, 249)',borderRadius:'4px'}}>
                                 {
-                                    contentData.length
-                                    ?
-                                    contentData.map((item,index)=>(
-                                        <span key={index}>
-                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.username} />}><span style={{color:'#1890ff'}}>{`@${item.username}:`}</span></Popover>
-                                            <span>{item.content}</span>
-                                        </span>
-                                    ))
-                                    :
-                                    null
+                                  contentType === 'topic'
+                                  ?
+                                  <TopicListItem uniquekey={contentId} noAction={true} history={history} forSimple={true}/>
+                                  :
+                                  contentType === 'news'
+                                  ?
+                                  <NewsListItem uniquekey={contentId} hasImg={true} forSimple={true}/>
+                                  :
+                                  null
                                 }
                             </div>
-                            :
-                            <div style={{margin:'4px 0',fontSize:'12px'}}>
-                                <span>{content}</span>
-                            </div>
-                        }
-                        
-                             
-                        {
-                          actionType === 'topic'
-                          ?
-                          <TopicListItem item={item} noAction={true} history={history} forSimple={true}/>
-                          :
-                          actionType === 'news'
-                          ?
-                          <NewsListItem item={item} hasImg={true} />
-                          :
-                          null
-                        }
-                    </div>                
-                </Card>
-                <div className="user-action">
-                    <div onClick={this.handleUserAction.bind(this,id,'like',isLiked?'true':'')}>
-                        <span className="text" ref={span=>this.likeDom=span}>
+                        </div>
+                    }    
+                </div>                
+                   
+                <div className="user-action">                  
+                    <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} text="赞"/>}>
+                        <span onClick={this.handleUserAction.bind(this,id,'like',isLiked?'true':'')} className="text" ref={span=>this.likeDom=span}>
                             <Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>
                             {   isLiked?'取消点赞':'点赞' }
-                            <span className="num">{ likeNum  }</span>
+                            <span className="num">{ likeUsers.length  }</span>
+                            <Icon className="caret" type={likeIconType} />
                         </span>
-                
-                    </div>
-                    <div onClick={this.handleUserAction.bind(this,id,'dislike',isdisLiked?'true':'')}>
-                        <span className="text" ref={span=>this.dislikeDom=span}>
+                    </Popover>
+                    <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} text="踩"/>}>    
+                        <span onClick={this.handleUserAction.bind(this,id,'dislike',isdisLiked?'true':'')} className="text" ref={span=>this.dislikeDom=span}>
                             <Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />
                             {   isdisLiked?'取消反对':'反对'} 
-                            <span className="num">{ dislikeNum }</span>
+                            <span className="num">{ dislikeUsers.length }</span>
+                            <Icon className="caret" type={dislikeIconType} />
                         </span>
-                    </div>
-                    <div onClick={this.handleReplyVisible.bind(this)}>
-                        <span className="text" >
-                            <Icon type="edit" />回复
-                            <span>{replies.length}</span>
-                        </span>
-                    </div>
-                    <div onClick={this.handleShareVisible.bind(this,id)}>
-                        <span className="text">
+                    </Popover>
+                
+                    <span onClick={this.handleReplyVisible.bind(this)} className="text" >
+                        <Icon type="edit" />回复
+                        <span className="num">{comments}</span>
+                    </span>
+                
+                    <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} text="转发"/>}>
+                        <span onClick={this.handleShareVisible.bind(this,id)} className="text">
                             <Icon type="export" />转发
                             <span>{shareBy.length}</span>
+                            <Icon className="caret" type={shareByIconType}/>
                         </span>
-                    </div>
+                    </Popover>
                 </div>
-                <div style={{display:visible?'block':'none'}}>
-                    <CommentsInput  isAddComment={true} uniquekey={id} onAddComment={this.handleAddComment.bind(this)} />
-                    <div style={{padding:'4px 10px'}}>
-                        <CommentsList isSub={false}  socket={socket} comments={replies}  grayBg={true}/>
-                    </div>
-                </div>
+
+                <div style={{display:forDetail?'block':visible?'block':'none'}}>
+                    <CommentsListContainer 
+                            history={history}
+                            location={location}
+                            socket={socket} 
+                            uniquekey={id}                             
+                            commentType="action" 
+                            warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
+                    />
+                </div>                
             </div>
                       
         )

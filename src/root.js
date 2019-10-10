@@ -14,6 +14,7 @@ import PCTagIndex from './js/components/pc_tag/pc_tag_index';
 import PCTopNewsIndex from './js/components/pc_topnews_index';
 import PCTopicIndex from './js/components/pc_topic/pc_topic_index';
 import PCTopicDetail from './js/components/pc_topic/pc_topic_detail';
+import PCActionContainer from './js/components/pc_action/pc_action_container';
 
 import MobileIndex from './js/components/mobile_index';
 import MobileNewsDetails from './js/components/mobile_detail';
@@ -109,7 +110,7 @@ export default class Root extends React.Component {
                       <Route exact path="/topNews" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopNewsIndex {...props}/></div>}}></Route>
                       <Route exact path="/topic" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopicIndex {...props}/></div>}}></Route>
                       <Route exact path="/topic/:id" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopicDetail {...props}/></div>}}></Route>
-
+                      <Route exact path="/action/:id" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCActionContainer {...props} /></div>}}></Route>
                       <Route exact path="/:tag" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCTagIndex {...props}/></div>}}></Route>
                     </Switch>
                   </div>

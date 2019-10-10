@@ -13,8 +13,8 @@ export default class TopicDetailContainer extends React.Component{
         super();
         this.state={
             item:{},
-            visible:false,
-            shareVisible:false
+            shareVisible:false,
+            isLoad:true
         }
     }
 
@@ -26,43 +26,66 @@ export default class TopicDetailContainer extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var item =json.data;
-                this.setState({item});
+                this.setState({item,isLoad:false});
             })
     }
 
-    handleReplyVisible(){
-        
-        this.setState({visible:!this.state.visible});
-    }
-    
-    handleShareVisible(boolean){
+    handleShareVisible(boolean,onUpdateShareBy){
+        this.onUpdateShareBy = onUpdateShareBy;
         this.setState({shareVisible:boolean})
     }
 
+    handleUpdateTopicItem(item){
+        this.setState({item})
+    }
+
+    componentWillUnmount(){
+        this.onUpdateShareBy = null
+    }
+
     render(){
-        var { item,  visible, shareVisible } = this.state;
+        var { history, socket, location } = this.props;
+        var { item, isLoad, shareVisible } = this.state;
         var  uniquekey  = this.props.match.params.id;
-        //console.log(isUpdate);
+        
         return(
 
             <div>
-                <TopicListItem item={item} checkFollow={true} onVisible={this.handleShareVisible.bind(this)} onShowReply={this.handleReplyVisible.bind(this)}/>
-                <div style={{display:visible?'block':'none'}}>
-                    <CommentsInput  isAddComment={true} uniquekey={uniquekey} onShowReply={this.handleReplyVisible.bind(this)}/>
-                </div>
+                {
+                    isLoad
+                    ?
+                    <Spin />
+                    :
+                    <div>
+                        <TopicListItem
+                            item={item} 
+                            forDetail={true}
+                            onVisible={this.handleShareVisible.bind(this)} 
+                            onUpdateItem={this.handleUpdateTopicItem.bind(this)}
+                        />
+                        <CommentsListContainer 
+                            history={history}
+                            location={location}
+                            socket={socket} 
+                            uniquekey={uniquekey} 
+                            forTopic={true} 
+                            item={item}
+                            commentType="topic" 
+                            warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
+                        />
+                        <ShareModal 
+                            visible={shareVisible} 
+                            toId={uniquekey}         
+                            onVisible={this.handleShareVisible.bind(this)} 
+                            shareType="topic"
+                            onUpdateShareBy={this.onUpdateShareBy}
+                            item={item}
+                        />
+                    </div>                  
+                }                
                 
-                <CommentsListContainer uniquekey={uniquekey} hasCommentInput={false} text="还没有人发表过看法呢!请分享您的想法吧" shareType="topic"/>
-                <ShareModal 
-                    visible={shareVisible} 
-                    toId={uniquekey}         
-                    onVisible={this.handleShareVisible.bind(this)} 
-                    shareType="topic"
-                    item={item}
-                />
             </div>
-            
-            
-                       
+                               
         )
     }
 }

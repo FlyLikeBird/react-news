@@ -7,7 +7,13 @@ import DeleteModal from './pc_usercenter_delete_modal';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
 
 export class NewsListItem extends React.Component {
-  
+  constructor(){
+      super();
+      this.state = {
+          item:{}
+      }
+  }
+
   handleClick(articleId,contentId){
       var { forCollect, collectId } = this.props;
 
@@ -35,6 +41,19 @@ export class NewsListItem extends React.Component {
     var formatArr = time.split(/\s+/);
     //console.log(formatArr);
     return formatArr[0]+'<br/>' + '<span style="color:black">'+formatArr[1]+'</span>';
+  }
+
+  componentDidMount(){
+      var { uniquekey } = this.props;
+      if (uniquekey){
+          fetch(`/article/getArticleContent?uniquekey=${uniquekey}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data= json.data;
+                    this.setState({item:data});
+                })
+      }
+      
   }
 
   markKeyWords(content){
@@ -69,23 +88,24 @@ export class NewsListItem extends React.Component {
     //console.log(result);
   }
 
-  render(){
 
-    var { item, hastime, hasImg, hasSearchContent, noLink, id } = this.props;
+  render(){
+    var { item } = this.state;
+    var { hastime, hasImg, forSimple, hasSearchContent, noLink, id } = this.props;
     var { viewtime, articleId, auth, newstime, thumbnail, title, type } = item;
 
-    var newsCardStyle = {
-      margin:hastime?'10px 0':'4px 0',
-      backgroundColor:hastime?'#fff':'#f9f9f9'    
+    var newsStyle = {
+        backgroundColor:forSimple?'rgb(249, 249, 249)':'#fff',
+        margin:forSimple?'4px 0':'10px 0',
+        padding:forSimple?'0':'20px'
     }
-
     return (
 
-        <Card className="news" style={newsCardStyle}>
+        <Card className="news" style={newsStyle}>
               { 
                   hastime 
                   ? 
-                  <div style={{width:'100px',color:'#1890ff'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
+                  <div style={{width:'80px',color:'#1890ff'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
                   : 
                   null 
               }
@@ -98,7 +118,7 @@ export class NewsListItem extends React.Component {
                   : 
                   null 
               }
-               <div style={{width:'250px'}}>
+               <div style={{width:'270px'}}>
                       <div className="news-title">
                         {
                            noLink
@@ -120,7 +140,7 @@ export class NewsListItem extends React.Component {
   
                     <div>               
                       <span className="text">发布时间: <span className="mark">{newstime}</span></span>
-                      { hastime ? <br /> : null }
+                      <br />
                       <span className="text">来源: <span className="mark">{auth}</span></span>
                       <span className="text">类型: <span className="mark">{type}</span></span>
                     </div>

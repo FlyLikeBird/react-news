@@ -19,7 +19,8 @@ export default class TopicListContainer extends React.Component{
             topicList:[],
             tags:[],
             inline:true,
-            columns:4
+            columns:4,
+            isLoad:true
         }
     }
 
@@ -32,9 +33,7 @@ export default class TopicListContainer extends React.Component{
                 fetch(`/tag/getAllTags`)
                     .then(response=>response.json())
                     .then(json=>{
-                        var tags = json.data;
-                       
-                        
+                        var tags = json.data;                       
                         for(var i=0;i<10;i++){
                             topicList.push(topicList[i])
                         }
@@ -42,7 +41,7 @@ export default class TopicListContainer extends React.Component{
                         obj.content = {};
                         obj['tag'] = '全部',obj['content'].length = topicList.length;
                         tags.unshift(obj);
-                        this.setState({topicList,tags});
+                        this.setState({topicList,tags,isLoad:false});
                         
                     })                
             })
@@ -58,8 +57,18 @@ export default class TopicListContainer extends React.Component{
         this.setState({topicList})
     }
 
-    handleChangeShowMode(boolean,columns){
-        this.setState({inline:boolean,columns})
+    handleChangeShowMode(boolean,columns,e){
+        var target = e.currentTarget;
+        this.setState({inline:boolean,columns});
+        var buttonContainer = this.buttonContainer;
+        if (buttonContainer){
+            var allButtons = buttonContainer.getElementsByTagName('button');
+            for(var i=0,len=allButtons.length;i<len;i++){
+                allButtons[i].classList.remove('current');
+            }
+            target.classList.add('current');
+        }
+
     }
 
     handleChangeTag(_id,index,e){
@@ -91,7 +100,7 @@ export default class TopicListContainer extends React.Component{
     }
 
     render(){
-        var { topicList, tags, inline, columns } = this.state;
+        var { topicList, tags, inline, columns, isLoad } = this.state;
         var { history } = this.props;
         
         return(
@@ -112,13 +121,19 @@ export default class TopicListContainer extends React.Component{
                         null
                     }
                 </div>
-                <div style={{padding:'10px 0'}}>
-                    <Popover content={<div>卡片模式</div>}><Button size="small" onClick={this.handleChangeShowMode.bind(this,true,4)}><Icon type="appstore" /></Button></Popover>
-                    <Popover content={<div>列表模式</div>}><Button size="small" onClick={this.handleChangeShowMode.bind(this,false,1)}><Icon type="unordered-list" /></Button></Popover>
-                    <Popover content={<div>两列模式</div>}><Button size="small" onClick={this.handleChangeShowMode.bind(this,true,2)}><Icon type="column-width" /></Button></Popover>
-
+                <div className="mode-button" ref={button=>this.buttonContainer=button} style={{padding:'10px 0'}}>
+                    <Button size="small" className="current" onClick={this.handleChangeShowMode.bind(this,true,4)}><Icon type="appstore" /></Button>
+                    <Button size="small" onClick={this.handleChangeShowMode.bind(this,false,1)}><Icon type="unordered-list" /></Button>
+                    <Button size="small" onClick={this.handleChangeShowMode.bind(this,true,2)}><Icon type="column-width" /></Button>
                 </div>
-                <TopicList data={topicList} inline={inline} columns={columns} noAction={true} history={history}/>
+                {
+                    isLoad
+                    ?
+                    <Spin />
+                    :
+                    <TopicList data={topicList} inline={inline} forIndex={true} columns={columns} noAction={true} history={history}/>
+                }
+                
                 <Button onClick={this._loadMoreTopics.bind(this)}>加载更多话题</Button>
 
             </div>

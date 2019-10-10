@@ -45,6 +45,18 @@ function sortList(arr){
   return arr;
 }
 
+function operateComment(commentid, action, isCancel, userid, res){
+    var date = new Date().toString();
+    var pullOrPush = isCancel ? '$pull' : '$push'; 
+    var option = isCancel ? { userid } : { userid,date};
+    Comment.updateOne({_id:commentid},{[pullOrPush]:{[action+'Users']:option}},(err,result)=>{       
+        Comment.findOne({_id:commentid},(err,comment)=>{
+            var data = action == 'like' ? comment.likeUsers : comment.dislikeUsers;
+            util.responseClient(res,200,0,'ok',data);
+        })
+        
+    })
+}
 
 router.post('/addcomment',upload.array('images'),(req,res)=>{
   let { username, uniquekey, content, commentType } = req.body;
@@ -133,9 +145,7 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
 
 router.get('/getcomments',(req,res)=>{
   var { uniquekey, pageNum, orderBy, commentid } = req.query;
-
-  var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10;
-  
+  var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
   var data = {
     total:0,
     comments:[]
@@ -169,14 +179,13 @@ router.get('/getcomments',(req,res)=>{
   Comment.count({uniquekey})
     .then(count=>{
       data.total = count;
-
       Comment.find({uniquekey})
         .sort(orderOption)
         .skip(skip)
         .limit(10)
-        .then(collection=>{
-            data.comments = collection;
-            util.responseClient(res,200,0,'ok',data);
+        .then(comments=>{           
+            data.comments = comments;
+            util.responseClient(res,200,0,'ok',data);             
         })
     })
 })
@@ -241,14 +250,8 @@ router.get('/getCommentInfo',(req,res)=>{
 })
 
 router.get('/operatecomment',(req,res)=>{
-  var { action, commentid, isCancel, parentcommentid } = req.query;
-  let operate ;
-  if (Boolean(isCancel)) {
-    operate = -1;
-  } else {
-     operate = 1;
-  }
-  
+  var { action, commentid, isCancel, parentcommentid, userid } = req.query;
+  var date = new Date().toString();
   if (Boolean(parentcommentid)) {
     
     var action = `replies.$.${action}`;
@@ -274,26 +277,10 @@ router.get('/operatecomment',(req,res)=>{
     })
 
   } else {
-
-      Comment.updateOne({_id:commentid},{$inc:{[action]:operate}})
-       .then(result=>{
-         
-         if (result) {
-
-
-           Comment.findOne({_id:commentid})
-             .then(comment=>{
-               var data = {};
-               data.like = comment.like;
-               data.dislike = comment.dislike;
-               data.replies = comment.replies;
-               util.responseClient(res,200,1,'',data);
-             })
-         }
-      
-    })
+      operateComment(commentid, action, isCancel, userid, res)
   }    
 })
+
 
 router.get('/delete',(req,res)=>{
   let { commentid, parentcommentid } = req.query;

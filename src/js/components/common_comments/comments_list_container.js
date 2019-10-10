@@ -20,6 +20,8 @@ export default class CommentsListContainer extends React.Component{
       visible:false,
       text:'',
       translateData:[],
+      commentid:'',
+      parentcommentid:'',
       currentPageNum:1,
       isLoad:true,
       forTrack:false    
@@ -91,23 +93,29 @@ handleAddComment(list){
   this.setState({comments:list,total:list.length})
 }
 
-handleShareVisible(boolean,commentid,parentcommentid){
+handleShareVisible(boolean,commentid,parentcommentid,onUpdateShareBy){
     if (boolean === true){
+      this.onUpdateShareBy = onUpdateShareBy;
       fetch(`/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}`)
       .then(response=>response.json())
       .then(json=>{   
           var str = json.data;      
-          var data = formatContent(/(.*?)@([^@|\s|:]+:*)/g,str);      
-          this.setState({visible:boolean,text:str,translateData:data})
+          var data = formatContent(str); 
+          this.setState({visible:boolean,text:str,translateData:data,commentid,parentcommentid})
       })    
     } else {
+      console.log(boolean);
       this.setState({visible:boolean})
     }
 }
 
+componentWillUnmount(){
+    this.onUpdateShareBy = null;
+}
+
 render(){
-  var { socket, uniquekey, hasCommentInput, text, shareType, item, commentType, history, setScrollTop } = this.props;
-  var { comments, total, value, visible, text, translateData, isLoad, currentPageNum, forTrack } = this.state;
+  var { socket, uniquekey, hasCommentInput, warnMsg , item, commentType, history, setScrollTop } = this.props;
+  var { comments, total, value, visible, text, translateData, commentid, parentcommentid, isLoad, currentPageNum, forTrack } = this.state;
   
   const dropdownStyle = {
     width:'160px',
@@ -115,7 +123,7 @@ render(){
   }
 
   return (
-      <div style={{paddingTop:'40px'}}>
+      <div>
         <div>            
             {
                 comments.length 
@@ -136,16 +144,8 @@ render(){
                 :
                 null
             }     
-        </div>
-        
-
-        {
-          hasCommentInput
-          ?
-          <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>
-          :
-          null
-        }
+        </div>        
+        <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>          
         {
            isLoad
            ?
@@ -160,7 +160,7 @@ render(){
               onVisible={this.handleShareVisible.bind(this)}
               forTrack={forTrack}
               setScrollTop={setScrollTop} 
-              text="还没有用户评论呢!快来抢沙发吧～" />
+              warnMsg={warnMsg} />
         }  
         
          
@@ -177,12 +177,15 @@ render(){
           ?
           <ShareModal 
               visible={visible} 
-              toId={uniquekey}         
+              uniquekey={uniquekey}       
               onVisible={this.handleShareVisible.bind(this)} 
               text={text}
-              item={item}
+              
               data={translateData}
-              shareType={shareType}
+              contentType={commentType}
+              onUpdateShareBy={this.onUpdateShareBy}
+              commentid={commentid}
+              parentcommentid={parentcommentid}
           />
           :
           null

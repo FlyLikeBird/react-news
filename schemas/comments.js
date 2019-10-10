@@ -12,12 +12,11 @@ module.exports = new mongoose.Schema({
     uniquekey:String,
     content:String,
     commentType:String,
-    like:{type:Number,default:0},
-    likeUsers:[{user:String,date:String}],
+    likeUsers:[{userid:String,date:String}],
     images:[String],
-    dislike:{type:Number,default:0},
-    dislikeUsers:[{user:String,date:String}],
+    dislikeUsers:[{userid:String,date:String}],
     isHot:{type:Boolean,default:false},
+    //  shareBy 存储的是actionId
     shareBy:[String],
     replies:[{
         date:String,
@@ -26,10 +25,8 @@ module.exports = new mongoose.Schema({
         images:[String],
         toUser:String,
         commentType:String,
-        like:{type:Number,default:0},
-        likeUsers:[{user:String,date:String}],
-        dislike:{type:Number,default:0},
-        dislikeUsers:[{user:String,date:String}],
+        likeUsers:[{userid:String,date:String}],
+        dislikeUsers:[{userid:String,date:String}],
         content:String,
         shareBy:[String],
         fromSubTextarea:Boolean

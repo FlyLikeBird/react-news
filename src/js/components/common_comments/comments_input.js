@@ -244,7 +244,8 @@ class CommentsInput extends React.Component{
                             }]
                         })(
                           <TextArea 
-                                rows={2} 
+                                rows={2}
+                                style={{fontSize:'12px'}} 
                                 ref={textArea=>this.textArea = textArea} 
                                 //onKeyDown={this.handleKeyDown.bind(this)} 
                                 onKeyUp={this.handleKeyUp.bind(this)}
