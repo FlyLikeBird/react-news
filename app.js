@@ -16,11 +16,10 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var socketIndex = require('./server/api/socket');
 
-var dbUrl = 'mongodb://120.79.189.123/react-news';
+var dbUrl = 'mongodb://127.0.0.1:27017/react-news';
 var isServer = process.env.args === 'production' ;
 
 if (!isServer){
-    console.log('current env:');
     dbUrl = 'mongodb://localhost:27017/react-news';
 } 
 
