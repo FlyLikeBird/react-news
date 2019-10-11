@@ -17,14 +17,14 @@ var io = require('socket.io')(server);
 var socketIndex = require('./server/api/socket');
 
 var dbUrl = 'mongodb://120.79.189.123/react-news';
-var env = process.env.NODE_ENV || 'development';
+var isServer = process.env.args === 'production' ;
 
-if (env === 'development'){
+if (!isServer){
     console.log('current env:');
     dbUrl = 'mongodb://localhost:27017/react-news';
 } 
 
-if ( env === 'development'){
+if ( !isServer){
     var webpack = require("webpack"),
         webpackConfig = require("./webpack.config"),
         webpackDevMiddleware = require("webpack-dev-middleware"),
