@@ -15,11 +15,7 @@ var config = require('./config/config');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var socketIndex = require('./server/api/socket');
-var webpack = require("webpack"),
-    webpackConfig = require("./webpack.config"),
-    webpackDevMiddleware = require("webpack-dev-middleware"),
-    webpackHotMiddleware = require("webpack-hot-middleware");
-var compiler = webpack(webpackConfig);
+
 var dbUrl = 'mongodb://120.79.189.123/react-news';
 var env = process.env.NODE_ENV || 'development';
 
@@ -27,6 +23,25 @@ if (env === 'development'){
     console.log('current env:');
     dbUrl = 'mongodb://localhost:27017/react-news';
 } 
+
+if ( env === 'development'){
+    var webpack = require("webpack"),
+        webpackConfig = require("./webpack.config"),
+        webpackDevMiddleware = require("webpack-dev-middleware"),
+        webpackHotMiddleware = require("webpack-hot-middleware");
+    var compiler = webpack(webpackConfig);
+    app.use(
+        webpackDevMiddleware(compiler, {
+          publicPath: webpackConfig.output.publicPath,
+          noInfo: true,
+          stats: {
+            colors: true
+          }
+        })
+    );
+    app.use(webpackHotMiddleware(compiler));
+}
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
@@ -37,19 +52,6 @@ app.use(session({
     saveUninitialized:true,
     cookie: {maxAge: 60 * 1000 * 30}//过期时间
 }));
-
-
-app.use(
-  webpackDevMiddleware(compiler, {
-    publicPath: webpackConfig.output.publicPath,
-    noInfo: true,
-    stats: {
-      colors: true
-    }
-  })
-);
-
-app.use(webpackHotMiddleware(compiler));
 
 
 app.use(express.static(path.resolve('./src/images')));
