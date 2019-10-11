@@ -9,9 +9,6 @@ import LoginContainer from './pc_login_container';
 import SearchInput from './pc_search/pc_search_input';
 
 import imgURL from '../../images/logo.png';
-
-var fetch = require('../../fetch/fetch.js');
-
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
 

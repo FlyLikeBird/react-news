@@ -1,12 +1,16 @@
 import React from 'react';
 import { Tabs, Carousel } from 'antd';
 
-import MobileHeader from './mobile_header';
-import MobileList from './mobile_list';
-import MobileFooter from './mobile_footer';
-
 const TabPane = Tabs.TabPane;
 
+export default class MobileIndex extends React.Component {
+    render(){
+        return (
+            <div>mobile page</div>
+        )
+    }
+}
+/*
 export default class MobileIndex extends React.Component {
     render() {
 
@@ -54,3 +58,4 @@ export default class MobileIndex extends React.Component {
         )
     }
 }
+*/

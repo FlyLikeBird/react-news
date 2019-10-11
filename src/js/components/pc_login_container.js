@@ -4,10 +4,6 @@ import { Form, Modal, Tabs, Input, Button, message } from 'antd';
 import  LoginForm  from './pc_login';
 import  RegisterForm  from './pc_register';
 
-var fetch = require('../../fetch/fetch.js');
-
-
-
 const FormItem = Form.Item;
 const TabPane = Tabs.TabPane;
 

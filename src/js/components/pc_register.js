@@ -1,8 +1,5 @@
 import React from 'react';
-
 import { Form, Input, Button, Message, Tooltip, Icon, Badge } from 'antd';
-
-var fetch = require('../../fetch/fetch.js');
 
 const FormItem = Form.Item;
 

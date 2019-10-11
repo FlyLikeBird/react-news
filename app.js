@@ -25,7 +25,7 @@ if (!isServer){
 
 if ( !isServer){
     var webpack = require("webpack"),
-        webpackConfig = require("./webpack.config"),
+        webpackConfig = require("./webpack.dev.js"),
         webpackDevMiddleware = require("webpack-dev-middleware"),
         webpackHotMiddleware = require("webpack-hot-middleware");
     var compiler = webpack(webpackConfig);

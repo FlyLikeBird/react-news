@@ -17,12 +17,21 @@ import PCTopicDetail from './js/components/pc_topic/pc_topic_detail';
 import PCActionContainer from './js/components/pc_action/pc_action_container';
 
 import MobileIndex from './js/components/mobile_index';
-import MobileNewsDetails from './js/components/mobile_detail';
-import MobileUserCenter from './js/components/mobile_usercenter';
-
-import './css/pc.css';
-import './css/mobile.css';
-
+/*
+function isMobile(){
+    if(window.navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
+        return true;  // 移动端
+    }else{
+        return false;  // PC端
+}
+*/
+/*
+if(isMobile()){
+  import('./css/mobile.css');
+} else {
+  import('./css/pc.css');
+}
+*/
 
 export default class Root extends React.Component {
     constructor(){
@@ -86,7 +95,6 @@ export default class Root extends React.Component {
         return (
 
           <div>
-
               <MediaQuery query='(min-device-width:1224px)'>
                 <Router>
                   <div>
@@ -116,27 +124,19 @@ export default class Root extends React.Component {
                   </div>
                 </Router>               
               </MediaQuery>
-            
+              <MediaQuery query='(max-device-width:1224px)'>
+                <Router>
+                  <div>
+                     <Route path="/" render={props=><MobileIndex/>}></Route>
+                     
+                  </div>
+                </Router>
+              </MediaQuery>            
             </div>
           
         )
     }
 }
-
-
-/*
-
-<MediaQuery query='(max-device-width:1224px)'>
-                <Router>
-                  <div>
-                     <Route path="/" component={MobileIndex}></Route>
-                     <Route path="/details/:uniquekey" component={MobileNewsDetails}></Route>
-                     <Route path="/usercenter" component={MobileUserCenter}></Route>
-                  </div>
-                </Router>
-              </MediaQuery>
-
-*/
 
 
 ReactDOM.render(
