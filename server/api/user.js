@@ -2,6 +2,7 @@ var express = require('express');
 var multer = require('multer');
 var fs = require('fs');
 var path = require('path');
+var config = require('../../config/config');
 var router = express.Router();
 var util = require('../util');
 var userPromise = require('../userPromise');
@@ -38,9 +39,11 @@ var storage = multer.diskStorage({
 var upload = multer({storage});
 
 
-router.post('/register',(req,res)=>{
+router.get('/register',(req,res)=>{
 
-	let { r_userName, r_password, r_confirmPassword } = req.body;
+	var { r_userName, r_password } = req.query;
+	
+	
 	var date = new Date().toString();
 	let user = new User({
 		username:r_userName,
@@ -51,11 +54,11 @@ router.post('/register',(req,res)=>{
 	});
 	user.save()
 		.then(()=>{
-			User.findOne({username:r_userName},(err,userInfo)=>{
-				let data = {};
+			User.findOne({_id:user._id},(err,userInfo)=>{
+				var data = {};
 				data.username = userInfo.username;
-				data.userId = userInfo._id;
-
+				data.userid = userInfo._id;
+				data.avatar = userInfo.userImage;
 				User.updateOne({'username':r_userName},{$push:{message:{
 					fromUser:'React-News平台',
 					toUser:r_userName,
@@ -76,6 +79,7 @@ router.post('/register',(req,res)=>{
 
 			collect.save();
 		})
+	
 })
 
 router.get('/login',(req,res)=>{
@@ -164,7 +168,7 @@ router.get('/usercenter',(req,res)=>{
 				userPromise.getUserFollows(user.userFans,resolve);
 			});
 			var promise3 = new Promise((resolve,reject)=>{
-				userPromise.getUserActions(user.userAction,resolve)
+				userPromise.getUserActions(user._id,resolve)
 			});
 			var promise4 = new Promise((resolve,reject)=>{
 				userPromise.getUserComments(user.username,resolve)
@@ -292,9 +296,8 @@ router.get('/removeFollow',(req,res)=>{
 
 router.post('/upload',upload.single('file'),(req,res)=>{
 	
-	console.log(req.file);
 	var { username } = req.body;
-	var imgUrl = 'http://localhost:8080/userAvatar/'+req.file.filename;
+	var imgUrl = config.uploadPath+'/userAvatar/'+req.file.filename;
 
 	User.updateOne({username},{$set:{userImage:imgUrl}},(err,result)=>{
 		if (err) throw err;

@@ -1,0 +1,77 @@
+/*
+    图文新闻板块样式
+*/
+
+.imgNewsList {
+    margin:20px 0;
+    text-align:left;
+}
+
+.imgNewsList .news-title {
+    margin-bottom:4px;
+}
+
+.imgNewsList .news-title span.text{
+    font-size:16px;
+    color:rgba(0, 0, 0, 0.85);
+    font-weight:500;
+}
+
+.imgNewsList .news-title span.text i{
+    margin-right:4px;
+}
+
+.imgNewsList .news-title span.button{
+    float:right;
+    display:inline-block;
+    transform:scale(0.8);
+    margin-top:4px;
+    font-size:12px;
+    cursor: pointer;
+}
+
+.imgNewsList .block-container {
+    display:flex;
+    flex-wrap: wrap;
+}
+
+.imgNewsList .imageblock {
+    flex:1;
+    height:140px;
+    text-align:left;
+    padding-right:2px;
+}
+
+.imageblock .custom-image  {
+    height:90px;
+    overflow: hidden;
+}
+
+.imageblock .custom-image img {
+    width:100%;
+    height:100%;
+    
+}
+.custom-card {
+    height:50px;
+}
+
+.imageblock .custom-card h3 {
+    font-size:12px;
+    margin-bottom:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.imageblock .custom-card p {
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    
+}
+
+.custom-card p {
+    color: #999;
+}

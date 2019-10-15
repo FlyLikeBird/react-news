@@ -14,8 +14,14 @@ module.exports = new mongoose.Schema({
     content:String,
     viewcount:{type:Number,default:100},
     articleFever:{type:Number,default:0},
-    tags:[{title:String}],
-    shareBy:[String]
+    // shareBy 存储的是actionId
+    shareBy:[String],
+    viewUsers:[{
+        userid:String,
+        date:String,
+        score:Number
+    }]
+
 });
 
 

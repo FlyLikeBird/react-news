@@ -13,6 +13,7 @@ module.exports = new mongoose.Schema({
     // 标识动态嵌入的内容类别，如新闻／话题／收藏夹/动态自身
     contentType:String,
     contentId:String,
+    images:[String],
     //  composeAction字段标识转发动态之间的数据关系
     composeAction:{type:Boolean,default:false},
     likeUsers:[{userid:String,date:String}],

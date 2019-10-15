@@ -31,15 +31,37 @@ module.exports = {
                 ]
                     
             },           
-            {  // css样式处理
-                test: /\.css$/,
-                exclude:/node_modules/,
+            {  //对目录里面非node_modules，src/common目录下面的css文件开启模块化，页面里引用时候以模块方式引用
+                test: /\.css$/,                
+                exclude:[
+                    path.resolve(__dirname,'node_modules'),
+                    path.resolve(__dirname,'src/css')
+                ],                
+                use:[
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader:'css-loader',
+                        options:{
+                            module:true,
+                            localIdentName:'[name]-[local]-[hash:base64:6]'
+                        }
+                    }
+                ]
+                
+            },
+            
+            {   //对node_modules,src/common目录下面的css文件以全局方式引用，应用到页面
+                test:/\.css$/,
+                include:[
+                    path.resolve(__dirname,'node_modules'),
+                    path.resolve(__dirname,'src/css')
+                ],
                 use:[
                     MiniCssExtractPlugin.loader,
                     'css-loader'
                 ]
-                
             },
+            
             {
 
                 test:/\.(png|svg|jpg|gif|ico|woff|eot|ttf)$/,               
@@ -59,13 +81,17 @@ module.exports = {
         ]
         
     },
-    /*
-    devServer:{
-        hot:true,
-        contentBase:'./dist',
-        historyApiFallback:true
-    },
-    */
+    externals:[
+        {
+            
+            'antd':'antd',
+            'react':'React',
+            'react-dom':'ReactDOM',
+            'react-router-dom':'ReactRouterDOM',
+            'echarts':'echarts'
+        }
+        
+    ],
     output:{
         path:path.resolve(__dirname,'dist'),
         publicPath:'/',
@@ -95,7 +121,7 @@ module.exports = {
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
         new MiniCssExtractPlugin({
-            filename:'[name]_[hash:8].css'
+            filename:'css/[name]_[hash:8].css'
         })
     ]
     

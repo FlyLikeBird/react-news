@@ -1,9 +1,8 @@
 import React from 'react';
-import { findDOMNode } from 'react-dom';
 import { Pagination, Select, Spin } from 'antd';
 import CommentsList  from './comments_list';
 import CommentsInput from './comments_input';
-import ShareModal from './comment_share_modal';
+import ShareModal from '../shareModal';
 
 import { formatContent } from '../../../utils/translateDate';
 

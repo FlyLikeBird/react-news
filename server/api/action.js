@@ -1,5 +1,9 @@
 var express = require('express');
 var router = express.Router();
+var multer = require('multer');
+var path = require('path');
+var fs = require('fs');
+var config = require('../../config/config');
 var util = require('../util');
 var userPromise = require('../userPromise');
 var Topic = require('../../models/Topic');
@@ -8,6 +12,31 @@ var Tag = require('../../models/Tag');
 var Article = require('../../models/Article');
 var User = require('../../models/User');
 var Comment = require('../../models/Comment');
+
+var createFolder = function(folder){
+    try{
+        fs.accessSync(folder); 
+    }catch(e){
+        fs.mkdirSync(folder);
+    }  
+};
+var uploadFolder = path.resolve('./src'+'/images/action');
+createFolder(uploadFolder);
+// 通过 filename 属性定制
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+
+        cb(null, uploadFolder);    // 保存的路径，备注：需要自己创建
+    },
+    filename: function (req, file, cb) {
+        // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
+        //console.log(file);
+        let type = file.mimetype;
+         
+        cb(null, file.fieldname + '-' + Date.now() +  '.'+type.slice(6,type.length) );  
+    }
+});
+var upload = multer({storage});
 
 router.get('/share',(req,res)=>{
     //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
@@ -19,9 +48,8 @@ router.get('/share',(req,res)=>{
     } else {
         text = value ? value : `转发${util.translateType(contentType)}`
     }
-    
-    
-    
+
+    //console.log(userid,text,value,contentId,contentType,actionId);
     //util.responseClient(res,200,0,'ok');
     /*
     User.updateOne({_id:userid},{$set:{userAction:[]}},(err,result)=>{
@@ -41,22 +69,21 @@ router.get('/share',(req,res)=>{
 
     action.save()
         .then(()=>{
-            User.updateOne({_id:userid},{$push:{userAction:action._id}},(err,result)=>{});
+            
             //  如当前用户在动态页面
             if (isActionPage){
                 Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err,result)=>{
-                    Action.find({userid:userid},(err,actions)=>{
-                        var actionIds = actions.map(item=>item._id);
+                    
                         var promise = new Promise((resolve,reject)=>{
-                            userPromise.getUserActions(actionIds,resolve);
+                            userPromise.getUserActions(userid,resolve);
                         });
                         //  更新后的动态列表数据和被分享的某条动态的shareBy字段
                         promise.then(actions=>{
                             util.responseClient(res,200,0,'ok',actions);
                         })
-                    })
+                
                 })
-            //  如在新闻页面
+            //  如是转发的评论则更新该条评论的shareBy字段
             } else if (commentid){
                 // 转发评论
                 if (parentcommentid){
@@ -71,20 +98,53 @@ router.get('/share',(req,res)=>{
                         })
                     })
                 }
-                //  转发话题
+                //  如转发话题更新该话题的shareBy
             }  else if (contentType=='topic') {
                 Topic.updateOne({_id:uniquekey},{$push:{shareBy:action._id}},(err,result)=>{
                     Topic.findOne({_id:uniquekey},(err,topic)=>{
                         util.responseClient(res,200,0,'ok',topic.shareBy);
                     })
                 })
+                //  如转发新闻更新该新闻的shareBy
             } else if (contentType =='news') {
+                
+                Article.updateOne({articleId:contentId},{$push:{shareBy:action._id}},(err,result)=>{
+                    Article.findOne({articleId:contentId},(err,article)=>{
+                        util.responseClient(res,200,0,'ok',article.shareBy);
+                    })
+                })
             }
             
             
         })  
     
     
+})
+
+router.post('/create',upload.array('images'),(req,res)=>{
+    var { description, privacy, userid } = req.body;
+    var date = new Date().toString(),images = [];
+
+    if(req.files){
+        images = req.files.map(item=>config.uploadPath+'/action/'+item.filename)   
+    }  
+    var action = new Action({
+        date,
+        text:description,
+        images,
+        userid,
+        isCreated:true
+    });
+    action.save()
+        .then(()=>{
+            var promise = new Promise((resolve,reject)=>{
+                userPromise.getUserActions(userid,resolve);
+            });
+            promise.then(actions=>{
+                util.responseClient(res,200,0,'ok',actions);
+            })
+        })
+
 })
 
 function _operateAction( action, id, isCancel, userid, res ){
@@ -111,18 +171,26 @@ router.get('/getUsersInfo',(req,res)=>{
     var { userid, actionId } = req.query;
     if (userid){
         User.find({_id:{$in:userid}},(err,users)=>{
-            var data = users.map(item=>{
-                var obj={};
-                obj.username = item.username;
-                obj.userid = item._id;
-                obj.avatar = item.userImage;
-                return obj;
-            })
+            var allUsers = userid;
+            var data = allUsers.map(item=>{
+                var obj = {};
+                for(var i=0,len=users.length;i<len;i++){
+                    if (item == users[i]._id){
+                        obj.username = users[i].username;
+                        obj.userid = users[i]._id;
+                        obj.avatar = users[i].userImage;
+                        return obj;
+                    }
+                }
+                
+            });
             util.responseClient(res,200,0,'ok',data);
         })
     } else {
         var promise = new Promise((resolve,reject)=>{
-            userPromise.getUserActions(actionId,resolve);
+            Action.find({_id:{$in:actionId}},(err,actions)=>{
+                userPromise.getActionsInfo(actions,resolve);
+            })           
         });
         promise.then(data=>{
             util.responseClient(res,200,0,'ok',data);

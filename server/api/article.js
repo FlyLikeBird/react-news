@@ -347,33 +347,45 @@ router.get('/getArticleList',(req,res)=>{
 
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
-  Article.findOne({'articleId':uniquekey})
-          .exec((err,article)=>{
-            if (article){             
-              var data = {};
-              data.content = article.content;
-              data.viewcount = article.viewcount;
-              data.articleId = article.articleId;
-              data.auth = article.auth;
-              data.title = article.title;             
-              data.thumbnail = selectImgByUniquekey(article.content)[0];
-              data.newstime = article.newstime;
-              data.type = article.type;
-              util.responseClient(res,200,0,'ok',data);
-            }
-          })
+  Article.findOne({'articleId':uniquekey},(err,article)=>{
+      if (article){             
+          var data = {};
+          data.content = article.content;
+          data.viewcount = article.viewcount;
+          data.articleId = article.articleId;
+          data.auth = article.auth;
+          data.title = article.title;             
+          data.thumbnail = selectImgByUniquekey(article.content)[0];
+          data.newstime = article.newstime;
+          data.type = article.type;
+          data.shareBy = article.shareBy;
+          data.viewUsers = article.viewUsers;
+          util.responseClient(res,200,0,'ok',data);
+      }
+  })
+          
 })
 
 router.get('/rateArticle',(req,res)=>{
-  let { username, uniquekey, rate } = req.query;
-  console.log(username,uniquekey,rate);
-
+  let { userid, uniquekey, rate } = req.query;
+  var date = new Date().toString();
   Article.findOne({'articleId':uniquekey},(err,article)=>{
-    let fever = article.articleFever;
-    fever += rate;
-    Article.updateOne({'articleId':uniquekey},{$set:{'articleFever':fever}},(err,result)=>{
-      console.log(result);
-      util.responseClient(res,200,0,'ok');
+    var fever = article.articleFever + Number(rate);
+    var viewUsers = article.viewUsers.concat();
+    viewUsers.push({
+      date,
+      userid,
+      score:rate
+    })
+    var $setObj = {
+      'articleFever':fever,
+      'viewUsers':viewUsers
+    }
+    Article.updateOne({'articleId':uniquekey},{$set:$setObj},(err,result)=>{
+        console.log(result);
+        Article.findOne({'articleId':uniquekey},(err,article)=>{
+            util.responseClient(res,200,0,'ok',article.viewUsers);
+        })
     })
 
   })

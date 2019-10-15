@@ -75,8 +75,9 @@ app.get('*', function ( req, res){
    //res.sendFile(path.resolve(__dirname,'./src/index.html'));
 });
 
-reload(app);
-
+if(!isServer){
+  reload(app);
+}
 
 server.listen(8081, () => {
   console.log('* Server starting...');

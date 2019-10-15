@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon, Popover, message } from 'antd';
 import CommentsInput from './comments_input';
-import TopicItemPopover from '../pc_topic/pc_topic_item_popover';
+import TopicItemPopover from '../pc/pc_topic/pc_topic_item_popover';
 import { parseDate, formatDate } from '../../../utils/translateDate';
 
 var isAllowed = true ;
