@@ -41,7 +41,8 @@ export default class PCActionContainer extends React.Component{
                             ?
                             <Spin />
                             :
-                            <UpdateItem data={data} forDetail={true}/>
+                            
+                            <div>action detail page</div>
                         }
                     </Col>                                                 
                     <Col span={2}></Col>

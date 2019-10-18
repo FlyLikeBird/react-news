@@ -14,6 +14,7 @@ module.exports = new mongoose.Schema({
     contentType:String,
     contentId:String,
     images:[String],
+    innerAction:String,
     //  composeAction字段标识转发动态之间的数据关系
     composeAction:{type:Boolean,default:false},
     likeUsers:[{userid:String,date:String}],

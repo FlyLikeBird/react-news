@@ -11,28 +11,7 @@ import { parseDate, formatDate, translateType, formatContent } from '../../../ut
 const { TextArea } = Input;
 
 export default class ShareModal extends React.Component{
-    constructor(){
-        super();
-        this.state={
-            str:'',
-            translateData:[]
-        }
-    }
-
-    componentDidMount(){
-        var { actionInfo, forUserAction } = this.props;
-        var { contentType, contentId, composeAction, username, value, text } = actionInfo;
-        var str,translateData;
-        if ( forUserAction && composeAction){
-            str = `@${username}:${text}`;
-            translateData = formatContent(str);
-            this.setState({str,translateData});
-        } else {
-
-        }
-
-    }
-
+   
     handleShare(){        
         var { onVisible, forUserAction, actionInfo, isActionPage, onUpdate, commentid, parentcommentid, onUpdateShareBy, isSelf } = this.props;
         var userid = localStorage.getItem('userid'); 
@@ -40,35 +19,31 @@ export default class ShareModal extends React.Component{
         if(this.textArea){
             var value = this.textArea.textAreaRef.value;
         }       
+        //  动态页面的转发逻辑
         if ( forUserAction && actionInfo ){
-            var { username, contentType, composeAction, actionId, contentId, text } = actionInfo;             
+            var { username, contentType, innerAction, hasInnerAction, composeAction, actionId, contentId, text } = actionInfo;             
             params = {
                 userid,
                 value,
-                text:contentType == 'action' && composeAction
-                    ?
-                    `@${username}:${actionInfo.value}//${text}`
-                    :
-                    contentType == 'action' && !composeAction
-                    ?
-                    `@${username}:${actionInfo.value}`
-                    :
-                    text,
-                contentId:contentType == 'action'? actionInfo.contentId : actionInfo.actionId,
-                contentType:'action',
+                text:`@${username}:${text}`,
+                contentId,
+                innerAction:isSelf ? innerAction : actionId,
+                contentType,
                 actionId,
                 isActionPage:isSelf ? 'true': '',
-                composeAction:contentType == 'action' ?'true' :'',
+                composeAction: hasInnerAction ? 'true' : '',
                 commentid:commentid?commentid:'',
                 parentcommentid:parentcommentid?parentcommentid:''
             }
-            
+        //  转发新闻/话题/评论的逻辑
         } else {
             var { contentType, text, uniquekey } = this.props;
             params = {
                 userid,
                 contentType,
                 contentId:uniquekey,
+                actionId:'',
+                innerAction:'',
                 value,
                 text:text?text:'',
                 composeAction:'',
@@ -99,31 +74,31 @@ export default class ShareModal extends React.Component{
     render(){
         
         var { actionInfo, uniquekey, data, visible, history, forUserAction, onVisible } = this.props;
-        var { contentType, contentId, username, composeAction, value, text } = actionInfo;
-        
+        var { contentType, hasInnerAction, innerAction, contentId, username, composeAction, value, text } = actionInfo;
+       
         return(
        
                 <Modal visible={visible} footer={null} onCancel={()=>onVisible(false)}>
                     <div>
                         <TextArea rows={2} ref={textarea=>this.textArea=textarea}/>
                         {
-                            forUserAction && contentType != 'action'
+                            forUserAction && !hasInnerAction
                             ?
-                            <UpdateInnerItem uniquekey={uniquekey} history={history} noLink={true}/>
+                            <UpdateInnerItem actionInfo={actionInfo} history={history} noLink={true}/>
                             :
-                            forUserAction && contentType === 'action'
+                            forUserAction && hasInnerAction
                             ?
                             <div style={{fontSize:'12px'}}>                                
-                                <span style={{display:'inline-block',margin:'2px 0'}}>
-                                {
-                                    composeAction
-                                    ?
-                                    `@${username}:${value}//${text}`
-                                    :
-                                    `@${username}:${value}`
-                                }
+                                <span style={{display:'inline-block',margin:'4px 0'}}>
+                                    {
+                                        composeAction 
+                                        ?
+                                        `@${username}:${text}`
+                                        :
+                                        `@${username}:${value}`
+                                    }
                                 </span>
-                                <UpdateInnerItem uniquekey={contentId} history={history} noLink={true}/>
+                                <UpdateInnerItem forAction={true} uniquekey={innerAction} history={history} noLink={true}/>
                             </div>
                             
                             :

@@ -34,9 +34,11 @@ export default class PCNewsContainer extends React.Component {
 						</div>
 						
 						<div>
+							{/*
 							<div style={{width:'36%',float:'left'}}>
 								<PCNewsImageBlock count={4} type="shehui" cardTitle="国际头条" imageWidth="50%" />	
 							</div>
+						*/}
 							<div style={{width:'64%',float:'left',display:'flex'}}>
 								
 								<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
@@ -47,6 +49,7 @@ export default class PCNewsContainer extends React.Component {
 								</div>
 								
 							</div>
+					
 						</div>
 						
 					</Col>

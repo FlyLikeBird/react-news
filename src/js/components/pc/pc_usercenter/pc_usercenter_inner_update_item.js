@@ -10,20 +10,27 @@ export default class UpdateInnerItem extends React.Component{
     constructor(){
         super();
         this.state = {
-            actionInfo:{},
-            translateData:[]
+            actionInfo:{}
         }
     }
 
     componentDidMount(){
-        var { uniquekey } = this.props;
-        fetch(`/action/getActionContent?contentId=${uniquekey}`)
-            .then(response=>response.json())
-            .then(json=>{
-                var data = json.data;
-                var translateData = formatContent(data.value+'//'+data.text);
-                this.setState({actionInfo:data,translateData});
-            })
+        var { uniquekey, actionInfo, forAction } = this.props;
+        if (uniquekey && forAction){
+            fetch(`/action/getActionContent?contentId=${uniquekey}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    //  判断转发的内部动态是评论还是新闻
+                    data.text = data.value + (data.text ? '//' + data.text : '');
+
+                    data.translateData = formatContent(data.text);
+                    console.log(data);
+                    this.setState({actionInfo:data})
+                })
+        } else {
+            this.setState({actionInfo})
+        }
     }
 
     handleClick(){
@@ -34,19 +41,17 @@ export default class UpdateInnerItem extends React.Component{
     }
 
     render(){
-        var { uniquekey } = this.props;
-        var { actionInfo, translateData } = this.state;
-        var { contentId, contentType, text, username } = actionInfo;
-       
+        var { actionInfo } = this.state;       
+        var { contentId, contentType, value, text, username, translateData } = actionInfo;
        
         return(
             
-            <div onClick={this.handleClick.bind(this)} style={{color:'rgba(0, 0, 0, 0.65)',padding:'10px 20px',backgroundColor:'rgb(249, 249, 249',cursor:'pointer',borderRadius:'4px'}}>
+            <div onClick={this.handleClick.bind(this)} style={{fontSize:'12px',color:'rgba(0, 0, 0, 0.65)',padding:'10px 20px',backgroundColor:'rgb(249, 249, 249',cursor:'pointer',borderRadius:'4px'}}>
                 
                 <span style={{fontWeight:'500',color:'#000'}}>{`@${username}:`}</span>
                 <div>
                     {
-                        translateData.length
+                        translateData && translateData.length
                         ?
                         translateData.map((item,index)=>(
                                     <span key={index}>

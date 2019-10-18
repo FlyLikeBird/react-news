@@ -86,7 +86,7 @@ export default class PCNewsDetails extends React.Component {
 							<Row>
 								
 								<Col span={18} style={{position:'relative',textAlign:'left'}}>
-									{/*<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>*/}
+									<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
 									{
 										isLogined
 										?

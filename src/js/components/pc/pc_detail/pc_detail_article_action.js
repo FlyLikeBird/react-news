@@ -17,6 +17,8 @@ export default class ArticleAction extends React.Component {
             userCollect:[],
             shareBy:[],
             viewUsers:[],
+            rateCaret:'caret-down',
+            shareByCaret:'caret-down'
 
         }
     }
@@ -52,19 +54,44 @@ export default class ArticleAction extends React.Component {
         this.setState({collectVisible:boolean})
     }
 
+    handleChangeCaret(type,visible){
+        if (type==='rateCaret'){
+            if(visible){
+                this.setState({rateCaret:'caret-left'})
+            } else {
+                this.setState({rateCaret:'caret-down'})
+            }
+        } else if (type === 'shareByCaret'){
+            if(visible){
+                this.setState({shareByCaret:'caret-left'})
+            } else {
+                this.setState({shareByCaret:'caret-down'})
+            }
+        }
+        
+    }
+
     render(){
-        var { collectVisible, shareVisible, rateVisible, userCollect, shareBy, viewUsers } = this.state;
+        var { collectVisible, shareVisible, rateVisible, userCollect, shareBy, viewUsers, rateCaret, shareByCaret } = this.state;
         var { uniquekey, item, history } = this.props;
 
         return (
             <div className="article-action-container">
-                <Button type="primary" icon="star" size="small" onClick={this.handleModalVisible.bind(this,true)}>收藏此文章</Button>
-                <Popover content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发"/>}>
-                    <Button type="primary" icon="export" size="small" onClick={this.handleShareVisible.bind(this,true)}>分享至空间 <span style={{transform:'scale(0.8)'}}>{shareBy.length}人转发</span></Button>
-                </Popover>
-                <Popover content={<TopicItemPopover data={viewUsers} history={history} text="发布" forRate={true}/>}> 
-                    <Button type="primary" size="small" icon="smile" onClick={this.handleRateVisible.bind(this)}>看完此文章</Button>                  
-                </Popover> 
+                <div><Button type="primary" icon="star" size="small" onClick={this.handleModalVisible.bind(this,true)}>收藏此文章</Button></div>
+                <div>
+                    <Button className="left" type="primary" icon="export" size="small" onClick={this.handleShareVisible.bind(this,true)}>分享至空间</Button>
+                    <Popover autoAdjustOverflow={false} placement="bottom" onVisibleChange={this.handleChangeCaret.bind(this,'shareByCaret')} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发"/>}>
+                        <Button className="right" type="primary" size="small"><span>{shareBy.length}人转发 <Icon type={shareByCaret} /></span></Button>
+                    </Popover>
+                </div>
+                <div>
+                    <Button className="left" type="primary" size="small" icon="smile" onClick={this.handleRateVisible.bind(this)}>看完此文章</Button>
+                    <span className="line"></span>
+                    <Popover autoAdjustOverflow={false} placement="bottom" onVisibleChange={this.handleChangeCaret.bind(this,'rateCaret')} content={<TopicItemPopover data={viewUsers} history={history} text="发布" forRate={true}/>}>
+                        <Button type="primary" size="small" icon={rateCaret} className="right"></Button>
+                    </Popover>
+                </div>   
+                
                 <Modal className="collect-container" visible={collectVisible} footer={null} onCancel={this.handleModalVisible.bind(this,false)} maskClosable={true}>
                     <CollectContainer data={userCollect} uniquekey={uniquekey}/>
                 </Modal>

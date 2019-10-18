@@ -205,10 +205,24 @@ section .leftContainer {
     margin:20px 0;
 }
 
-.article-action-container>button{
+.article-action-container>div{
+    display:inline-block;
+    transform:scale(0.8);
+}
+
+.article-action-container button {
     font-size:12px;
-    transform: scale(0.9);
-    transform-origin: left;
+}
+
+.article-action-container button.left{
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 1px solid #0c4e8c;
+}
+
+.article-action-container button.right{
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 /*
 

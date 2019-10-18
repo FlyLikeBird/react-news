@@ -40,15 +40,13 @@ var upload = multer({storage});
 
 router.get('/share',(req,res)=>{
     //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
-    var { userid, text, value, contentId, contentType, actionId, commentid, parentcommentid ,isActionPage, composeAction } = req.query;
+    var { userid, text, value, contentId, contentType, actionId, innerAction, commentid, parentcommentid ,isActionPage, composeAction } = req.query;
     var date = new Date().toString();
-    //  判断转发的是文章/话题  还是 评论
-    if (text){
-        
-    } else {
-        text = value ? value : `转发${util.translateType(contentType)}`
-    }
+    //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
 
+    if (!text){
+        value = value ? value : `转发${util.translateType(contentType)}`
+    } 
     //console.log(userid,text,value,contentId,contentType,actionId);
     //util.responseClient(res,200,0,'ok');
     /*
@@ -61,6 +59,7 @@ router.get('/share',(req,res)=>{
         userid,
         contentId,
         contentType,
+        innerAction,
         date,
         text,
         value,
@@ -117,7 +116,7 @@ router.get('/share',(req,res)=>{
             
             
         })  
-    
+
     
 })
 

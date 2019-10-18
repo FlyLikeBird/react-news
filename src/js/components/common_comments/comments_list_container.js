@@ -179,7 +179,9 @@ render(){
               uniquekey={uniquekey}       
               onVisible={this.handleShareVisible.bind(this)} 
               text={text}
-              
+              actionInfo={{
+                contentType:commentType
+              }}
               data={translateData}
               contentType={commentType}
               onUpdateShareBy={this.onUpdateShareBy}

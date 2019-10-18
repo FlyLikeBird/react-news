@@ -22,6 +22,7 @@ export default class UpdateItem extends React.Component{
             likeUsers:[],
             dislikeUsers:[],
             shareBy:[],
+            finalText:'',
             translateData:[],
             visible:false,
             likeIconType:'caret-left',
@@ -31,20 +32,30 @@ export default class UpdateItem extends React.Component{
         }
     }
 
+    _getTranslateData(text){
+        var translateData = formatContent(text);
+        this.setState({finalText:text,translateData})
+    }
+
     _loadItemData(props){
         var { data } = props;
-        var { contentType, contentId, text, value, composeAction, likeUsers, dislikeUsers, shareBy, id } = data;
+        var { contentType, contentId, innerAction, text, value, composeAction, likeUsers, dislikeUsers, shareBy, id } = data;
         var userid = localStorage.getItem('userid');
-        var translateData;
-        if(contentType === 'action' && !composeAction){
-            translateData = formatContent(value);
-            this.setState({translateData});
-        } else if (contentType ==='action' && composeAction){
-            translateData = formatContent(value+'//'+text);
-            this.setState({translateData});
+        var translateData,finalText='';
+        if( innerAction && !composeAction){
+            finalText = value ;
+            this._getTranslateData(finalText);
+        } else if ( innerAction && composeAction){
+            finalText = value + '//' + text;
+            this._getTranslateData(finalText);
+        //  转发的评论
+        } else if(text){
+            finalText = value + '//' +text;
+            this._getTranslateData(finalText);
+        //  转发的新闻或者话题
         } else {
-            translateData = formatContent(value+"//"+text);
-            this.setState({translateData})
+            finalText = value;
+            this._getTranslateData(finalText);
         }
         
         var isLiked = likeUsers.map(item=>item.userid).includes(userid),isdisLiked = dislikeUsers.map(item=>item.userid).includes(userid);
@@ -123,17 +134,22 @@ export default class UpdateItem extends React.Component{
     }
 
     handleShareVisible(){
+        var { finalText, translateData } = this.state;
         var { data, onShareVisible } = this.props;
-        var { contentType, composeAction, value, text, contentId, id, username } = data;
+        var { contentType, innerAction, contentId, composeAction, value, text, id, username } = data;
+        
         if (onShareVisible){
             var option = {
                 contentType,
-                text,
-                value,
                 contentId,
-                composeAction,
+                innerAction,
+                hasInnerAction:innerAction ? true : false,
                 actionId:id,
-                username                     
+                composeAction,
+                value,
+                text:finalText,
+                username,
+                translateData                  
             }
             onShareVisible(true,option)
         }
@@ -141,9 +157,9 @@ export default class UpdateItem extends React.Component{
 
     render(){
 
-        var { translateData, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
+        var { translateData, finalText, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
         var { data, history, socket, loaction, forDetail, isSelf } = this.props;
-        var { contentType, composeAction, content, images, username, avatar, text, value, id, comments, isCreated, contentId, date } = data;
+        var { contentType, composeAction, innerAction, images, username, avatar, text, value, id, comments, isCreated, contentId, date } = data;
         
         const menu = (
             <Menu>
@@ -168,7 +184,7 @@ export default class UpdateItem extends React.Component{
                     null
                     :
                     <div className="action-head">
-                        <span className="text">{ isCreated ? '发布动态':`转发${translateType(contentType)}`}</span>
+                        <span className="text">{ isCreated ? '发布动态': innerAction ? '转发动态' : `转发${translateType(contentType)}`}</span>
                         <Dropdown overlay={menu} trigger={['click']}>
                             <span className="ant-dropdown-link button text">
                                 <Icon type="setting" />
@@ -226,7 +242,7 @@ export default class UpdateItem extends React.Component{
                             </div>
                         </div>
                         :
-                        contentType == 'action' 
+                        innerAction  //  说明包含嵌套的动态 -- 二级动态
                         ?
                         <div style={{margin:'2px 0'}}>
                             {
@@ -246,11 +262,11 @@ export default class UpdateItem extends React.Component{
                                     </span>
                                 ))
                                 :
-                                <span>{value}</span>
+                                <span>{ finalText }</span>
                             }
-                            <UpdateInnerItem uniquekey={contentId} />
+                            <UpdateInnerItem uniquekey={innerAction} forAction={true} history={history} />
                         </div>
-                        :
+                        :  //  说明包含新闻或者话题 -- 一级动态
                         <div style={{margin:'2px 0'}}>
                             {
                                 translateData.length
@@ -269,7 +285,7 @@ export default class UpdateItem extends React.Component{
                                     </span>
                                 ))
                                 :
-                                <span>{value+text}</span>
+                                <span>{finalText}</span>
                             }
                             <div style={{padding:'10px 20px',backgroundColor:'rgb(249, 249, 249)',borderRadius:'4px'}}>
                                 {

@@ -101,6 +101,7 @@ function _translateAction(action,resolve){
             obj.value = action.value;
             obj.userid = action.userid;
             obj.id = action._id;
+            obj.innerAction = action.innerAction;
             obj.likeUsers = action.likeUsers;
             obj.dislikeUsers = action.dislikeUsers;
             obj.shareBy = action.shareBy;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card  } from 'antd';
+import { Upload, Form, Button, Input, Select, Radio, Icon, Spin, Modal, Card  } from 'antd';
 import DeleteModal from '../../deleteModal';
 import ShareModal from '../../shareModal';
 import { formatContent } from '../../../../utils/translateDate';
@@ -22,13 +22,14 @@ export default class UpdateContainer extends React.Component{
             actionId:'',
             showForm:false,
             TopicForm:null,
-            loaded:false
+            loaded:false,
+            isLoading:true
         }
     }
 
     componentDidMount(){
         var { data } = this.props;
-        this.setState({userAction:data})
+        this.setState({userAction:data,isLoading:false})
 
     }
     
@@ -37,13 +38,16 @@ export default class UpdateContainer extends React.Component{
     }
 
     handleUpdateAction(data){
-        this.setState({userAction:data})
+        this.setState({isLoading:true});
+        setTimeout(()=>{
+            this.setState({userAction:data,isLoading:false})
+        },0)
+        
     }
 
     handleShareVisible(boolean,option){
         if ( boolean == true ){
             var { actionId } = option;
-            console.log(option);
             this.setState({shareVisible:boolean, actionInfo:option, actionId })
         } else {
             this.setState({shareVisible:boolean})
@@ -81,14 +85,25 @@ export default class UpdateContainer extends React.Component{
 
     render(){
         var { history, socket, isSelf } = this.props;
-        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded } = this.state;
+        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded, isLoading } = this.state;
 
         return(
             
             <div style={{textAlign:'left'}}>
-                <Button type="primary" size="small" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this,loaded)}>发布动态</Button>
+                {
+                    isSelf
+                    ?
+                    <Button type="primary" size="small" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this,loaded)}>发布动态</Button>
+                    :
+                    null
+                }
+                
                 { TopicForm && <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateAction.bind(this)} forAction={true}/> }
                 {
+                    isLoading
+                    ?
+                    <Spin />
+                    :
                     userAction.length
                     ?
                     <div>
@@ -106,8 +121,7 @@ export default class UpdateContainer extends React.Component{
                                 />
                             ))
                         }
-                    </div>
-                    
+                    </div>                    
                     :
                     <div style={{padding:'10px 0',fontSize:'12px'}}>你还没有发布过任何动态!</div>
                 }

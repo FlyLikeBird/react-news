@@ -30,11 +30,11 @@ export default class TopicItemPopover extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var responseData = json.data;
-                console.log('a');
+                
                 if (forShare){
-                    this.setState({data});
+                    this.setState({data:responseData});
                 } else if ( forRate){
-                    console.log('b');
+                    
                     data = data.map(item=>{
                         for(var i=0,len=responseData.length;i<len;i++){
                             if (item.userid == responseData[i].userid){
@@ -55,10 +55,9 @@ export default class TopicItemPopover extends React.Component{
                             }
                         }
                     })
-                    console.log(data);
+                    
                     this.setState({data:sortByDate(data)})
                 }
-                console.log('c');
                 
             })      
         

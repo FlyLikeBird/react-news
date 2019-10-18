@@ -26,14 +26,20 @@ const PCNewsDetails = Loadable({
   loader:()=>import('./js/components/pc/pc_detail'),
   loading:()=><Spin/>,
   timeout:10000
-})
+});
 
 const PCUserCenter = Loadable({
   loader:()=>import('./js/components/pc/pc_usercenter'),
   loading:()=><Spin/>,
   timeout:10000
+});
+
+const PCActionContainer = Loadable({
+  loader:()=>import('./js/components/pc/pc_action'),
+  loading:()=><Spin/>,
+  timeout:10000
 })
-console.log(PCUserCenter);
+
 /*
 import PCNewsDetails from './js/components/pc_detail/pc_detail';
 import PCUserCenter from './js/components/pc_usercenter/pc_usercenter';
@@ -125,6 +131,7 @@ export default class Root extends React.Component {
                               props.socket=socket;
                               return <PCUserCenter {...props}/>
                           }} />
+                          <Route exact path="/action/:id" component={PCActionContainer} />
                       
                         {/*<Route exact path="/usercenter/:userid" component={PCUserCenter}/>*/}
                         {/*

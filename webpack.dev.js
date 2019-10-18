@@ -81,6 +81,7 @@ module.exports = {
         ]
         
     },
+    /*
     externals:[
         {
             
@@ -92,6 +93,7 @@ module.exports = {
         }
         
     ],
+    */
     output:{
         path:path.resolve(__dirname,'dist'),
         publicPath:'/',
