@@ -19,9 +19,7 @@ const TabPane = Tabs.TabPane;
 export default class PCNewsContainer extends React.Component {
 	render() {
 		var data = [];
-		data.push(img1);
-		data.push(img2);
-		data.push(img3);
+		data.push(img1,img2,img3);
 		return(
 
 			<section style={{paddingTop:'30px'}}>

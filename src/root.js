@@ -10,8 +10,6 @@ import config from '../config/config';
 import PCHeader from './js/components/pc/pc_header';
 import PCFooter from './js/components/pc/pc_footer';
 
-const io = require('socket.io-client');
-
 const PCIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_index'),
   loading:()=><Spin/>,
@@ -70,7 +68,7 @@ export default class Root extends React.Component {
     componentWillMount(){
       var username = localStorage.getItem('username');     
       if ( username  ){
-        var socket = io.connect(`${config.uploadPath}`);
+        var socket = io.connect(`${config.socket}`);
         socket.on('connect',()=>{
            socket.emit('user-login',username);
            socket.on('receive-message',(msg)=>{
@@ -84,7 +82,7 @@ export default class Root extends React.Component {
     }
    
     connectSocket(){      
-        var socket = io.connect(`${config.uploadPath}`);       
+        var socket = io.connect(`${config.socket}`);       
         socket.on('connect',()=>{
            socket.emit('user-login',localStorage.getItem('username'));
            socket.on('receive-message',(msg)=>{
