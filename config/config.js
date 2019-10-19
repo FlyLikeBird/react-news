@@ -4,5 +4,5 @@ module.exports = {
 	host:'localhost',
 	dbHost:"localhost",
     dbPort:"27017",
-    uploadPath:'http://localhost:8081'
+    uploadPath:'http://127.0.0.1:8081'
 }

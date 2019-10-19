@@ -9,10 +9,6 @@ var actionRouter = require('./action');
 
 var router = express.Router();
 
-router.get('/api',(req,res)=>{
-  res.json('wonderful world');
-})
-
 router.use('/usr',usrRouter);
 router.use('/comment',commentsRouter);
 router.use('/article',articleRouter);
