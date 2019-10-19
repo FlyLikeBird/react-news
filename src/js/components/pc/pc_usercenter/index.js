@@ -24,7 +24,7 @@ export default class PCUserCenter extends React.Component{
 	_loadUserInfo(props){
 		var params = props.match.params.userid;
 		var isSelf = localStorage.getItem('userid') === params ? true :false;
-		fetch(`/usr/usercenter?userid=${params}&isSelf=${isSelf}`)
+		fetch(`/api/usr/usercenter?userid=${params}&isSelf=${isSelf}`)
 			.then(response=>response.json())
 			.then(json=>{
 				//console.log(data);

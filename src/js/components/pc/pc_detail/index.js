@@ -20,7 +20,7 @@ export default class PCNewsDetails extends React.Component {
 		var uniquekey = props.match.params.uniquekey;
 		var userid = localStorage.getItem('userid');
 
-		fetch('/article/getArticleContent?uniquekey='+uniquekey)
+		fetch('/api/article/getArticleContent?uniquekey='+uniquekey)
 			.then(response=>response.json())
 			.then(json=>{
 					var data = json.data;

@@ -15,7 +15,7 @@ export default class PCTagIndex extends React.Component {
     }
     
     _loadArticleList(tag){      
-      fetch(`/article/getArticleList?type=${tag}&count=20`)
+      fetch(`/api/article/getArticleList?type=${tag}&count=20`)
         .then(response=>response.json())
         .then(json=>{
           var data = json.data;

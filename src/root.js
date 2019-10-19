@@ -38,6 +38,12 @@ const PCActionContainer = Loadable({
   loader:()=>import('./js/components/pc/pc_action'),
   loading:()=><Spin/>,
   timeout:10000
+});
+
+const PCTopicIndex = Loadable({
+  loader:()=>import('./js/components/pc/pc_topic'),
+  loading:()=><Spin/>,
+  timeout:10000
 })
 
 /*
@@ -125,7 +131,7 @@ export default class Root extends React.Component {
                           <Route exact path="/" component={PCIndex} />
                           <Route exact path="/:tag" component={PCTagIndex} />
                           <Route exact path="/details/:uniquekey" component={PCNewsDetails} />
-                          
+                          <Route exact path="/topic" component={PCTopicIndex} />
                           <Route exact path="/usercenter/:userid" render={(props)=>{
                               props.msg = msg;
                               props.socket=socket;
