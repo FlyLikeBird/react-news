@@ -6,9 +6,11 @@ import { BrowserRouter as Router,  Route, Link, Switch } from 'react-router-dom'
 import MediaQuery from 'react-responsive';
 import { Button } from 'antd';
 import { Spin } from 'antd';
-
+import config from '../config/config';
 import PCHeader from './js/components/pc/pc_header';
 import PCFooter from './js/components/pc/pc_footer';
+
+const io = require('socket.io-client');
 
 const PCIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_index'),
@@ -49,9 +51,9 @@ import PCTopNewsIndex from './js/components/pc_topnews_index';
 import PCTopicIndex from './js/components/pc_topic/pc_topic_index';
 import PCTopicDetail from './js/components/pc_topic/pc_topic_detail';
 import PCActionContainer from './js/components/pc_action/pc_action_container';
-
 import MobileIndex from './js/components/mobile_index';
 */
+
 import './css/pc.common.css';
 
 export default class Root extends React.Component {
@@ -68,7 +70,7 @@ export default class Root extends React.Component {
     componentWillMount(){
       var username = localStorage.getItem('username');     
       if ( username  ){
-        var socket = io.connect('http://localhost:8081');
+        var socket = io.connect(`${config.uploadPath}`);
         socket.on('connect',()=>{
            socket.emit('user-login',username);
            socket.on('receive-message',(msg)=>{
@@ -82,7 +84,7 @@ export default class Root extends React.Component {
     }
    
     connectSocket(){      
-        var socket = io.connect('http://localhost:8081');       
+        var socket = io.connect(`${config.uploadPath}`);       
         socket.on('connect',()=>{
            socket.emit('user-login',localStorage.getItem('username'));
            socket.on('receive-message',(msg)=>{
