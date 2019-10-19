@@ -44,7 +44,7 @@ export default class PCNewsBlock extends React.Component {
 
 		} else {
 
-		fetch('article/getArticleList?type='+this.props.type+"&count="+this.props.count)
+		fetch('/api/article/getArticleList?type='+this.props.type+"&count="+this.props.count)
 		.then(response=>response.json())
 		.then(json=>{
 			//console.log(json);

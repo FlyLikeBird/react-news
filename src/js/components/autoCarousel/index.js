@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col } from 'antd';
+import { Row, Col, Spin } from 'antd';
 
 import style from './style.css';
 
@@ -8,20 +8,62 @@ export default class AutoCarousel extends React.Component {
         super();
         this.state = {
             width:0,
-            currentIndex:0
+            currentIndex:0,
+            isLoading:true,
+            images:[]
 
+        }
+    }
+
+    _fetchImg(url){
+        return new Promise((resolve,reject)=>{
+            fetch(url,{method:'get',responseType: 'blob'})
+                .then(response=>response.blob())
+                .then(blob=>{
+                    //console.log(blob);
+                    resolve(blob);
+                })
+        })
+    }
+
+    _readImgAsDataURL(blob,resolve){
+        var reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = function(){
+            resolve(reader.result);
         }
     }
 
     componentDidMount(){
         var { data } = this.props;
+        var allPromises = data.map(url=>{
+            return this._fetchImg(url);
+        });
+        Promise.all(allPromises)
+            .then(readableImgs=>{
+                var images = [],readPromises=[];
+                for(var i=0,len=readableImgs.length;i<len;i++){
+                   (function(i,readImg){
+                        var promise = new Promise((resolve,reject)=>{
+                            readImg(readableImgs[i],resolve);
+                        });
+                        readPromises.push(promise);
+                   })(i,this._readImgAsDataURL)
+                }
+                Promise.all(readPromises)
+                    .then(images=>{
+                        //console.log(images);
+                        this.setState({isLoading:false,images})
+                    })
+
+            })
         if (data.length){
             var container = this.container;
             if (container){
                 var width = (container.offsetWidth)/(data.length)   
                 this.setState({width})
             }
-            //this._setTimer();
+            this._setTimer();
             
         }        
     }
@@ -51,7 +93,7 @@ export default class AutoCarousel extends React.Component {
     }
 
     handleMouseOut(e){
-        //this._setTimer()
+        this._setTimer()
     }
 
     componentWillUnmount(){
@@ -61,19 +103,22 @@ export default class AutoCarousel extends React.Component {
         
     }
 
+    
     render() {
-        var { width, currentIndex } = this.state;
-        var { data } = this.props;
-
+        var { width, currentIndex, isLoading, images } = this.state;
+        //var { data } = this.props;
         return(
 
             <div ref={container=>this.container = container} className={style['auto-carousel']}>
                 {
-                    data.length
+                    isLoading
                     ?
-                    <div className={style.bg} style={{backgroundImage:`url(${data[currentIndex]})`}}>
+                    <Spin />
+                    :
+                    <div className={style.bg}>
+                        <img src={images[currentIndex]} />
                         {
-                            data.map((item,index)=>(
+                            images.map((item,index)=>(
                                 <div 
                                     className={index===currentIndex?style.float+' '+style.selected:style.float}
                                     onClick={this.handleClick.bind(this)}
@@ -86,13 +131,12 @@ export default class AutoCarousel extends React.Component {
                                         left:index*width
                                     }}
                                 >
-                                    <img src={item} />
+                                    <img id={`img${index}`} src={item} />
                                 </div>
                             ))
                         }
                     </div>
-                    :
-                    null
+                    
                 }
                 
                 
