@@ -9,8 +9,8 @@ import { Spin } from 'antd';
 import config from '../config/config';
 import PCHeader from './js/components/pc/pc_header';
 import PCFooter from './js/components/pc/pc_footer';
-
-
+import PCIndex from './js/components/pc/pc_index';
+/*
 const PCIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_index'),
   loading:()=><Spin size="large"/>
@@ -132,7 +132,7 @@ export default class Root extends React.Component {
                         <PCHeader msg={msg} socket={socket}/>
                         <Switch>
                           <Route exact path="/" component={PCIndex} />
-                          
+                          {/*
                           <Route exact path="/usercenter/:id" render={(props)=>{
                               props.socket = socket;
                               props.msg = msg;
@@ -143,7 +143,7 @@ export default class Root extends React.Component {
                           <Route exact path="/topic/:id" component={PCTopicDetail} />
                           
                           <Route exact path="/tag/:tag" component={PCTagIndex} />   
-                          
+                          /*}
                         {/*
                           <Route exact path="/" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCIndex {...props}/></div>}}></Route>
                           
