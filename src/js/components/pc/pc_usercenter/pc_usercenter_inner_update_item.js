@@ -23,9 +23,7 @@ export default class UpdateInnerItem extends React.Component{
                     var data = json.data;
                     //  判断转发的内部动态是评论还是新闻
                     data.text = data.value + (data.text ? '//' + data.text : '');
-
                     data.translateData = formatContent(data.text);
-                    console.log(data);
                     this.setState({actionInfo:data})
                 })
         } else {

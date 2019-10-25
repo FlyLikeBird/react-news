@@ -9,17 +9,7 @@ const Option = Select.Option;
 
 class SearchComponent extends React.Component {
     
-    constructor(props) {
-      super();
-      //console.log(props);
-      this.state = {
-        type:'news'
-      }
-      
-    }
- 
-    
-    handleSearch(value,e,type=this.state.type){
+    handleSearch(value){
       //console.log(this);
       var history = this.props.history;
       
@@ -35,8 +25,7 @@ class SearchComponent extends React.Component {
               value:value
             };
             var param = values.search.replace(pattern,'');
-            //if (params.)
-            //console.log(param);
+            
             var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];
             
             if (!(searchHistory.find(item=>item.title==param))){
@@ -47,7 +36,7 @@ class SearchComponent extends React.Component {
 
             state.words = param;
                 
-            history.push(`/search?words=${param}&type=${type}`,state);
+            history.push(`/search?words=${param}`,state);
 
            
             if (this.props.onModalVisible){
@@ -62,17 +51,13 @@ class SearchComponent extends React.Component {
 
 
     componentDidMount(){
-      var  { setFieldsValue } = this.props.form;
-      
-      if ( this.props.location ) {
-
-        if(this.props.isSearchPage){
-
-          var search = this.props.location.search;
-        
+      var { form, location, isSearchPage } = this.props;
+      var  { setFieldsValue } = form;      
+      if ( location ) {
+        if( isSearchPage ){
+          var search = location.search;       
           if(search){
-             var value = search.match(/words=(.*)&/)[1];
-            
+             var value = search.match(/words=(.*)&/)[1];           
             setFieldsValue({'search':value});
           }
         }
@@ -93,35 +78,11 @@ class SearchComponent extends React.Component {
       callback()
     }
 
-    handleSelectChange(value){
-      
-      var words = this.props.form.getFieldValue('search');
-      /*
-      if (this.props.onChangeSearchType){
-        this.props.onChangeSearchType(this.state.type);
-      }
-      */
-      this.setState({type:value});
-      this.setState(state=>{
-        this.handleSearch(words,null,state.type);
-      })
-      
-      
-    }
-
     render() {
-        let {  getFieldDecorator } = this.props.form;
-        //console.log(getFieldDecorator);
-        const selectBefore = (
-                <Select onChange={this.handleSelectChange.bind(this)} defaultValue="新闻" style={{ width: 90 }}>
-                  <Option value="news">新闻</Option>
-                  <Option value="user">用户</Option>
-                </Select>
-              );
-
+        var {  getFieldDecorator } = this.props.form;
+        
         return (
-          <Form>
-            
+          <Form>           
             <FormItem>
               {
                 getFieldDecorator('search',{
@@ -132,16 +93,12 @@ class SearchComponent extends React.Component {
                   <Search 
                     //onBlur = {()=>{setTimeout(this.handleBlur.bind(this),0)}}
                     className={this.props.isSearchPage ? " ": "search-container"}
-                    addonBefore={this.props.isSearchPage ? selectBefore : null}
                     placeholder="请输入查询关键词"
                     onSearch={this.handleSearch.bind(this)}                
                   />
-                )
-              
+                )           
                   
-              }
-                
-              
+              }             
             </FormItem>
           </Form>
             

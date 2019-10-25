@@ -49,11 +49,6 @@
     border-bottom:none;
 }
 
-.header .menu .usercenter button {
-    margin:0 2px;
-    font-size:12px;
-}
-
 .header .img-container {
     display: inline-block;
     width: 24px;
@@ -77,18 +72,16 @@
     display:inline-block;
 }
 
-.header .menu ul.login li {
-    padding:0 16px;
-    color:#666;
-    
-}
-
 .header .menu ul li.ant-menu-item-selected {
     color:#1890ff;
 }
 
+.header div.menu ul.logout li {
+    padding:0 12px;
+}
+
 .header div.menu ul li {
-    padding:0 20px;
+    padding:0 16px;
     font-size:14px;
     font-weight:500;
 }
@@ -130,7 +123,6 @@
     
 }
 
-
 .header .menu ul li.ant-menu-item  i{
     /*animation:.headerIconAction 0.8s cubic-bezier(.46, 1, .23, 1.52); */
     transition: all 0.8s cubic-bezier(.46, 1, .23, 1.52);
@@ -152,6 +144,19 @@
     
 }
 
+.header .user-login {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.header .user-login>a {
+    margin-right:10px;
+}
+
+.header .search {
+    display: flex
+}
 
 /*
 
@@ -1037,8 +1042,10 @@ span.ant-text {
 .user-list .ant-list-item .ant-button {
     transform:scale(0.8);
 }
+
 .search-content {
     padding-left:40px;
+    text-align:left;
 } 
 
 .search-content .search-option .ant-select {
@@ -1803,7 +1810,7 @@ span.ant-text {
 */
 
 .news.ant-card {
-    padding:20px;
+    padding:20px 0;
     margin:10px 0;
     border:none;
     font-size:12px;
@@ -1832,8 +1839,6 @@ span.ant-text {
 
 
 .news.ant-card .news-content {
-    width:730px;
-    height:50px;
     line-height:25px;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -1844,10 +1849,15 @@ span.ant-text {
 }
 
 .news.ant-card .news-title {
-    max-width:300px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+}
+
+.news.ant-card .news-title a{
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .news.ant-card .button {

@@ -38,6 +38,7 @@ export default class PCTagIndex extends React.Component {
     }
 
     render() {
+        console.log(this.props);
         var { data } = this.state;
         return (
             <Row style={{paddingTop:'30px'}}>

@@ -1,28 +1,26 @@
 import React from 'react';
-
-import PCHeader from '../pc_header';
-import PCFooter from '../pc_footer';
-
+import { Row, Col } from 'antd';
 import PCSearchContainer from './pc_search_container';
 
 export default class PCSearchIndex extends React.Component{
-  constructor(){
-    super();
   
-  }
-
-  
-
   render(){
 
     return(
-      <div>
-        
-        <PCSearchContainer {...this.props}/>
-        <PCFooter/>
-                
-                
-      </div>
+      
+      <section style={{paddingTop:'30px'}}>
+        <Row>
+          <Col span={2}></Col>
+          <Col span={5} className="container">
+              {/*<PCNewsBlock type="top" count={20} width="100%" title="相关新闻" /> */}
+
+          </Col>
+          <Col span={15}>
+              <PCSearchContainer {...this.props}/>
+          </Col>
+          <Col span={2}></Col>
+        </Row>
+      </section>
     )
   }
 }

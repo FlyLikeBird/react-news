@@ -7,6 +7,7 @@ import tagStyle from './style.css';
 export default class TagItem extends React.Component {
 
     render() {
+
         var { item } = this.props;
         var { title, uniquekey, newstime, auth, type, content, thumbnail } = item;
         
@@ -21,9 +22,13 @@ export default class TagItem extends React.Component {
                 <p className={tagStyle.content}>{content}</p>      
                 <div>
                     {
-                     thumbnail.map((imgSrc,index)=>(
-                       <span className={tagStyle['img-container']} key={index}><img src={imgSrc}/></span>
-                     ))
+                        thumbnail && thumbnail.length 
+                        ?
+                        thumbnail.map((imgSrc,index)=>(
+                          <span className={tagStyle['img-container']} key={index}><img src={imgSrc}/></span>
+                        ))
+                        :
+                        null
                     }
                 </div>
             </div>

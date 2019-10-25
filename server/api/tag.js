@@ -15,5 +15,11 @@ router.get('/getAllTags',(req,res)=>{
   })
 })
 
-
+router.get('/deleteTag',(req,res)=>{
+    var { id } = req.query;
+    Tag.deleteOne({_id:id},(err,result)=>{
+        console.log(result);
+        util.responseClient(res,200,0,'ok');
+    })
+})
 module.exports = router;

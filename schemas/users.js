@@ -17,7 +17,7 @@ module.exports = new mongoose.Schema({
     message:[messageSchema],
     description:{type:String,default:'还未设置签名～'},
     level:{type:Number,default:0},
-    userImage:{type:String,default:"https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png",trim:true},
+    userImage:{type:String,default:"https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"},
     registerTime:{type:String,default:''},
     loginTime:{type:String,default:''},
     lastLoginTime:{type:String,default:''},

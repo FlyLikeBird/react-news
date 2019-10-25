@@ -12,12 +12,16 @@ var hotMiddlewareScript = 'webpack-hot-middleware/client?reload=true';
 module.exports = {
     mode:'development',
     entry:{
+        /*
         index:['./src/root.js',hotMiddlewareScript],
         vendor:[
             'react',
             'react-dom',
             'react-router-dom'
         ]
+        */
+        index:'./src/root.js',
+        login:'./src/login.js'
     },
     devtool:'inline-source-map',
     module:{
@@ -117,8 +121,14 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         new HtmlWebpackPlugin({
             title:'react-news',
-            template:'./src/template.html'
+            template:'./src/index.template.html',
+            chunks:['index']
             
+        }),
+        new HtmlWebpackPlugin({
+            filename:'login.html',
+            template:'./src/login.template.html',
+            chunks:['login']
         }),
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),

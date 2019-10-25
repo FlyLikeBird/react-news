@@ -5,6 +5,7 @@ var util = require('../util');
 
 var Article = require('../../models/Article');
 var User = require('../../models/User');
+var mongooseOperations = require('../mongooseOperations');
 
 function createPattern(words){
   if (Object.prototype.toString.call(words)==='[object String]') {
@@ -91,47 +92,12 @@ function selectImgByUniquekey(content){
 }
 
 
-/*
-
-  Article集合里添加文章文档
-router.post('/addArticle',(req,res)=>{
-
-    let { author_name, date, realtype, title, uniquekey, pagecontent } = req.body
-    //console.log(uniquekey);
-    Article.findOne({'articleId':uniquekey},(err,result)=>{
-      if (err) throw err;
-      //console.log(result);
-      if( !result ) {
-        //console.log(result);
-        var article = new Article({
-          articleId:uniquekey,
-          type:realtype,
-          newstime:date,
-          auth:author_name,
-          title:title,
-          content:pagecontent,
-        });
-
-        article.save()
-                  .then( articleObj=>{
-                      
-                  })
-      } else {
-        //console.log('hello');
-      }
-    });
-
-    util.responseClient(res,200,0,'ok');
-
-})
-
-*/
 
 router.get('/search',(req,res)=>{
   var { words, pageNum, type, orderBy, start, end } = req.query;
-  //console.log(words,type);
-  //console.log(start,end);
-  console.log(words);
+  var arr = ['hello'];
+  mongooseOperations.changeArticlesContents();
+  /*
   var total = 0;
   //console.log(type);
   var skip = (pageNum -1) > 0 ? (pageNum-1)*20 : 0;
@@ -288,7 +254,33 @@ router.get('/search',(req,res)=>{
 
     })
   }
-  
+  */
+})
+
+
+router.get('/getArticleTitle',(req,res)=>{
+  var { type, count } = req.query;
+  type = util.translateTag(type);
+  //console.log(type);
+  //console.log(count);
+  count = Number(count);
+  Article.find({'type':type})
+          .limit(count)
+          .exec((err,articles)=>{
+              
+              var data = articles.map(item=>{
+                var obj = {};
+                obj.uniquekey = item.articleId,
+                obj.type = item.type;
+                obj.newstime = item.newstime;
+                obj.auth = item.auth;
+                obj.title = item.title;
+                return obj;
+              })
+             
+              util.responseClient(res,200,0,'ok',data);
+
+          })
 })
 
 
@@ -301,46 +293,19 @@ router.get('/getArticleList',(req,res)=>{
   Article.find({'type':type})
           .limit(count)
           .exec((err,articles)=>{
-            
-            var list = [];
-            
-            for(var i=0,len=articles.length;i<len;i++){
-              //articles[i].thumbnail = selectImgByUniquekey(articles[i]);
               
-              var thumbnail = selectImgByUniquekey(articles[i].content);
-              if (thumbnail.length){
-                if (thumbnail.length > 3) {
-                  
-                  thumbnail = thumbnail.slice(0,3)
-                } else if (thumbnail.length = 1){
-                  
-                  thumbnail.push(thumbnail[0],thumbnail[0]);
-                } else if (thumbnail.length =2){
-                  
-                  thumbnail.push(thumbnail[0])
-                } 
-              }
-
-              
-              
-              list.push({
-                uniquekey:articles[i].articleId,
-                type:articles[i].type,
-                newstime:articles[i].newstime,
-                auth:articles[i].auth,
-                title:articles[i].title,
-                thumbnail:thumbnail,
-                content:selectContentByUniquekey(articles[i].content)
+              var data = articles.map(item=>{
+                var obj = {};
+                obj.uniquekey = item.articleId,
+                obj.type = item.type;
+                obj.newstime = item.newstime;
+                obj.auth = item.auth;
+                obj.title = item.title;
+                obj.content = item.content;
+                return obj;
               })
-              /*
-              list[i] = articles[i];
-              list[i].thumbnail = selectImgByUniquekey(list[i].content)
-              list[i].content = selectContentByUniquekey(list[i].content);
-              */
-              
-            }
-            //console.log(list);
-            util.responseClient(res,200,0,'ok',list);
+             
+              util.responseClient(res,200,0,'ok',data);
 
           })
 })

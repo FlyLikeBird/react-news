@@ -52,7 +52,7 @@ export class TopicListItem extends React.Component {
         var { isFollowed } = this.state;
         var userid=localStorage.getItem('userid');
         if(userid){
-            fetch(`/topic/followTopic?topicId=${_id}&userid=${userid}&isCancel=${isFollowed?'true':''}`)
+            fetch(`/api/topic/followTopic?topicId=${_id}&userid=${userid}&isCancel=${isFollowed?'true':''}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;                
@@ -82,8 +82,9 @@ export class TopicListItem extends React.Component {
     }
 
     handleLink(id){
+        console.log(this.props);
         var { history } = this.props;
-        history.push(`/topic/${id}`);
+        history.push(`/topicDetail?id=${id}`);
     }
 
     handleShare(){
@@ -97,21 +98,20 @@ export class TopicListItem extends React.Component {
         var { forDetail, item } = this.props;
         var id = this.props.item._id;
         var userid = localStorage.getItem('userid');
-        if (userid){
-            if(forDetail){
-                fetch(`/topic/checkTopicIsFollowed?userid=${userid}&topicId=${id}`)
-                    .then(response=>response.json())
-                    .then(json=>{
-                        var code = json.code;
-                        var { follows, shareBy } = item;
-                        if(code ===0){
-                            this.setState({isFollowed:true})
-                        } else {
-                            this.setState({isFollowed:false})
-                        }
-                        this.setState({follows,shareBy})
-                    })
-            }
+        if (userid && forDetail){          
+            fetch(`/topic/checkTopicIsFollowed?userid=${userid}&topicId=${id}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var code = json.code;
+                    var { follows, shareBy } = item;
+                    if(code ===0){
+                        this.setState({isFollowed:true})
+                    } else {
+                        this.setState({isFollowed:false})
+                    }
+                    this.setState({follows,shareBy})
+                })
+            
         }       
     }
 
@@ -219,9 +219,11 @@ export class TopicListItem extends React.Component {
                         forIndex
                         ?
                         <div className="topic-card-extra">
+                            
                             <div onClick={this.handleLink.bind(this,_id)}>
                                 <span className="text"><Icon type="arrow-right" />前往话题</span>
                             </div>
+                    
                         </div>
                         :
                         forUser

@@ -23,7 +23,7 @@ class RegisterForm extends React.Component {
           var formData = new FormData();
           var { r_userName, r_password } = values;
       
-          fetch(`/usr/register?r_userName=${r_userName}&r_password=${r_password}`)
+          fetch(`/api/usr/register?r_userName=${r_userName}&r_password=${r_password}`)
             .then(response=>response.json())
             .then(json=>{
               var data = json.data;  
@@ -49,7 +49,7 @@ class RegisterForm extends React.Component {
       form.validateFields([fieldName],{force:true},(err,values)=>{
          if(!err){
 
-            fetch.get('/usr/checkusername?username='+username)
+            fetch.get('/api/usr/checkusername?username='+username)
             .then(response=>{
 
               let data = response.data;

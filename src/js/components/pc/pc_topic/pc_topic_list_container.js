@@ -26,17 +26,19 @@ export default class TopicListContainer extends React.Component{
 
     componentDidMount(){
         
-        fetch(`/topic/getAllTopics`)
+        fetch(`/api/topic/getAllTopics`)
             .then(response=>response.json())
             .then(json=>{
                 var topicList = json.data;
-                fetch(`/tag/getAllTags`)
+                fetch(`/api/tag/getAllTags`)
                     .then(response=>response.json())
                     .then(json=>{
-                        var tags = json.data;                       
+                        var tags = json.data; 
+                        /*                      
                         for(var i=0;i<10;i++){
                             topicList.push(topicList[i])
                         }
+                        */
                         var obj = {};
                         obj.content = {};
                         obj['tag'] = '全部',obj['content'].length = topicList.length;
@@ -70,7 +72,7 @@ export default class TopicListContainer extends React.Component{
         }
 
     }
-
+    /*
     handleChangeTag(_id,index,e){
         var target = e.currentTarget;
         var tagsContainer = this.tagsContainer;
@@ -81,7 +83,7 @@ export default class TopicListContainer extends React.Component{
             }
             target.classList.add('selected');
             if (_id){
-                fetch(`/topic/getTopicsByTag?id=${_id}`)
+                fetch(`/api/topic/getTopicsByTag?id=${_id}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;
@@ -89,7 +91,7 @@ export default class TopicListContainer extends React.Component{
                     
                 })
             } else {
-                fetch(`/topic/getAllTopics`)
+                fetch(`/api/topic/getAllTopics`)
                     .then(response=>response.json())
                     .then(json=>{
                         var data = json.data;
@@ -97,6 +99,23 @@ export default class TopicListContainer extends React.Component{
                     })
             }
         }       
+    }
+    */
+    handleChangeTag(_id){
+        var { tags } = this.state;
+        fetch(`/api/tag/deleteTag?id=${_id}`)
+            .then(response=>response.json())
+            .then(json=>{
+                var newArr = tags.concat(),deleteIndex = 0;
+                for(var i=0,len=tags.length;i<len;i++){
+                    if (tags[i]._id === _id){
+                        deleteIndex = i;
+                        break;
+                    }
+                }
+                newArr.splice(deleteIndex,1);
+                this.setState({tags:newArr});
+            })
     }
 
     render(){

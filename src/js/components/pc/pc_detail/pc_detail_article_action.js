@@ -25,7 +25,7 @@ export default class ArticleAction extends React.Component {
     
     componentDidMount(){
         var { item } = this.props;
-        fetch(`/collect/getUserCollect?userid=${localStorage.getItem('userid')}&uniquekey=${this.props.uniquekey}`)
+        fetch(`/api/collect/getUserCollect?userid=${localStorage.getItem('userid')}&uniquekey=${this.props.uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data= json.data;

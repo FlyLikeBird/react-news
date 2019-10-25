@@ -18,7 +18,7 @@ export class NewsListItem extends React.Component {
       var { forCollect, collectId } = this.props;
 
       if (forCollect){
-        fetch(`/collect/removeCollectContent?collectId=${collectId}&contentId=${contentId}&user=${localStorage.getItem('username')}`)
+        fetch(`/api/collect/removeCollectContent?collectId=${collectId}&contentId=${contentId}&user=${localStorage.getItem('username')}`)
           .then(response=>response.json())
           .then(json=>{
               var data = json.data;
@@ -44,34 +44,34 @@ export class NewsListItem extends React.Component {
   }
 
   componentDidMount(){
-      var { uniquekey } = this.props;
-      if (uniquekey){
-          fetch(`/article/getArticleContent?uniquekey=${uniquekey}`)
+      var { uniquekey, noFetch, item } = this.props;
+      if (uniquekey && !noFetch){
+          fetch(`/api/article/getArticleContent?uniquekey=${uniquekey}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data= json.data;
                     this.setState({item:data});
                 })
+      } else {
+          this.setState({item})
       }
       
   }
 
   markKeyWords(content){
-    
+    var { location } = this.props;
     var result = '';
-    //var p = this.p;
-    //console.log(this.p);
-    //console.log(multiParts);
-    if (this.props.location) {
-      var search = this.props.location.search;
+    if (location && content) {
+      var search = location.search;
       
-      var words = search.match(/words=(.*)&/)[1];
+      var words = search.match(/words=(.*)/)[1];
       
       if (!words.match(/\s+/g)){
-
+          //  单个关键词
           result = content.replace(new RegExp('('+words+')','g'),match=>'<span style="color:#1890ff">'+match+'</span>');
           //p.innerHTML = result;
       } else {
+        //  多个关键词
         var multiWords = '';
         words = words.split(/\s+/);
         for(var i=0,len=words.length;i<len;i++){
@@ -92,20 +92,24 @@ export class NewsListItem extends React.Component {
   render(){
     var { item } = this.state;
     var { hastime, hasImg, forSimple, hasSearchContent, noLink, id } = this.props;
-    var { viewtime, articleId, auth, newstime, thumbnail, title, type } = item;
-
+    var { viewtime, articleId, auth, newstime, content, thumbnail, title, type } = item;
+    
     var newsStyle = {
         backgroundColor:forSimple?'rgb(249, 249, 249)':'#fff',
         margin:forSimple?'4px 0':'10px 0',
         padding:forSimple?'0':'20px'
+    };
+
+    var linkStyle = {
+      
     }
     return (
 
-        <Card className="news" style={newsStyle}>
+        <Card className="news">
               { 
                   hastime 
                   ? 
-                  <div style={{width:'80px',color:'#1890ff'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
+                  <div style={{color:'#1890ff'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
                   : 
                   null 
               }
@@ -118,21 +122,21 @@ export class NewsListItem extends React.Component {
                   : 
                   null 
               }
-               <div style={{width:'270px'}}>
+               <div>
                       <div className="news-title">
                         {
                            noLink
                            ?
                            <span>{title}</span>
                            :
-                           <Link to={`/details/${articleId}`}>{title}</Link>
+                           <Link to={`/details/${articleId}`}><span style={linkStyle}>{title}</span></Link>
                         }
                       </div>
                       {
                           hasSearchContent 
                           ?
                           <div className="news-content">
-                            <p dangerouslySetInnerHTML={{__html:this.markKeyWords(content)}}></p>
+                            <div dangerouslySetInnerHTML={{__html:this.markKeyWords(content)}}></div>
                           </div>
                           :
                           null
@@ -171,6 +175,7 @@ export default class NewsList extends React.Component{
   }
  
   componentDidMount(){
+      console.log('newslit mounted!')
       var { data } = this.props;
       this.setState({list:data});
   }
@@ -202,7 +207,7 @@ export default class NewsList extends React.Component{
   }
 
   render(){
-    var { hasImg, hastime, forUser } = this.props;
+    var { hasImg, hastime, hasSearchContent, location, noFetch, forUser } = this.props;
     var { list, visible, deleteId } = this.state;
 
 
@@ -228,8 +233,11 @@ export default class NewsList extends React.Component{
                         <NewsListItem 
                             item={item} 
                             key={index}
+                            noFetch={noFetch}
                             hastime={hastime}
-                            hasImg={hasImg} 
+                            hasImg={hasImg}
+                            location={location}
+                            hasSearchContent={hasSearchContent} 
                             onVisible={this.handleModalVisible.bind(this)}
                         />
                     ))

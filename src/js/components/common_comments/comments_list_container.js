@@ -45,7 +45,7 @@ export default class CommentsListContainer extends React.Component{
     //console.log(uniquekey);
     if (uniquekey){
       
-      fetch(`/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
+      fetch(`/api/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
       .then(response=>response.json())
       .then(json=>{
         var data = json.data;
@@ -95,7 +95,7 @@ handleAddComment(list){
 handleShareVisible(boolean,commentid,parentcommentid,onUpdateShareBy){
     if (boolean === true){
       this.onUpdateShareBy = onUpdateShareBy;
-      fetch(`/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}`)
+      fetch(`/api/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}`)
       .then(response=>response.json())
       .then(json=>{   
           var str = json.data;      

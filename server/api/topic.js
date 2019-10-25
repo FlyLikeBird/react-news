@@ -4,6 +4,7 @@ var path = require('path');
 var fs = require('fs');
 var router = express.Router();
 var util = require('../util');
+var config = require('../../config/config');
 var Topic = require('../../models/Topic');
 var Tag = require('../../models/Tag');
 var Article = require('../../models/Article');
@@ -247,7 +248,7 @@ router.post('/upload',upload.array('images'),(req,res)=>{
         
         req.files.forEach(item=>{
             var obj = {};
-            obj.filename  = 'http://localhost:8080/topic/'+item.filename;
+            obj.filename  = config.uploadPath + '/topic/'+item.filename;
             obj.originalname = item.originalname;
             obj.originalpath = item.destination;
             images.push(obj);

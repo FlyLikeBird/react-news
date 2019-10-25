@@ -2,50 +2,53 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Loadable from 'react-loadable';
+import loadable from './utils/loadable';
 import { BrowserRouter as Router,  Route, Link, Switch } from 'react-router-dom';
 import MediaQuery from 'react-responsive';
-import { Button } from 'antd';
 import { Spin } from 'antd';
 import config from '../config/config';
 import PCHeader from './js/components/pc/pc_header';
 import PCFooter from './js/components/pc/pc_footer';
 
+
 const PCIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_index'),
-  loading:()=><Spin/>,
-  timeout:10000
+  loading:()=><Spin size="large"/>
 });
 
 const PCTagIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_tag'),
-  loading:()=><Spin/>,
-  timeout:10000
-})
-
-const PCNewsDetails = Loadable({
-  loader:()=>import('./js/components/pc/pc_detail'),
-  loading:()=><Spin/>,
-  timeout:10000
+  loading:()=><Spin size="large"/>
 });
 
 const PCUserCenter = Loadable({
-  loader:()=>import('./js/components/pc/pc_usercenter'),
-  loading:()=><Spin/>,
-  timeout:10000
+  loader:()=>import('./js/components/pc/pc_usercenter/index'),
+  loading:()=><Spin size="large"/>
 });
+
+const PCTopicIndex = Loadable({
+  loader:()=>import('./js/components/pc/pc_topic'),
+  loading:()=><Spin size="large"/>
+});
+
+const PCTopicDetail = Loadable({
+  loader:()=>import('./js/components/pc/pc_topic/pc_topic_detail'),
+  loading:()=><Spin size="large"/>
+});
+
+const PCNewsDetail = Loadable({
+  loader:()=>import('./js/components/pc/pc_detail'),
+  loading:()=><Spin size="large"/>
+});
+
+/*
 
 const PCActionContainer = Loadable({
   loader:()=>import('./js/components/pc/pc_action'),
   loading:()=><Spin/>,
   timeout:10000
 });
-
-const PCTopicIndex = Loadable({
-  loader:()=>import('./js/components/pc/pc_topic'),
-  loading:()=><Spin/>,
-  timeout:10000
-})
-
+*/
 /*
 import PCNewsDetails from './js/components/pc_detail/pc_detail';
 import PCUserCenter from './js/components/pc_usercenter/pc_usercenter';
@@ -123,23 +126,24 @@ export default class Root extends React.Component {
 
           <div style={{textAlign:'center'}}>
               <MediaQuery query='(min-device-width:1224px)'>
-                
+                 
                 <Router>
                     <div>
                         <PCHeader msg={msg} socket={socket}/>
                         <Switch>
                           <Route exact path="/" component={PCIndex} />
-                          <Route exact path="/:tag" component={PCTagIndex} />
-                          <Route exact path="/details/:uniquekey" component={PCNewsDetails} />
-                          <Route exact path="/topic" component={PCTopicIndex} />
-                          <Route exact path="/usercenter/:userid" render={(props)=>{
+                          
+                          <Route exact path="/usercenter/:id" render={(props)=>{
+                              props.socket = socket;
                               props.msg = msg;
-                              props.socket=socket;
-                              return <PCUserCenter {...props}/>
-                          }} />
-                          <Route exact path="/action/:id" component={PCActionContainer} />
-                      
-                        {/*<Route exact path="/usercenter/:userid" component={PCUserCenter}/>*/}
+                              return <PCUserCenter {...props} />
+                          }} />  
+                          <Route exact path="/details/:uniquekey" component={PCNewsDetail} />
+                          <Route exact path="/topicIndex" component={PCTopicIndex} />
+                          <Route exact path="/topic/:id" component={PCTopicDetail} />
+                          
+                          <Route exact path="/tag/:tag" component={PCTagIndex} />   
+                          
                         {/*
                           <Route exact path="/" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCIndex {...props}/></div>}}></Route>
                           

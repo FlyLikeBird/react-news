@@ -24,7 +24,7 @@ export default class PCNewsImageBlock extends React.Component {
 			
 		}	
 
-		fetch('/article/getArticleList?type='+this.props.type+"&count="+this.props.count)
+		fetch('/api/article/getArticleList?type='+this.props.type+"&count="+this.props.count)
 		.then(response=>response.json())
 		.then(json=>{
 			var data = json.data;

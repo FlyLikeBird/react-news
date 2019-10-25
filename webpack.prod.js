@@ -10,7 +10,9 @@ var path = require('path');
 module.exports = {
     mode:'production',
     entry:{
-        index:['./src/root.js']   
+        //index:['./src/root.js'] 
+        index:'./src/root.js',
+        login:'./src/login.js'  
     },
     //devtool:'source-map',
     module:{
@@ -57,22 +59,32 @@ module.exports = {
             {
 
                 test:/\.(png|svg|jpg|gif|ico|woff|eot|ttf)$/,               
-                use: [{
-                    loader: 'file-loader',
-                    options: {
-
-                        limit:8000000,   //小于50K的 都打包
-                        outputPath:'images/',
-                        name:'[hash:8].[name].[ext]',
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+    
+                            limit:8000000,   //小于50K的 都打包
+                            outputPath:'images/',
+                            name:'[hash:8].[name].[ext]'
+                        }
                            
                     }
-                }]
+                    
+                ]
                           
             }
-
         ]
-        
     },
+            /*
+            {   //压缩图片要在file-loader之后使用
+                    loader:'image-webpack-loader',
+                    options:{
+                        bypassOnDebug: true
+                    }
+            }
+            */
+
     
     output:{
         path:path.resolve(__dirname,'dist'),
@@ -124,8 +136,14 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         new HtmlWebpackPlugin({
             title:'react-news',
-            template:'./src/template.html'
+            template:'./src/index.template.html',
+            chunks:['index']
             
+        }),
+        new HtmlWebpackPlugin({
+            filename:'login.html',
+            template:'./src/login.template.html',
+            chunks:['login']
         }),
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
@@ -133,22 +151,7 @@ module.exports = {
             filename:'css/[name]_[hash:8].css'
         }),
         /*
-        new OptimizeCSSAssetsPlugin({
-            assetNameRegExp: /\.css$/g,
-            cssProcessor: require('cssnano'),
-            // cssProcessorOptions: cssnanoOptions,
-            cssProcessorPluginOptions: {
-                preset: ['default', {
-                    discardComments: {
-                        removeAll: true,
-                    },
-                    normalizeUnicode: false
-                }]
-             },
-            canPrint: true
-
-        }),
-        */
+        
         new BundleAnalyzerPlugin({
             analyzerMode: "server",
             analyzerHost: "127.0.0.1",
@@ -158,6 +161,7 @@ module.exports = {
             openAnalyzer: true
 
         })
+        */
     ]
     
 }

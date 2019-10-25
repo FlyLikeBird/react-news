@@ -58,7 +58,7 @@ app.use(express.static(path.resolve(__dirname,'./dist')));
 
 app.use('/api', indexRouter)
 
-/*
+
 //  解决跨域问题
 app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -67,13 +67,12 @@ app.all('*', function(req, res, next) {
     res.header("X-Powered-By",' 3.2.1')
     next();
 });
-*/
 
-app.get('/', function ( req, res){
-   //console.log(path.resolve(__dirname, './dist', 'index.html'));
-   //console.log('other requests!!');
-   res.sendFile(path.resolve(__dirname, './dist', 'index.html'))
-   //res.sendFile(path.resolve(__dirname,'./src/index.html'));
+
+app.get(function ( req, res){  
+    if (req.url === '/') {
+        res.sendFile(path.resolve(__dirname, './dist', 'index.html'))
+    }   
 });
 
 if(!isServer){

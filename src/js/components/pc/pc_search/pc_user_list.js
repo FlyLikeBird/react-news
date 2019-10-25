@@ -20,9 +20,6 @@ export default class UserList extends React.Component{
   _checkUserLoginedAndFollowd(props){
       var { data, socket } = props;
       var users = data.map(item=>item.username);
-      //console.log(this._flag);
-
-      
           socket.emit('checkLogined',users);
   
           socket.on('checkLoginedResult',(result)=>{

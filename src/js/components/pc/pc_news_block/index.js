@@ -44,10 +44,11 @@ export default class PCNewsBlock extends React.Component {
 
 		} else {
 
-		fetch('/api/article/getArticleList?type='+this.props.type+"&count="+this.props.count)
+		fetch('/api/article/getArticleTitle?type='+this.props.type+"&count="+this.props.count)
 		.then(response=>response.json())
 		.then(json=>{
-			//console.log(json);
+			
+				//console.log(json);
 				var data = json.data;
 				const newsList = data.length
 								?
@@ -81,16 +82,14 @@ export default class PCNewsBlock extends React.Component {
 								</li>
 							    ))	
 				
-				this.setState({newsList,newsListWithoutHot,newsImg:data[0].thumbnail[0],newsTitle:data[0].title,newsId:data[0].uniquekey});
+				this.setState({newsList,newsListWithoutHot});
 
 			})
 		}
 	}
 
-	componentWillMount(){
-
-		this.loadNewsList(true)
-		
+	componentDidMount(){
+		this.loadNewsList();		
 	}
 	
 	componentWillReceiveProps(newProps){
@@ -117,7 +116,7 @@ export default class PCNewsBlock extends React.Component {
 	
 	render() {
 		
-		const newsList = this.state.newsList;
+		const { newsList } = this.state;
 
 		const linkStyle = {
 			    backgroundColor: '#1890ff',
@@ -150,7 +149,7 @@ export default class PCNewsBlock extends React.Component {
 							?
 							this.props.isTopic
 							?							
-							<Link style={linkStyle} to={`/topic`}>进入话题中心<Icon type="right-circle" /></Link>							
+							<Link style={linkStyle} to={`/topicIndex`}>进入话题中心<Icon type="right-circle" /></Link>							
 							:							
 							<Link style={linkStyle} to={`/topNews`}>查看更多新闻<Icon type="right-circle" /></Link>
 							:

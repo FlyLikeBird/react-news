@@ -22,9 +22,10 @@ export default class PCUserCenter extends React.Component{
 	}
 
 	_loadUserInfo(props){
-		var params = props.match.params.userid;
+		
+		var params = props.match.params.id;
 		var isSelf = localStorage.getItem('userid') === params ? true :false;
-		fetch(`/api/usr/usercenter?userid=${params}&isSelf=${isSelf}`)
+		fetch(`/api/usr/usercenter?userid=${params}`)
 			.then(response=>response.json())
 			.then(json=>{
 				//console.log(data);
@@ -50,6 +51,7 @@ export default class PCUserCenter extends React.Component{
 	}
 	
 	render(){
+		console.log(this.props);
 		var { socket, history, msg } = this.props;
 		var { user, userFollow, userFans, userAction, userComments, userHistory, userCollect, isSelf, isLoad  } = this.state;
 
@@ -96,5 +98,6 @@ export default class PCUserCenter extends React.Component{
 		)
 	}
 }
+
 
 

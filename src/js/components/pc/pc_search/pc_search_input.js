@@ -63,7 +63,7 @@ export default class SearchInput extends React.Component {
     handleGotoSearch(title){
       var { history } = this.props;  
       
-      history.push(`/search?words=${title}&type=news`);
+      history.push(`/search?words=${title}`);
       this.handleClick()
     }
 

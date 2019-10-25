@@ -30,13 +30,13 @@ export default class PCUsercenterTopic extends React.Component{
     }
 
     componentDidMount(){
-        fetch(`/topic/getUserTopic?userid=${localStorage.getItem('userid')}`)
+        fetch(`/api/topic/getUserTopic?userid=${localStorage.getItem('userid')}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
                 this.setState({topicList:data})
             })
-        fetch(`/topic/getUserFollowTopic?userid=${localStorage.getItem('userid')}`)
+        fetch(`/api/topic/getUserFollowTopic?userid=${localStorage.getItem('userid')}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
@@ -89,7 +89,13 @@ export default class PCUsercenterTopic extends React.Component{
                     <div style={{paddingLeft:'10px',textAlign:'left'}}>
                         <div>
                             <Button type="primary" style={{margin:'20px 0'}} onClick={this.handleFormShow.bind(this,loaded)}>创建话题</Button>
-                            { TopicForm && <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)}/> }
+                            {
+                                TopicForm
+                                ?
+                                <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)}/>
+                                :
+                                null
+                            }
                         </div>
                         
                         <Tabs defaultActiveKey="0" >                                

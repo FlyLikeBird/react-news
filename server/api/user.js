@@ -92,6 +92,7 @@ router.get('/login',(req,res)=>{
 			if (userInfo.password === util.md5(password)) {
 				obj.username = userInfo.username;
 				obj.userid = userInfo._id;	
+				obj.avatar = 
 				util.responseClient(res,200,0,'',obj);
 			} else {
 				util.responseClient(res,200,1,'密码输入错误!')

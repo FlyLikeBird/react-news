@@ -14,7 +14,7 @@ class LoginForm extends React.Component {
      form.validateFields(['username','password'],(err,values)=>{
        if(!err){
          var { username, password } = values; 
-         fetch(`/usr/login?username=${username}&password=${password}`)
+         fetch(`/api/usr/login?username=${username}&password=${password}`)
             .then(response=>response.json())
             .then(json=>{    
                            
@@ -33,7 +33,7 @@ class LoginForm extends React.Component {
       const { form } = this.props;
       var username = form.getFieldValue(fieldName);    
       form.validateFields([fieldName],(err,values)=>{         
-            fetch('/usr/checkusername?username='+username)
+            fetch('/api/usr/checkusername?username='+username)
               .then(response=>response.json())
               .then(json=>{
                   if ( json.code == 0) {
@@ -72,8 +72,7 @@ class LoginForm extends React.Component {
   render(){
     var { form, formItemLayout, tailFormItemLayout } = this.props;
     var { getFieldDecorator } = form;
-    console.log(formItemLayout);
-    console.log(tailFormItemLayout);
+    
     return (
       <Form {...formItemLayout} onSubmit={this.handleLoginSubmit.bind(this)}>
         <FormItem label="用户名" hasFeedback >

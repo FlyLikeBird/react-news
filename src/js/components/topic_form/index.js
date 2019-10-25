@@ -70,7 +70,7 @@ class TopicForm extends React.Component{
 
     componentDidMount(){
         var { forEdit } = this.props;
-        fetch(`/tag/getAllTags`)
+        fetch(`/api/tag/getAllTags`)
             .then(response=>response.json())
             .then(json=>{
                 var tags = json.data;
@@ -112,20 +112,20 @@ class TopicForm extends React.Component{
                 formData.append('userid',localStorage.getItem('userid'));
 
                 if ( isEdit ){
-                    fetch('/topic/edit',{method:'post',body:formData})
+                    fetch('/api/topic/edit',{method:'post',body:formData})
                     .then(response=>response.json())
                     .then(json=>{
 
                     })
                 } else if ( forAction ) {
-                    fetch(`/action/create`,{method:'post',body:formData})
+                    fetch(`/api/action/create`,{method:'post',body:formData})
                         .then(response=>response.json())
                         .then(json=>{
                             var data = json.data;
                             if ( onUpdate ) onUpdate(data);
                         })
                 }  else {
-                    fetch('/topic/upload',{method:'post',body:formData})                    
+                    fetch('/api/topic/upload',{method:'post',body:formData})                    
                     .then(response=>response.json())
                     .then(json=>{
                         var data = json.data;                           
@@ -167,9 +167,7 @@ class TopicForm extends React.Component{
         }
         return false;
     }
-
-    
-    
+ 
     handleImgPreview(file){    
         if (!file.url && !file.preview) {
             

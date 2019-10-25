@@ -1,12 +1,8 @@
 import React from 'react';
-
 import { Link, withRouter } from 'react-router-dom';
-import { Row,Col } from 'antd';
-import { Menu, Icon, Tabs, message, Form, Input, Button, CheckBox, Modal, Popover, Badge } from 'antd';
+import { Row, Col, Menu, Icon, Dropdown, Tabs, message, Form, Input, Button, CheckBox, Modal, Popover, Badge } from 'antd';
 
-
-//import SearchInput from './pc_search/pc_search_input';
-
+import SearchInput from '../pc_search/pc_search_input';
 import imgURL from '../../../../images/logo.png';
 
 const SubMenu = Menu.SubMenu;
@@ -95,6 +91,7 @@ class PCHeader extends React.Component {
     }
     
     render() {
+        console.log(this.props);
         var { hasLogined, current, username, userid, avatar, modalVisible, LoginContainer } = this.state;
         var  { msg } = this.props;
         //console.log(msg);
@@ -107,6 +104,16 @@ class PCHeader extends React.Component {
           textAlign:'right'
         } ;
         
+        const menu = (
+            <Menu>
+              <Menu.Item>
+                <Link to={`/usercenter/${userid}`}><Icon type="home" />个人中心</Link>
+              </Menu.Item>
+              <Menu.Item>
+                <span onClick={this.logout.bind(this)}><Icon type="logout" />退出登录</span>
+              </Menu.Item>
+            </Menu>
+        );
         return (
             <header>
                 <Row>
@@ -123,15 +130,16 @@ class PCHeader extends React.Component {
                           <div className="menu">
                             <Menu className={ hasLogined ? "login":"logout"} mode="horizontal" selectedKeys={[current]} onClick={this.handleLoginClick.bind(this)}>
                               <Menu.Item key="top"><Link to="/"><Icon type="home" /><span className="text">首页</span></Link></Menu.Item>
-                              <Menu.Item key="shehui"><Link to="/shehui"><Icon type="notification" /><span className="text">社会</span></Link></Menu.Item>
-                              <Menu.Item key="guonei"><Link to="/guonei"><Icon type="eye" /><span className="text">国内</span></Link></Menu.Item>
-                              <Menu.Item key="guoji"><Link to="/guoji"><Icon type="global" /><span className="text">国际</span></Link></Menu.Item>
-                              <Menu.Item key="yule"><Link to="/yule"><Icon type="shop" /><span className="text">娱乐</span></Link></Menu.Item>
-                              <Menu.Item key="tiyu"><Link to="/tiyu"><Icon type="rocket" /><span className="text">体育</span></Link></Menu.Item>
-                              <Menu.Item key="keji"><Link to="/keji"><Icon type="video-camera" /><span className="text">科技</span></Link></Menu.Item>
+                              <Menu.Item key="shehui"><Link to="/tag/shehui"><Icon type="notification" /><span className="text">社会</span></Link></Menu.Item>
+                              <Menu.Item key="guonei"><Link to="/tag/guonei"><Icon type="eye" /><span className="text">国内</span></Link></Menu.Item>
+                              <Menu.Item key="guoji"><Link to="/tag/guoji"><Icon type="global" /><span className="text">国际</span></Link></Menu.Item>
+                              <Menu.Item key="yule"><Link to="/tag/yule"><Icon type="shop" /><span className="text">娱乐</span></Link></Menu.Item>
+                              <Menu.Item key="tiyu"><Link to="/tag/tiyu"><Icon type="rocket" /><span className="text">体育</span></Link></Menu.Item>
+                              <Menu.Item key="keji"><Link to="/tag/keji"><Icon type="video-camera" /><span className="text">科技</span></Link></Menu.Item>
+                              <Menu.Item key="junshi"><Link to="/tag/junshi"><Icon type="video-camera" /><span className="text">军事</span></Link></Menu.Item>
                             </Menu> 
                             <div className="search">
-                              {/*<SearchInput {...this.props}/> */}
+                              <SearchInput {...this.props}/> 
                               <Popover content={
                                     <div style={{width:'200px',height:'200px',backgroundColor:'#000'}}>
     
@@ -144,14 +152,13 @@ class PCHeader extends React.Component {
                                 {
                                     hasLogined
                                     ?
-                                    <div style={{display:'flex',alignItems:'center'}}>
-                                          <span className="img-container"><img src={avatar}/></span>
-                                        
-                                          <Link to={`/usercenter/${userid}`}>
-                                            <Badge count={msg.total}><Button type="primary" size="small">个人中心</Button></Badge>
-                                          </Link>
-                                        
-                                        <Button size="small" onClick={this.logout.bind(this)}>退出</Button>
+                                    <div className="user-login">
+                                        <Link className="ant-dropdown-link" to={`/usercenter/${userid}`}>
+                                          <Badge count={msg.total}><span className="img-container"><img src={avatar} /></span></Badge>
+                                        </Link>
+                                        <Dropdown  overlay={menu}>
+                                            <Icon type="down" />
+                                        </Dropdown>
                                     </div>
                                     :
                                     <div onClick={this.setModalVisible.bind(this,true)}>
