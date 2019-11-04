@@ -27,9 +27,8 @@ class PanelHeader extends React.Component {
         e.stopPropagation();
         var { onShowMsg, onAddCollect } = this.props;
         var userid = localStorage.getItem('userid');
-        if (userid){
-                  
-            fetch(`/collect/addIntoCollect?userid=${userid}&uniquekey=${uniquekey}&id=${id}`)
+        if (userid){                 
+            fetch(`/api/collect/addIntoCollect?userid=${userid}&uniquekey=${uniquekey}&id=${id}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;
@@ -68,7 +67,7 @@ class PanelHeader extends React.Component {
                 contentId = content[i].id;
             }
         }
-        fetch(`/collect/removeCollectContent?userid=${localStorage.getItem('userid')}&collectId=${id}&contentId=${contentId}&uniquekey=${uniquekey}`)
+        fetch(`/api/collect/removeCollectContent?userid=${localStorage.getItem('userid')}&collectId=${id}&contentId=${contentId}&uniquekey=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
@@ -86,7 +85,8 @@ class PanelHeader extends React.Component {
 
         return (
             
-                <div style={{display:'flex',alignItems:'center'}}>
+                <div style={{display:'flex',alignItems:'center',marginLeft:'20px',width:'100%'}}>
+
                     <div style={{fontSize:'30px',color:'#ccc',flex:'1'}}><Icon style={{color:'#1890ff'}} className={className} type="folder-add" theme="filled" /></div>
                     <div style={{flex:'7'}}>
                         <span>{tag}</span>
@@ -149,7 +149,6 @@ class PanelHeader extends React.Component {
     }
 }
 
-
 export default class CollectItem extends React.Component {
     
     render(){
@@ -157,42 +156,50 @@ export default class CollectItem extends React.Component {
         
         return(
             
-        <div>   
-            <Collapse
+        <div>
+            {
+                data.length
+                ?
+                <Collapse
                  className="collect-card"
                  bordered={false}
                  expandIcon={({ isActive }) => <Icon type="caret-right" rotate={isActive ? 90 : 0} />}
     
-            >
-                 {   
-                     data.length
-                     ?
-                     data.map((item,index)=>(
-                         <Panel 
-                            key={index} 
-                            header={
-                                <PanelHeader 
-                                    forUser={forUser} 
-                                    onShowMsg={onShowMsg} 
-                                    onAddCollect={onAddCollect} 
-                                    item={item}
-                                    onVisible={onVisible} 
-                                    uniquekey={uniquekey}/>
+                >
+                    {                        
+                     
+                         data.map((item,index)=>(
+                        
+                             <Panel 
+                                key={index} 
+                                header={
+                                    <PanelHeader 
+                                        forUser={forUser} 
+                                        onShowMsg={onShowMsg} 
+                                        onAddCollect={onAddCollect} 
+                                        item={item}
+                                        onVisible={onVisible} 
+                                        uniquekey={uniquekey}/>
+                                    }
+                            >
+                                {
+                                    item.content.length
+                                    ?
+                                    <NewsList data={item.content} collectId={item.id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
+                                    :
+                                    <div>还没有收藏任何内容</div>
+
                                 }
-                        >
-                             {
-                                 item.content.length
-                                 ?
-                                 <NewsList data={item.content} collectId={item.id} hasImg  onAddCollect={this.props.onAddCollect}/>
-                                 :
-                                 <div>还没有收藏任何内容</div>
-                             } 
-                         </Panel>
-                     ))
-                     :
-                     <div>{text}</div>
-                 }
-            </Collapse>
+                                 
+                             </Panel>
+                        
+                         ))
+                    }
+                       
+                </Collapse>
+                :
+                <span>{text}</span>
+            }            
             
         </div>   
                     

@@ -95,9 +95,6 @@ function selectImgByUniquekey(content){
 
 router.get('/search',(req,res)=>{
   var { words, pageNum, type, orderBy, start, end } = req.query;
-  var arr = ['hello'];
-  mongooseOperations.changeArticlesContents();
-  /*
   var total = 0;
   //console.log(type);
   var skip = (pageNum -1) > 0 ? (pageNum-1)*20 : 0;
@@ -178,25 +175,18 @@ router.get('/search',(req,res)=>{
     }
   }
   
-  
-  
   if (type==='news'){
-
      var promise = new Promise((resolve,reject)=>{
          Article.count(_filter,(err,doc)=>{total=doc;resolve()});
      });
-
      promise.then(()=>{
        Article.find(_filter)
        .sort(orderOption)
        .skip(skip)
        .limit(20)
        .exec((err,articles)=>{ 
-         //console.log('find function');
-         //console.log(articles);
          var result = {},data=[];    
          result.total = total;
-
          data = articles.map(item=>{
             var obj={};
             obj.articleId = item.articleId;
@@ -212,49 +202,20 @@ router.get('/search',(req,res)=>{
        })
      })
 
-  } else {
-    User.find({'username':{$regex:new RegExp(words,'g')}},{password:0},(err,users)=>{
-      var result = [];
-      
-      if (users.length){
-        if (users.length>1) {
-          result = users.map(user=>{
-
-            var data = {};
-            data.userImage = user.userImage;
-            data.username = user.username;
-            data.userFollow = user.userFollow;
-            data.userFans = user.userFans;
-            data.level = user.level;
-            data.description = user.description;
-            data.id = user._id;
-            data.isLogined = user.isLogined;
-            return data;
-          })
-        } else {
-          var data = {};
-          var user = users[0];
-          data.userImage = user.userImage;
-          data.username = user.username;
-          data.userFollow = user.userFollow;
-          data.userFans = user.userFans;
-          data.level = user.level;
-          data.description = user.description;
-          data.id = user._id;
-          data.isLogined = user.isLogined;
-          result.push(data);
-        }
-        
-        
+  } else if (type == 'user'){
+    User.find({'username':{$regex:new RegExp(words,'g')}},{password:0,message:0},(err,users)=>{
+      var result = [];  
+      if (!users){
+          util.responseClient(res,200,0,'ok',result);
       } else {
-        console.log('not found')
+          util.responseClient(res,200,0,'ok',users);
       }
-
-      util.responseClient(res,200,0,'ok',result);
-
+      
     })
+  } else if (type =='topic'){
+
   }
-  */
+  
 })
 
 
@@ -320,7 +281,7 @@ router.get('/getArticleContent',(req,res)=>{
           data.articleId = article.articleId;
           data.auth = article.auth;
           data.title = article.title;             
-          data.thumbnail = selectImgByUniquekey(article.content)[0];
+          data.thumbnails = article.thumbnails;
           data.newstime = article.newstime;
           data.type = article.type;
           data.shareBy = article.shareBy;

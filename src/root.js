@@ -9,8 +9,7 @@ import { Spin } from 'antd';
 import config from '../config/config';
 import PCHeader from './js/components/pc/pc_header';
 import PCFooter from './js/components/pc/pc_footer';
-import PCIndex from './js/components/pc/pc_index';
-/*
+
 const PCIndex = Loadable({
   loader:()=>import('./js/components/pc/pc_index'),
   loading:()=><Spin size="large"/>
@@ -41,6 +40,15 @@ const PCNewsDetail = Loadable({
   loading:()=><Spin size="large"/>
 });
 
+const PCActionDetail = Loadable({
+  loader:()=>import('./js/components/pc/pc_action'),
+  loading:()=><Spin size="large" />
+})
+
+const PCSearchIndex = Loadable({
+  loader:()=>import('./js/components/pc/pc_search/pc_search_index'),
+  loading:()=><Spin size="large" />
+})
 /*
 
 const PCActionContainer = Loadable({
@@ -101,16 +109,10 @@ export default class Root extends React.Component {
         })     
     }
 
-    handleScroll(e){
-      var target = e.currentTarget;
-      //console.log(target.scrollTop);
-      
-    }
-
     _setScrollTop(top){
         var container = this.container;
-        if (container){
-            container.scrollTop = top;
+        if (container&&container.scrollTo){         
+            container.scrollTo({top:top,behavior:'smooth'})
         }
     }
 
@@ -124,26 +126,46 @@ export default class Root extends React.Component {
         var { bodyHeight, socket, msg } = this.state;
         return (
 
-          <div style={{textAlign:'center'}}>
-              <MediaQuery query='(min-device-width:1224px)'>
-                 
+          <div ref={container=>this.container=container} style={{textAlign:'center',height:bodyHeight,overflowY:'scroll'}}>
+              <MediaQuery query='(min-device-width:1224px)'>                
                 <Router>
                     <div>
                         <PCHeader msg={msg} socket={socket}/>
                         <Switch>
-                          <Route exact path="/" component={PCIndex} />
-                          {/*
+                          <Route exact path="/" component={PCIndex} />                          
                           <Route exact path="/usercenter/:id" render={(props)=>{
                               props.socket = socket;
                               props.msg = msg;
                               return <PCUserCenter {...props} />
-                          }} />  
-                          <Route exact path="/details/:uniquekey" component={PCNewsDetail} />
-                          <Route exact path="/topicIndex" component={PCTopicIndex} />
-                          <Route exact path="/topic/:id" component={PCTopicDetail} />
+                            }} 
+                          /> 
+                          <Route exact path="/details/:uniquekey" render={props=>{
+                              props.onSetScrollTop = this._setScrollTop.bind(this);
+                              props.socket = socket;
+                              return <PCNewsDetail {...props} />
+                            }} 
+                          />
                           
+                          <Route exact path="/topicIndex" component={PCTopicIndex} />
+                          <Route exact path="/topic/:id" render={props=>{
+                            props.onSetScrollTop = this._setScrollTop.bind(this);
+                            props.socket = socket;
+                            return <PCTopicDetail {...props} />
+                          }}
+                          />
+                          <Route exact path="/action/:id" render={props=>{
+                            props.onSetScrollTop = this._setScrollTop.bind(this);
+                            props.socket = socket;
+                            return <PCActionDetail {...props} />
+                          }}
+                          />
+                          <Route exact path="/search" render={props=>{
+                              props.socket = socket;
+                              return <PCSearchIndex {...props}/>
+                          }} 
+                          />
                           <Route exact path="/tag/:tag" component={PCTagIndex} />   
-                          /*}
+                          
                         {/*
                           <Route exact path="/" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCIndex {...props}/></div>}}></Route>
                           

@@ -39,6 +39,7 @@ export class TopicListItem extends React.Component {
     constructor(){
         super();
         this.state = {
+            item:{},
             isFollowed:false,
             follows:[],
             shareBy:[],
@@ -70,10 +71,14 @@ export class TopicListItem extends React.Component {
         }
     }
 
+    _onEditTopicItem(data){
+        this.setState({item:data});
+    }
+
     handleEdit(){
         var { onEditVisible, item } = this.props;
         if ( onEditVisible ){
-            onEditVisible(true,item)
+            onEditVisible(true,item,this._onEditTopicItem.bind(this))
         }
     }
 
@@ -81,10 +86,11 @@ export class TopicListItem extends React.Component {
       this.setState({shareBy:data})
     }
 
-    handleLink(id){
-        console.log(this.props);
-        var { history } = this.props;
-        history.push(`/topicDetail?id=${id}`);
+    handleClick(id){
+        var { forSimple, forDetail, history } = this.props;
+        if ( !forDetail ) {
+            history.push(`/topic/${id}`);
+        }
     }
 
     handleShare(){
@@ -94,25 +100,49 @@ export class TopicListItem extends React.Component {
         }
     }
 
+    componentWillReceiveProps(newProps){
+        //  如果是嵌入动态内的话题内容，则不更新
+        var { forSimple } = this.props;
+        if (!forSimple){
+            var newItem = newProps.data;
+            if (this.props.data._id != newProps.data._id){
+                this.setState({item:newItem})
+            }
+        }        
+    }
+
     componentDidMount(){
-        var { forDetail, item } = this.props;
-        var id = this.props.item._id;
+        
+        var { forDetail, forSimple, uniquekey, data } = this.props;
         var userid = localStorage.getItem('userid');
-        if (userid && forDetail){          
-            fetch(`/topic/checkTopicIsFollowed?userid=${userid}&topicId=${id}`)
+        if (data && !uniquekey) {
+            var { follows, shareBy } = data;
+            this.setState({item:data,follows,shareBy});
+
+        } else if( uniquekey ){
+            fetch(`/api/topic/getTopicDetail?topicId=${uniquekey}`)
                 .then(response=>response.json())
                 .then(json=>{
-                    var code = json.code;
+                    var item = json.data;
                     var { follows, shareBy } = item;
+                    this.setState({item,follows,shareBy});
+                });
+            if (forDetail){
+                fetch(`/api/topic/checkTopicIsFollowed?userid=${userid}&topicId=${uniquekey}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var code = json.code;                  
                     if(code ===0){
                         this.setState({isFollowed:true})
                     } else {
                         this.setState({isFollowed:false})
                     }
-                    this.setState({follows,shareBy})
+                
                 })
             
-        }       
+            }
+        }
+         
     }
 
     handleChangeIcon(type,visible){
@@ -132,12 +162,14 @@ export class TopicListItem extends React.Component {
     }
 
     render(){
-        var { item, inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
-        var {  privacy, username, _id, tag, images,  content, title, description, view } = item;
-        var { isFollowed, followIcon, shareIcon, follows, shareBy } = this.state;
+        var {  inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
+        var {  item, isFollowed, followIcon, shareIcon, follows, shareBy } = this.state;
+        var {  privacy, username, _id, tag, images,  replies, title, description, view } = item;
+        
 
         return (
             <div 
+                onClick={this.handleClick.bind(this,_id)}
                 style={{width:100/columns + '%'}} 
                 className={inline?"topic-card-container inline":forSimple?"topic-card-container simple":"topic-card-container"}>
                     
@@ -147,7 +179,7 @@ export class TopicListItem extends React.Component {
                         <div><span className="text" style={{fontSize:'14px',color:'#000'}}>发起人：{username}</span></div>                       
                         <div style={{width:'500px'}}>
                             <span className="text">{view}人浏览</span>
-                            <span className="text">{content?content.length:0}人回复</span>
+                            <span className="text">{replies?replies:0}人回复</span>
                             {
                                 forIndex
                                 ?
@@ -191,11 +223,9 @@ export class TopicListItem extends React.Component {
                         <p className="desc">{description}</p>
                         <div>
                             {    
-                                images
+                                images && images.length
                                 ?                             
-                                images.length
-                                ?
-                                inline
+                                inline  //  内联模式下只显示一张缩略图
                                 ?
                                 <div className="topic-img-container" style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33%'}}>
                                     <img src={images[0]['filename']} />
@@ -208,8 +238,6 @@ export class TopicListItem extends React.Component {
                                 ))                                                      
                                 :
                                 null
-                                :
-                                null
                                 
                             }
                         </div>
@@ -218,23 +246,19 @@ export class TopicListItem extends React.Component {
                     {                       
                         forIndex
                         ?
-                        <div className="topic-card-extra">
-                            
-                            <div onClick={this.handleLink.bind(this,_id)}>
+                        <div className="topic-card-extra">                           
+                            <div>
                                 <span className="text"><Icon type="arrow-right" />前往话题</span>
-                            </div>
-                    
+                            </div>                   
                         </div>
                         :
                         forUser
                         ?
                         <div className="topic-card-extra">                            
-                            <div onClick={this.handleEdit.bind(this,_id)}>
+                            <div onClick={this.handleEdit.bind(this)}>
                                 <span className="text"><Icon type="edit" />编辑话题</span>
                             </div>
-                            <div onClick={this.handleLink.bind(this,_id)}>
-                                <span className="text"><Icon type="arrow-right" />前往话题</span>
-                            </div>
+                            
                             <div onClick={this.handleRemove.bind(this,_id)}>
                                 <span className="text"><Icon type="close" />删除话题</span>
                             </div>                           
@@ -263,7 +287,16 @@ export class TopicListItem extends React.Component {
                             </div>
                         </div>
                         :
+                        forSimple
+                        ?
                         null
+                        //  关注话题页面
+                        :
+                        <div className="topic-card-extra">                           
+                            <div>
+                                <span className="text"><Icon type="arrow-right" />前往话题</span>
+                            </div>                   
+                        </div>
                     }
              </div>
         )
@@ -281,9 +314,10 @@ export default class TopicList extends React.Component{
     }
 
     _sortTopicList(props){
-        var { inline, columns } = props;
+        var { inline, forIndex, columns } = props;
         var container = this.cardContainer;
-        if(container){ 
+        //  仅在话题主页判断排序逻辑
+        if(container && forIndex){ 
             var cardContainers = container.childNodes;
             var cardWidth = container.offsetWidth/columns;
             // 放置每一列的高度数据
@@ -337,7 +371,7 @@ export default class TopicList extends React.Component{
                         <TopicListItem 
                             index={index} 
                             key={index} 
-                            item={item}
+                            data={item}
                             inline={inline}
                             history={history}
                             columns={columns}

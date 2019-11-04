@@ -82,7 +82,7 @@ class TopicForm extends React.Component{
     }
 
     _validateFields(isEdit,topicId){
-        var { onUpdate, onVisible, form, forAction } = this.props;
+        var { onUpdate, onVisible, onEditTopicItem, form, forAction } = this.props;
         var { validateFields, setFieldsValue } = form;        
         validateFields(['title','description','tag'],{force:true},(errors,values)=>{
             //console.log(errors);
@@ -90,7 +90,8 @@ class TopicForm extends React.Component{
                 var formData = new FormData();
                 var { fileList, deleteImages, radioValue } = this.state;
                 var { title, description, tag } = values;
-                
+                var userid = localStorage.getItem('userid'),username = localStorage.getItem('username');
+
                 fileList.forEach(file=>{
                     formData.append('images',file.originFileObj)
                 })
@@ -109,13 +110,14 @@ class TopicForm extends React.Component{
                 formData.append('title',title);
                 formData.append('description',description);
                 formData.append('privacy',radioValue);
-                formData.append('userid',localStorage.getItem('userid'));
-
+                formData.append('userid',userid);
+                formData.append('username',username);
                 if ( isEdit ){
                     fetch('/api/topic/edit',{method:'post',body:formData})
                     .then(response=>response.json())
                     .then(json=>{
-
+                        var data = json.data;
+                        if (onEditTopicItem) onEditTopicItem(data);
                     })
                 } else if ( forAction ) {
                     fetch(`/api/action/create`,{method:'post',body:formData})
@@ -291,7 +293,8 @@ class TopicForm extends React.Component{
         var { form } = this.props;
         var { getFieldsValue } = form;
         var { title, description,  tag } = getFieldsValue(['title','description','images','tag']);        
-        var { fileList, tags, fileList, radioValue } = this.state;
+        var { fileList, tags, radioValue } = this.state;
+        
         var images = [],allPromise = [];
         if (tag) {
             tag = tag.map(item=>{
@@ -314,7 +317,8 @@ class TopicForm extends React.Component{
 
         Promise.all(allPromise)
             .then(images=>{
-
+                //console.log(images);
+                images = images.map(item=>{return {filename:item}});
                 var obj = {
                         title,
                         description,
@@ -332,7 +336,9 @@ class TopicForm extends React.Component{
     }
 
     handleEdit(id){
+        var { onCloseModal } = this.props;
         this._validateFields(true,id);
+        if (onCloseModal) onCloseModal(false,{});
     }
 
     handleMouseOver(e){
@@ -364,7 +370,7 @@ class TopicForm extends React.Component{
     }
 
     render(){
-        var { visible, form, forEdit, onVisible, forAction } = this.props;
+        var { visible, form, forEdit, onVisible, forAction, item, onCloseModal } = this.props;
         var { tags, fileList, radioValue, previewVisible, previewImage, topicPreview, previewItem, prevImages } = this.state;
         var { getFieldDecorator } = form;
 
@@ -411,7 +417,7 @@ class TopicForm extends React.Component{
         return(
 
             <div className="topic-form">             
-                <div style={{display:visible?'block':'none'}}>
+                <div style={{marginTop:'20px',display:visible?'block':'none'}}>
                     <Form {...formItemLayout} onSubmit={this.handleSubmit.bind(this)}>
                         {
                             forAction 
@@ -533,9 +539,9 @@ class TopicForm extends React.Component{
                             forEdit
                             ?
                             <Form.Item {...tailFormItemLayout}>
-                            <Button type="primary" onClick={this.handleEdit.bind(this,item._id)} style={{marginRight:'4px'}}>修改</Button>
-                            <Button type="primary" onClick={this.handleTopicPreview.bind(this)} style={{marginRight:'4px'}}>预览</Button>
-                            <Button >取消</Button>
+                                <Button type="primary" onClick={this.handleEdit.bind(this,item._id)} style={{marginRight:'4px'}}>修改</Button>
+                                <Button type="primary" onClick={this.handleTopicPreview.bind(this)} style={{marginRight:'4px'}}>预览</Button>
+                                <Button onClick={()=>onCloseModal(false,{})}>取消</Button>
                             </Form.Item>
                             :
                             <Form.Item {...tailFormItemLayout}>

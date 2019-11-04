@@ -6,9 +6,11 @@ var config = require('../../config/config');
 var router = express.Router();
 var util = require('../util');
 var userPromise = require('../userPromise');
+var mongooseOperations = require('../mongooseOperations');
 var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Collect = require('../../models/Collect');
+var Comment = require('../../models/Comment');
 
 var createFolder = function(folder){
     try{
@@ -153,6 +155,7 @@ router.get('/getUserAvatar',(req,res)=>{
 
 router.get('/usercenter',(req,res)=>{
 	let { userid } = req.query;
+	//mongooseOperations.createComments(20);
 	User.findOne({_id:userid},{password:0})
 		.then(user=>{
 
@@ -193,7 +196,8 @@ router.get('/usercenter',(req,res)=>{
 					util.responseClient(res,200,0,'ok',data);
 
 				})			
-		})		
+		})
+			
 })
 
 router.get('/getUserInfo',(req,res)=>{

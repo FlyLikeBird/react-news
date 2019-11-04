@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Popover, Modal, Input, Form, Select, Tabs } from 'antd';
 import DeleteModal from '../deleteModal';
-import CollectItem from './pc_collect_item';
+import CollectItem from './collect_item';
 
 const TabPane = Tabs.TabPane;
 const { Option } = Select;
@@ -59,13 +59,12 @@ export default class CollectContainer extends React.Component {
         
         var { value, error, privacy } = this.state
         if ( error){
-            console.log('error');
             return ;
         } else {
             if ( !value ) {
                 this.setState({error:true,text:'收藏夹名称不能为空!'})
             } else {
-                fetch(`/collect/createCollect?userid=${localStorage.getItem('userid')}&tag=${value}&privacy=${privacy}`)
+                fetch(`/api/collect/createCollect?userid=${localStorage.getItem('userid')}&tag=${value}&privacy=${privacy}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var responCode = json.code;
@@ -122,7 +121,7 @@ export default class CollectContainer extends React.Component {
         return(
             
             <div style={{position:'relative',textAlign:'left'}}>
-                <Button type="primary" onClick={this.handleCollectShow.bind(this)}>创建收藏夹</Button>
+                <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleCollectShow.bind(this)}>创建收藏夹</Button>
                 <div style={{display:show?'block':'none'}}>
                     
                     <Form layout="inline">

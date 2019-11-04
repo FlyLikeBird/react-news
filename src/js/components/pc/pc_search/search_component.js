@@ -10,13 +10,11 @@ const Option = Select.Option;
 class SearchComponent extends React.Component {
     
     handleSearch(value){
-      //console.log(this);
-      var history = this.props.history;
-      
-      var { validateFields } = this.props.form;
+      var { history, form } = this.props;
+      var { validateFields } = form;
       // 去掉首尾多余空格
       var pattern = /(^\s*)|(\s*$)/g;
-      
+      var userid = localStorage.getItem('userid');
       validateFields(['search'],(errors,values)=>{
         //console.log(a);console.log(b);
         if ( !errors ) {
@@ -51,22 +49,14 @@ class SearchComponent extends React.Component {
 
 
     componentDidMount(){
-      var { form, location, isSearchPage } = this.props;
-      var  { setFieldsValue } = form;      
-      if ( location ) {
-        if( isSearchPage ){
-          var search = location.search;       
-          if(search){
-             var value = search.match(/words=(.*)&/)[1];           
-            setFieldsValue({'search':value});
-          }
-        }
-           
-      }      
-      
-      console.log('mounted!');
-    }  
-    
+      var { form, location } = this.props;
+      var  { setFieldsValue } = form;
+      if ( location && location.search) {          
+          var value = location.search.match(/words=(.*)/)[1]; 
+          //console.log(value);          
+          setFieldsValue({'search':value});
+      }           
+    }      
     
     handleSearchValidator(rule,value,callback){
 
@@ -92,7 +82,7 @@ class SearchComponent extends React.Component {
                 })(
                   <Search 
                     //onBlur = {()=>{setTimeout(this.handleBlur.bind(this),0)}}
-                    className={this.props.isSearchPage ? " ": "search-container"}
+                    className={this.props.isSearchPage ? "": "search-input"}
                     placeholder="请输入查询关键词"
                     onSearch={this.handleSearch.bind(this)}                
                   />

@@ -4,12 +4,8 @@ import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge } fr
 import TopicContainer from './pc_topic_container';
 const { Meta } = Card;
 
-export default class PCTopicIndex extends React.Component{
-    
-    
+export default class PCTopicIndex extends React.Component{  
     render(){
-        console.log(this.props);
-
         return(
 
             

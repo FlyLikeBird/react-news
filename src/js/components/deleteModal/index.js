@@ -4,17 +4,11 @@ import {  List, Avatar, Button, Icon, Card, Modal } from 'antd';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
 
 export default class DeleteModal extends React.Component{
-  constructor(){
-    super();
-    this.state={
-      
-    }
-  }
-
+  
   handleDelete(deleteId){
     var { deleteType, onVisible, onDelete, parentcommentid, socket } = this.props;
     if ( deleteType === 'news'){
-        fetch(`/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${deleteId}`)
+        fetch(`/api/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{
             if (onDelete){
@@ -25,7 +19,7 @@ export default class DeleteModal extends React.Component{
             }
         })
     } else if ( deleteType === 'action'){
-        fetch(`/action/delete?id=${deleteId}`)
+        fetch(`/api/action/delete?id=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{
             if (onDelete){
@@ -36,7 +30,7 @@ export default class DeleteModal extends React.Component{
             }
         })
     } else if ( deleteType === 'topic'){
-        fetch(`/topic/removeTopic?topicId=${deleteId}`)
+        fetch(`/api/topic/removeTopic?topicId=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{
             if (onDelete){
@@ -47,7 +41,7 @@ export default class DeleteModal extends React.Component{
             }
         })
     } else if ( deleteType === 'collect'){
-        fetch(`/collect/removeCollect?id=${deleteId}&userid=${localStorage.getItem('userid')}`)
+        fetch(`/api/collect/removeCollect?id=${deleteId}&userid=${localStorage.getItem('userid')}`)
             .then(response=>response.json())
             .then(json=>{
                 if (onDelete){
@@ -59,7 +53,7 @@ export default class DeleteModal extends React.Component{
                 
         })
     } else if ( deleteType === 'comment') {
-        fetch(`/comment/delete?commentid=${deleteId}&parentcommentid=${parentcommentid?parentcommentid:''}`)
+        fetch(`/api/comment/delete?commentid=${deleteId}&parentcommentid=${parentcommentid?parentcommentid:''}`)
           .then(response=>response.json())
           .then(json=>{
               if (onDelete) onDelete();

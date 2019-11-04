@@ -19,7 +19,7 @@ class ListContent extends React.Component {
 
   componentDidMount(){
     var { commentid } = this.props;
-    fetch(`/comment/getOneComment?commentid=${commentid}`)
+    fetch(`/api/comment/getOneComment?commentid=${commentid}`)
       .then(response=>response.json())
       .then(json=>{
           var comments = json.data;
@@ -38,8 +38,7 @@ class ListContent extends React.Component {
   }
 
   handleModalVisible(boolean, commentid, parentcommentid){
-    console.log('hello');
-        this.setState({visible:boolean,commentid,parentcommentid})
+      this.setState({visible:boolean,commentid,parentcommentid})
   }
 
   handleDelete(){

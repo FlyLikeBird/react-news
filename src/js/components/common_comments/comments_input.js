@@ -6,10 +6,9 @@ import  CommentUserSelect from './comments_user_select';
 const FormItem = Form.Item;
 const { TextArea } = Input;
 
-var pattern = /(.*?)@([^@|\s]+)/g;
-
 function sendActionMsg(content, commentid, socket){
-    var data = formatContent(pattern,content);
+
+    var data = formatContent(content);
     if (data.length){
         var users = data.map(item=>item.user);              
         socket.emit('send@Msg',users, localStorage.getItem('username'), commentid);
@@ -34,6 +33,7 @@ class CommentsInput extends React.Component{
         var { validateFields, setFieldsValue } = this.props.form;
         var { socket, uniquekey, commentType, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
         var { fileList } = this.state;
+        console.log(socket);
         validateFields(['comments'],(errs,values)=>{
             var username = localStorage.getItem('username');
             if(!errs){
@@ -48,7 +48,7 @@ class CommentsInput extends React.Component{
                     formData.append('content',comments);
                     formData.append('commentType',commentType);
                     formData.append('uniquekey',uniquekey)                    
-                    fetch('/comment/addcomment',{
+                    fetch('/api/comment/addcomment',{
                         method:'post',
                         body:formData
                     })
@@ -82,7 +82,7 @@ class CommentsInput extends React.Component{
                     formData.append('commentid',commentid);
                     formData.append('isSub',isSub?true:'');
                     formData.append('uniquekey',uniquekey)        
-                    fetch(`/comment/addreplycomment`,{
+                    fetch(`/api/comment/addreplycomment`,{
                         method:'post',
                         body:formData
                     })

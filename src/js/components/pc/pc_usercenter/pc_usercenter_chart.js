@@ -45,21 +45,16 @@ export default class ChartContainer extends React.Component{
     
 
     render(){
-
+        var { visible } = this.props;
         return(
 
-            <div style={{position:'absolute',top:'0',right:'0'}}>
-                <div>
-                    <Button type="primary"  shape="circle" onClick={this.handleModalVisible.bind(this)}>
-                        <Icon type="bar-chart" />         
-                    </Button>
-                    
-                </div>
-                <Drawer className="chart-container" visible={this.state.visible} placement="left" closable={false} onClose={this.handleClose.bind(this)}>
+            
+                
+                <Drawer className="chart-container" visible={visible} placement="left" closable={false} onClose={this.handleClose.bind(this)}>
                     <div id="myechart" style={{width:'400px',height:'400px'}} ref={echartsDom=>this.echartsDom = echartsDom}>
                     </div>
                 </Drawer>
-            </div>
+            
 
         )
     }

@@ -765,27 +765,27 @@ iframe {
     text-align:left;
 }
 
-span.ant-text {
+.user-container span.ant-text {
     font-size:12px;
     display: inline-block;
     transform: scale(0.9);
     transform-origin: left;
 }
 
-.user-text-container {
+.user-container .user-text-container {
     width:100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.user-follow-container {
+.user-container .user-follow-container {
     display:flex;
     justify-content: flex-start;
     margin-left:40px;
 }
 
-.user-action-container {
+.user-container .user-action-container {
     position:absolute;
     right:30px;
     top:0;
@@ -794,7 +794,7 @@ span.ant-text {
     transform-origin: top;
 }
 
-.user-action-container>button{
+.user-container .user-action-container>button{
     transform: scale(0.8);
 }
 
@@ -829,6 +829,7 @@ span.ant-text {
     border-radius: 50%;
     color:#fff;
     margin-left: 2px;
+    margin-right:6px;
 }
 
 
@@ -972,7 +973,7 @@ span.ant-text {
     display:flex;
     margin-top: 2px;
     border-radius: 4px;
-    background-color: #f9f9f9;
+    background-color: #f7f7f7;
 }
 
 .user-comments .user-action>div {
@@ -993,38 +994,108 @@ span.ant-text {
     transform:scale(0.9);
     transform-origin: left;
 }
+
+
+/*
+    搜索组件样式
+*/
+
+.search-container {
+    width:300px;
+    font-size:12px;
+}
+
+.search-container .tags {
+    margin:10px 0;
+}
+
+.search-container .tags .button {
+    color:#1890ff;
+    cursor: pointer;
+    float:right;
+}
+
+.search-container .tags ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.search-container .tags ul li{
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #f7f7f7;
+    margin-right: 4px;
+    margin-top: 4px;
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+.search-container .search-input {
+    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    width:100px;
+}
+
+.search-container .search-input.click {
+    width:300px;
+}
 /*
 
-    用户中心列表样式
+    用户列表样式
 
 */
 
-.small {
-    transform: scale(0.7);
+
+.user-list .user-list-item {
+    position:relative;
+    display:flex;
+    align-items:center;
+    margin:10px 0;
+    padding:10px;
+    font-size:12px;
+    border-bottom: 1px solid #e8e8e8;
 }
 
-.user-list .ant-list-item .check-login{
+.user-list .user-list-item .user-img-container {
     display: inline-block;
-    
-    width:60px;
-    height: 20px;
-    text-align: center;
-    margin-left: -12px;
-    padding: 0px 8px;
-    font-size: 12px;
-    border-radius: 10px;  
-    transform: scale(0.8);
-    transform-origin: left
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 4px;
 }
 
-.user-list .ant-list-item .in {
-    
+.user-list .user-list-item .user-img-container img{
+    width:100%;
+    height:100%;
+}
+
+
+.user-list .user-level {
+    display:inline-flex;
+    align-items:center;
+    margin:0;
+    margin-left:4px;
+    background-color:rgba(24,144,255,.2);
+    border-radius:10px;
+    transform:scale(0.7);
+    transform-origin:left;
+}
+
+.user-list .user-level i {
+    margin:0 4px;
+}
+
+.user-list .user-level.in {
+    padding:0 10px;
+    margin-left:-20px;
     color: rgb(11, 60, 31);
     background-color: rgb(161, 222, 186);
 }
 
-.user-list .ant-list-item .out {
-    
+.user-list .user-level.out {
+    padding:0 10px;
+    margin-left:-20px;
     color: rgb(11, 60, 31);
     background-color: rgb(216, 220, 218);
 }
@@ -1039,7 +1110,25 @@ span.ant-text {
     animation: checkLoginCss 1s infinite;
 }
 
-.user-list .ant-list-item .ant-button {
+.user-list .user-follow-container>div{
+    display:inline-block;
+    margin:0 10px;
+    text-align: center;
+}
+
+.user-list .user-follow-container>div span{
+    color:#000;
+}
+
+.user-list .user-action-container {
+    position: initial;
+    flex:1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.user-list .user-action-container button {
+    font-size:12px;
     transform:scale(0.8);
 }
 
@@ -1212,7 +1301,7 @@ span.ant-text {
 
 .comment .comment-article {
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #f7f7f7;
     border-radius:4px;
 }
 
@@ -1244,6 +1333,10 @@ span.ant-text {
     display:flex;
 }
 
+.comment .comment-user-action>div>span {
+    width:80px;
+}
+
 /*
     
 */
@@ -1263,6 +1356,7 @@ span.ant-text {
     border:none;
 }
 
+
 .comment.user .comment-user-action {
     padding:0;
     border-radius:4px;
@@ -1270,7 +1364,7 @@ span.ant-text {
 }
 
 .comment.user .comment-user-action>div {
-    background-color: #f9f9f9;
+    background-color: #f7f7f7;
     margin-top: 2px;
 
 }
@@ -1280,6 +1374,7 @@ span.ant-text {
     text-align:center;
     padding:4px;  
     margin-right:0;
+    cursor: pointer;
 }
 
 .comment.user .comment-user-action>div>span:hover {
@@ -1292,8 +1387,11 @@ span.ant-text {
 
 .comment.user .ant-card.news {
     margin:0;
+    cursor: pointer;
+    padding:20px;
+    background-color:#f7f7f7;
 }
-
+  
 .ant-modal.no-bg .ant-modal-content {
     background-color:transparent;
     box-shadow: none
@@ -1301,14 +1399,6 @@ span.ant-text {
 
 .ant-modal.no-bg .ant-modal-body {
     padding:0;
-}
-
-.comment .comment-user-action>div>span{
-    margin-right:20px;
-    cursor: pointer;
-    display:inline-block;
-    transform:scale(0.8);
-    font-size:12px; 
 }
 
 .comment .comment-user-action>div>span>i{
@@ -1446,6 +1536,10 @@ span.ant-text {
     padding:10px 20px;
 }
 
+.collect-card .ant-collapse-header {
+    display:flex;
+    align-items: center;
+}
 .collect-card .collect-card-text {
     font-size:12px;
     margin-right:4px;
@@ -1455,8 +1549,6 @@ span.ant-text {
 }
 
 .collect-card button {
-    transform:scale(0.6);
-    color:#fff;
     border:none;
 }
 
@@ -1496,6 +1588,7 @@ span.ant-text {
 
 .topic-card-container  {
     padding:4px;
+    cursor:pointer;
     border-radius:4px;
     position:relative;
 }
@@ -1503,7 +1596,13 @@ span.ant-text {
 .topic-card-container.simple {
     padding:0;
     padding-top:4px;
-    background-color: #f9f9f9;
+    border-radius:4px;
+    cursor:pointer;
+    background-color: #f7f7f7;
+}
+
+.action.forDetail .topic-card-container.simple {
+    background-color:#fff;
 }
 
 .topic-card-container.simple .topic-card-body {
@@ -1633,11 +1732,6 @@ span.ant-text {
     height:100%;
 }
 
-
-.ant-popover {
-    font-size:12px;
-}
-
 .topic-tag-container {
     margin:10px 0;
 }
@@ -1677,7 +1771,7 @@ span.ant-text {
 }
 
 .ant-tabs .ant-tabs-tabpane.background-color {
-    background-color:#f9f9f9;
+    background-color:#f7f7f7;
     border-radius:4px;
     padding:20px;
 }
@@ -1739,6 +1833,10 @@ span.ant-text {
     background-color:#fff;
 }
 
+.action.forDetail > .action-body{
+    background-color:#f7f7f7;
+}
+
 .action>.action-body .avatar-container {
     width: 30px;
     height: 30px;
@@ -1784,11 +1882,16 @@ span.ant-text {
     display:flex;
     background-color:#fff;
     margin-top:2px;
+    cursor:pointer;
+}
+
+.action.forDetail .user-action {
+    background-color:#f7f7f7;
 }
 
 .action .user-action>span {
     flex:1;
-    padding: 4px 6px;
+    padding: 4px 0px;
     text-align: center;
 }
 
@@ -1801,7 +1904,7 @@ span.ant-text {
 }
 
 .action .user-action>div:hover {
-    background-color:#f9f9f9;
+    background-color:#f7f7f7;
     cursor: pointer;
 }
 /*
@@ -1809,58 +1912,72 @@ span.ant-text {
     个人中心---浏览历史样式
 */
 
-.news.ant-card {
+.news {
+    display:flex;
+    align-items: center;
     padding:20px 0;
     margin:10px 0;
     border:none;
+    cursor: pointer;
     font-size:12px;
     border-radius:4px;
     position:relative;
+    background-color:#fff;
 }
 
-.news.ant-card .ant-card-body{
-    padding:0;
-    display: flex;
-    align-items: center;
+.news.forSimple {
+    padding:10px;
+    margin:4px 0;
+    background-color:#f7f7f7;
 }
 
-.news.ant-card .news-img{
+.news.forSearch {
+    background-color:#f7f7f7;
+    padding:20px 10px;
+}
+
+.news .news-img{
     width:120px;
-    height:60px;
-    margin-right:10px;
 }
 
-.news.ant-card .news-img img{
+.news .news-img img{
     width:100%;
     height:100%;
     border-radius:4px;
-
 }
 
+.news .news-body {
+    flex: 1;
+    margin: 0px 10px;
+    min-width: 0px;
+}
 
-.news.ant-card .news-content {
+.news .news-content {
     line-height:25px;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     overflow: hidden;
     text-overflow:ellipsis;
     margin-bottom:4px;
 }
 
-.news.ant-card .news-title {
+.news .news-content p {
+    margin:0;
+}
+.news .news-title {
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.news.ant-card .news-title a{
+.news .news-title span{
     color: #000;
     font-size: 14px;
     font-weight: 500;
 }
 
-.news.ant-card .button {
+.news .button {
     position:absolute;
     top:4px;
     right:4px;
@@ -1868,7 +1985,7 @@ span.ant-text {
     box-shadow: none;
 }
 
-.news.ant-card .text{
+.news .text{
     display:inline-block;
     transform-origin: left;
     transform:scale(0.8);
@@ -1942,7 +2059,7 @@ span.ant-text {
 }
 
 .message-container .ant-collapse-item.bg .ant-collapse-content-box {
-    background-color:#f9f9f9;
+    background-color:#f7f7f7;
     padding:20px;
 }
 .
@@ -1956,7 +2073,7 @@ span.ant-text {
     display:flex;
     align-items: center;
     font-size:12px;
-    border-bottom:1px solid #f9f9f9;
+    border-bottom:1px solid #f7f7f7;
 }
 
 .msg-container .avatar-container {

@@ -150,7 +150,7 @@ export default class TopicListContainer extends React.Component{
                     ?
                     <Spin />
                     :
-                    <TopicList data={topicList} inline={inline} forIndex={true} columns={columns} noAction={true} history={history}/>
+                    <TopicList data={topicList} inline={inline} forIndex={true} columns={columns} history={history}/>
                 }
                 
                 <Button onClick={this._loadMoreTopics.bind(this)}>加载更多话题</Button>

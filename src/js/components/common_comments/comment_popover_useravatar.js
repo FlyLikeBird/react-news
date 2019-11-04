@@ -21,7 +21,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
 
   componentDidMount(){
     var { user } = this.props;
-    fetch(`/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
+    fetch(`/api/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
       .then(response=>response.json())
       .then(json=>{
         var data = json.data; 
@@ -34,7 +34,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
   componentWillReceiveProps(newProps){
     var { user } = newProps;
     if (this.props.user != user ) {
-        fetch(`/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
+        fetch(`/api/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
           .then(response=>response.json())
           .then(json=>{
             var data = json.data; 
@@ -46,7 +46,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
   }
 
   handleAddFollow(id){
-    fetch(`/usr/addFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+    fetch(`/api/usr/addFollow?username=${localStorage.getItem('username')}&follow=${id}`)
       .then(response=>response.json())
       .then(data=>{
         this.setState({isFollowed:1});
@@ -54,7 +54,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
   }
 
   handleRemoveFollow(id){
-    fetch(`/usr/removeFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+    fetch(`/api/usr/removeFollow?username=${localStorage.getItem('username')}&follow=${id}`)
       .then(response=>response.json())
       .then(data=>{
         this.setState({isFollowed:0})

@@ -16,7 +16,6 @@ export default class PCNewsDetails extends React.Component {
 	}
 	
 	_loadArticle(props){
-		console.log(props);
 		var uniquekey = props.match.params.uniquekey;
 		var userid = localStorage.getItem('userid');
 

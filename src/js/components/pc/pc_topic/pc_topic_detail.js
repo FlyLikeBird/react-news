@@ -9,7 +9,7 @@ const { Meta } = Card;
 export default class PCTopicDetail extends React.Component{
     
     render(){
-        console.log('hello');
+        
         return(
              
             <Row style={{paddingTop:'30px',textAlign:'left'}}>

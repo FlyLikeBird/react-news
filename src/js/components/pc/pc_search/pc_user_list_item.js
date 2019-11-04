@@ -57,25 +57,10 @@ export default class UserListItem extends React.Component{
   }
 
   render(){
-    var  { username, description, level, userFans, userFollow, isLogined, id } = this.props.item;
-    //console.log(this.props);
-    //console.log(id);
+    var { item } = this.props;
+    var  { username, description, level, userImage, description, userFans, userFollow, isLogined, _id } = item;
     var { isFollowed } = this.state;
-    const levelStyle = {
-      display:'flex',
-      float:'left',
-      justifyContent:'space-between',
-      alignItems:'center',
-      width:'100px',
-      height:'20px',
-      marginLeft:'4px',
-      backgroundColor:'rgba(24,144,255,.2)',
-      borderRadius:'10px',
-      transform:'scale(0.8)',
-      transformOrigin:'left'
-    };
-
-    
+  
     const content = (
             <div>
               <p>每次发表评论 <span style={{color:'#1890ff'}}>+5</span> 积分 ,点赞评论 <span style={{color:'#1890ff'}}>+1</span> 积分</p>
@@ -108,27 +93,33 @@ export default class UserListItem extends React.Component{
                 <a onClick={this.handleShowChatList.bind(this)}><Icon type="message"/><span className="ant-text">发消息</span></a>
               </Menu.Item>
               <Menu.Item key="2">
-                <a onClick={this.gotoUsercenter.bind(this,id)}><Icon type="idcard"/><span className="ant-text">TA的空间</span></a>
+                <a onClick={this.gotoUsercenter.bind(this,_id)}><Icon type="idcard"/><span className="ant-text">TA的空间</span></a>
               </Menu.Item>
             </Menu>
       )
 
     return(
-      <div style={{position:'relative',display:'flex',alignItems:'flex-start'}}>
-                
-         <div style={{display:'inline-block',textAlign:'left'}}>
-           <span style={{color:'#000'}}>{username}</span>
-           
-           <div style={{display:'inline-block',marginTop:'0',marginRight:'10px'}} className="user-level">
-            
-              <span style={ levelStyle } >
-                <span className="num">{formatLevel(level).levelNum}</span>
-                <span style={{marginRight:'10px'}} className="ant-text">{ levelArr[formatLevel(level).levelNum].text } <Popover trigger="hover" content={content}><Icon type="question-circle"/></Popover></span>               
-              </span>
-              {isLogined ? <span className="check-login in"><Icon type="sync" spin style={{marginRight:'4px'}}/>在线</span>:<span className="check-login out"><Icon type="disconnect" style={{marginRight:'4px'}}/>离线</span>}
-             
-           </div>
-           <div><span className="ant-text">{description}</span></div>
+      <div className="user-list-item">
+         <div className="user-img-container">
+            <span><img src={userImage} /></span>
+         </div> 
+         <div className="user-info-container">  
+              <div style={{display:'flex',alignItems:'center'}}>
+                  <span style={{color:'#000'}}>{username}</span>                            
+                  <span className="user-level">
+                      <span className="num">{formatLevel(level).levelNum}</span>
+                      <span>{ levelArr[formatLevel(level).levelNum].text }</span>
+                      <Popover trigger="hover" content={content}><Icon type="question-circle"/></Popover>               
+                  </span>
+                  { 
+                      isLogined 
+                      ? 
+                      <span className="user-level in"><Icon type="sync" spin style={{marginRight:'4px'}}/>在线</span>
+                      :
+                      <span className="user-level out"><Icon type="disconnect" style={{marginRight:'4px'}}/>离线</span>
+                  } 
+              </div>          
+              <div><span className="ant-text">{description}</span></div>
          </div>
          {
           this.props.isSmall
@@ -136,14 +127,14 @@ export default class UserListItem extends React.Component{
           null
           :
           <div className="user-follow-container">
-           <div style={{margin:'0'}} className="user-follow">
-             <p><span style={{color:'#000'}} className="ant-text">关注者</span></p>
-             <p><span>{userFollow.length}</span></p>
-           </div>
-           <div style={{margin:'0 25px'}} className="user-fans">
-             <p><span style={{color:'#000'}} className="ant-text">追随者</span></p>
-             <p><span>{userFans.length}</span></p>
-           </div>
+              <div>
+                <span>关注者</span>
+                <div>{userFollow.length}</div>
+              </div>
+              <div>
+                <span>追随者</span>
+                <div><span>{userFans.length}</span></div>
+              </div>
           </div>
          }
          
@@ -175,7 +166,7 @@ export default class UserListItem extends React.Component{
               <Button onClick={this.handleAddFollow.bind(this)} type="primary" size="small"><Icon type="swap"/><span className="ant-text">互相关注</span></Button>
              }
              <Button style={{marginLeft:'-10px'}} onClick={this.handleShowChatList.bind(this)} type="primary" size="small"><Icon type="message"/><span className="ant-text">发消息</span></Button>
-             <Button style={{marginLeft:'-10px'}} onClick={this.gotoUsercenter.bind(this,id)} type="primary" size="small"><Icon type="idcard"/><span className="ant-text">TA的空间</span></Button>
+             <Button style={{marginLeft:'-10px'}} onClick={this.gotoUsercenter.bind(this,_id)} type="primary" size="small"><Icon type="idcard"/><span className="ant-text">TA的空间</span></Button>
            </div>
           }
                      

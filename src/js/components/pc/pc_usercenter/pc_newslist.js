@@ -13,8 +13,9 @@ export class NewsListItem extends React.Component {
           item:{}
       }
   }
+  
 
-  handleClick(articleId,contentId){
+  handleRemoveHistory(articleId,contentId){
       var { forCollect, collectId } = this.props;
 
       if (forCollect){
@@ -54,8 +55,14 @@ export class NewsListItem extends React.Component {
                 })
       } else {
           this.setState({item})
+      }    
+  }
+
+  componentWillReceiveProps(newProps){
+      var { forSimple } = this.props;
+      if ( !forSimple && (this.props.item.articleId != newProps.item.articleId)) {
+          this.setState({item:newProps.item});
       }
-      
   }
 
   markKeyWords(content){
@@ -88,49 +95,42 @@ export class NewsListItem extends React.Component {
     //console.log(result);
   }
 
+  handleGotoDetail(articleId){
+      var { noLink, history } = this.props;
+      console.log(noLink);
+      if ((!noLink) && history) {
+
+          history.push(`/details/${articleId}`)
+      }
+  }
 
   render(){
     var { item } = this.state;
-    var { hastime, hasImg, forSimple, hasSearchContent, noLink, id } = this.props;
-    var { viewtime, articleId, auth, newstime, content, thumbnail, title, type } = item;
-    
-    var newsStyle = {
-        backgroundColor:forSimple?'rgb(249, 249, 249)':'#fff',
-        margin:forSimple?'4px 0':'10px 0',
-        padding:forSimple?'0':'20px'
-    };
-
-    var linkStyle = {
-      
-    }
+    var { hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
+    var { viewtime, articleId, auth, newstime, content, thumbnails, title, type } = item;
+  
     return (
 
-        <Card className="news">
+        <div onClick={this.handleGotoDetail.bind(this,articleId)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
               { 
                   hastime 
                   ? 
-                  <div style={{color:'#1890ff'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
+                  <div style={{color:'#1890ff',margin:'0 10px'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
                   : 
                   null 
               }
               {
-                  hasImg 
+                  hasImg && thumbnails
                   ? 
                   <div className="news-img">
-                    <img src={thumbnail} />
+                    <img src={thumbnails[0]} />
                   </div> 
                   : 
                   null 
               }
-               <div>
+               <div className="news-body">
                       <div className="news-title">
-                        {
-                           noLink
-                           ?
                            <span>{title}</span>
-                           :
-                           <Link to={`/details/${articleId}`}><span style={linkStyle}>{title}</span></Link>
-                        }
                       </div>
                       {
                           hasSearchContent 
@@ -144,14 +144,14 @@ export class NewsListItem extends React.Component {
   
                     <div>               
                       <span className="text">发布时间: <span className="mark">{newstime}</span></span>
-                      <br />
+                      { forSearch ? null : <br /> }
                       <span className="text">来源: <span className="mark">{auth}</span></span>
                       <span className="text">类型: <span className="mark">{type}</span></span>
                     </div>
                     {
                       hastime
                       ?
-                      <Button size="small" className="button" onClick={this.handleClick.bind(this,articleId)} shape="circle" icon="close"/>
+                      <Button size="small" className="button" onClick={this.handleRemoveHistory.bind(this,articleId)} shape="circle" icon="close"/>
                       :
                       null
                     }
@@ -159,7 +159,7 @@ export class NewsListItem extends React.Component {
                     
               </div>
                 
-        </Card>
+        </div>
     )
   }
 }
@@ -175,14 +175,25 @@ export default class NewsList extends React.Component{
   }
  
   componentDidMount(){
-      console.log('newslit mounted!')
       var { data } = this.props;
       this.setState({list:data});
   }
 
+  componentWillReceiveProps(newProps){
+    //  搜索页面的新闻列表当页码变化时强制更新
+    var { forSearch, data } = this.props;
+    if ( forSearch ) {
+        this.setState({list:newProps.data});
+        return ;
+    } 
+    if ( data.length != newProps.data.length) {
+        this.setState({list:newProps.data})
+    }
+  }
+  
   handleCleanHistory(){
-      fetch(`/usr/cleanHistory?userid=${localStorage.getItem('userid')}`)
-      .then(response=>response.json())
+      fetch(`/api/usr/cleanHistory?userid=${localStorage.getItem('userid')}`)
+        .then(response=>response.json())
         .then(json=>{
           this.setState({list:[]})
         })
@@ -202,17 +213,16 @@ export default class NewsList extends React.Component{
             break;
         }
     }
-    data.splice(deleteIndex,1)
+    data.splice(deleteIndex,1);
     this.setState({list:data})
   }
 
   render(){
-    var { hasImg, hastime, hasSearchContent, location, noFetch, forUser } = this.props;
+    var { hasImg, hastime, hasSearchContent, location, history, text, forSimple, forUser, forSearch } = this.props;
     var { list, visible, deleteId } = this.state;
 
 
-    return(
-      
+    return(    
       
       <div style={{textAlign:'left'}}>
           {
@@ -233,7 +243,9 @@ export default class NewsList extends React.Component{
                         <NewsListItem 
                             item={item} 
                             key={index}
-                            noFetch={noFetch}
+                            forSimple={forSimple}
+                            forSearch={forSearch}
+                            history={history}
                             hastime={hastime}
                             hasImg={hasImg}
                             location={location}
@@ -244,7 +256,7 @@ export default class NewsList extends React.Component{
                     
                 }
                 {
-                    hastime
+                    hastime && visible
                     ?
                     <DeleteModal 
                         visible={visible} 
@@ -259,7 +271,7 @@ export default class NewsList extends React.Component{
                 }
               </div>
               :
-              <div style={{margin:'20px 0'}}>{this.props.text}</div> 
+              <div style={{margin:'20px 0'}}>{text}</div> 
           }
       </div>    
       

@@ -47,14 +47,19 @@ export default class CommentComponent extends React.Component{
   }
 
   componentDidMount(){
-    var { setScrollTop, comment, forTrack, forUser, forMsg } = this.props;
+    var { onSetScrollTop, comment, forTrack, forUser, forMsg } = this.props;
     var { replies, selected, content, commentType, uniquekey } = comment;
     var data = formatContent(content);
-    if (selected){
+
+    if (selected){       
         var selectedDom = document.getElementsByClassName('comment selected')[0];
-        if (selectedDom){
+        if (selectedDom){            
             var scrollTop = getElementTop(selectedDom);
-            if (setScrollTop) setScrollTop(scrollTop);
+            if (onSetScrollTop) {
+                setTimeout(()=>{
+                  onSetScrollTop(scrollTop);
+                },0)
+            }
             setTimeout(()=>{
                 selectedDom.classList.remove('selected');
             },3000)
@@ -62,26 +67,6 @@ export default class CommentComponent extends React.Component{
     }
     if (forTrack) {
       this.setState({showReplies:selected});
-    }
-    if ( forUser || forMsg ) {
-        //  加载评论相关的内容信息，如话题/新闻/动态
-        if (commentType === 'topic'){
-            fetch(`/topic/getTopicDetail?topicId=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data = json.data;
-                    this.setState({item:data})
-                })
-        } else if (commentType === 'news'){
-            fetch(`/article/getArticleContent?uniquekey=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data= json.data;
-                    this.setState({item:data});
-                })
-        } else if (commentType === 'action') {
-
-        }
     }
     
     this.setState({replies,translateData:data})
@@ -100,7 +85,6 @@ export default class CommentComponent extends React.Component{
     let { parentcommentid, isSub, socket, history, index, forUser, forMsg, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
     let { previewVisible, img, showReplies, translateData, item  } = this.state;
     let commentDate = formatDate(parseDate(date));
-    
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
     parentcommentid = parentcommentid ? parentcommentid : fathercommentid ? fathercommentid : '';
     const buttonProps = {
@@ -200,11 +184,11 @@ export default class CommentComponent extends React.Component{
                     
                     {
                       forUser || forMsg ? commentType == 'news' ? 
-                      <NewsListItem item={item} hasImg={true} /> 
+                      <NewsListItem uniquekey={uniquekey} hasImg={true} forSimple={true}/> 
                       : 
                       commentType == 'topic'
                       ?
-                      <TopicListItem item={item} noAction={true} history={history} forSimple={true}/>
+                      <TopicListItem uniquekey={uniquekey} history={history} hasLink={true} forSimple={true}/>
                       :
                       null
                       :

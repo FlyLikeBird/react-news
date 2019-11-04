@@ -20,47 +20,23 @@ export default class UserList extends React.Component{
   _checkUserLoginedAndFollowd(props){
       var { data, socket } = props;
       var users = data.map(item=>item.username);
-          socket.emit('checkLogined',users);
-  
-          socket.on('checkLoginedResult',(result)=>{
-              var filterArr = data.map(item=>{
-                item['isLogined'] = result[item.username]?result[item.username]:false;
-                return item;
-              });
-              //console.log(filterArr);
-              socket.emit('checkIsFollowed',users.filter(item=>item != localStorage.getItem('username')),localStorage.getItem('username'));
-              socket.on('checkIsFollowedResult',(result)=>{
-                  //console.log(result);
-                  var list = filterArr.map(item=>{
-                    for(var i=0,len=result.length;i<len;i++){
-                      if (item.id === result[i].id) {
-                        item['isFollowed'] = result[i].state;
-                        break;
-                      }
-        
-                    }
-        
-                    return item;
-                  })
-      
-                  this.setState({list})
-              })
-          
+      socket.emit('checkLogined',users);
+      socket.on('checkLoginedResult',(result)=>{
+          //console.log(result);
+          var filterArr = data.map(item=>{
+            item['isLogined'] = result[item.username]?result[item.username]:false;
+            return item;
           });
-      
-      
-      
+          this.setState({list:filterArr});
+          
+      });
+          
   }
 
-  componentDidMount(){
-      this._flag = true;   
+  componentDidMount(){ 
       this._checkUserLoginedAndFollowd(this.props);
   }
   
-  componentWillUnmount(){
-      clearTimeout(this.timer);
-  }
-
   handleModalVisible(bool){
     var { socket } = this.props;
     this.setState({visible:bool});
@@ -75,7 +51,7 @@ export default class UserList extends React.Component{
 
   render(){
     var { list, visible }  = this.state;
-    var { socket, history } = this.props;
+    var { socket, history, text } = this.props;
      
     return(
 
@@ -83,27 +59,19 @@ export default class UserList extends React.Component{
           {
               list.length
               ?
-              <div>
-                  <List
-                    className="user-list"
-                    itemLayout="horizontal"
-                    dataSource={list}
-                    renderItem={user => (
-                      <List.Item>
-                        <List.Item.Meta
-                          
-                          avatar={<Avatar src={user.userImage} />}
-                          
-                          description={
-                            
-                              <UserListItem isSmall={this.props.isSmall} socket={socket} history={history} onShowChatList={this.handleShowChatList.bind(this)} item={user} />
-                              
-        
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
+              <div className="user-list">
+                  {
+                      list.map((item,index)=>(
+                          <UserListItem 
+                              key={index}
+                              socket={socket} 
+                              history={history} 
+                              onShowChatList={this.handleShowChatList.bind(this)} 
+                              item={item} 
+                          />
+                      ))
+                  }
+ 
                   {
                     visible
                     ?        
@@ -113,7 +81,7 @@ export default class UserList extends React.Component{
                   }
               </div>
               :
-              <div>{this.props.text}</div>
+              <div>{text}</div>
           }
       </div>
       

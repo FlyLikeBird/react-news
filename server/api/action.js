@@ -44,8 +44,8 @@ router.get('/share',(req,res)=>{
     var date = new Date().toString();
     //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
 
-    if (!text){
-        value = value ? value : `转发${util.translateType(contentType)}`
+    if (!value){
+        value = `转发${util.translateType(contentType)}`
     } 
     //console.log(userid,text,value,contentId,contentType,actionId);
     //util.responseClient(res,200,0,'ok');
@@ -99,8 +99,8 @@ router.get('/share',(req,res)=>{
                 }
                 //  如转发话题更新该话题的shareBy
             }  else if (contentType=='topic') {
-                Topic.updateOne({_id:uniquekey},{$push:{shareBy:action._id}},(err,result)=>{
-                    Topic.findOne({_id:uniquekey},(err,topic)=>{
+                Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
+                    Topic.findOne({_id:contentId},(err,topic)=>{
                         util.responseClient(res,200,0,'ok',topic.shareBy);
                     })
                 })
@@ -116,7 +116,7 @@ router.get('/share',(req,res)=>{
             
             
         })  
-
+    
     
 })
 
@@ -198,20 +198,24 @@ router.get('/getUsersInfo',(req,res)=>{
 })
 
 router.get('/getActionContent',(req,res)=>{
-    var { contentId } = req.query;
-    Action.findOne({_id:contentId},(err,action)=>{
+    var { actionId } = req.query;
+    Action.findOne({_id:actionId},(err,action)=>{
         var userid = action.userid;
         User.findOne({_id:userid},(err,user)=>{
             var obj = {};
             obj.username = user.username;
             obj.avatar = user.userImage;
+            obj.id = action.id;
             obj.value = action.value;
             obj.text = action.text;
             obj.shareBy = action.shareBy;
             obj.likeUsers = action.likeUsers;
             obj.dislikeUsers = action.dislikeUsers;
             obj.contentId = action.contentId;
-            obj.contentType = action.contentType;        
+            obj.contentType = action.contentType;
+            obj.innerAction = action.innerAction;
+            obj.composeAction = action.composeAction;
+            obj.images = action.images;       
             util.responseClient(res,200,0,'ok',obj);
         })
     })

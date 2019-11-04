@@ -32,45 +32,44 @@ export default class CommentsListContainer extends React.Component{
   }
 
   _loadComments(num=1,order='time'){
-    //console.log(order);
     var { uniquekey, location } = this.props;
-    var finalPageNum = num;
-    var forTrack = false;
-    if (location.state && location.state.pageNum){
-        var { pageNum } = location.state;
-        finalPageNum = pageNum;
-        forTrack = location.state.forTrack;
-    }
     var username = localStorage.getItem('username');
-    //console.log(uniquekey);
-    if (uniquekey){
-      
-      fetch(`/api/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
-      .then(response=>response.json())
-      .then(json=>{
-        var data = json.data;
-        var { comments, total } = data; 
-        var commentid = '',parentcommentid = '';
-        if (location.state){
-            commentid = location.state.commentid;
-            parentcommentid = location.state.parentcommentid;
-        } 
-        comments = comments.map(item=>{
-            item['owncomment'] = username === item.username ? true : false;
-            item['selected'] = item._id == commentid ? true : false;
-            item.replies = item.replies.map(reply=>{
-              reply['owncomment'] = reply.fromUser === username ? true : false;
-              return reply;
-            })
-            return item;
-        })
-        
-        this.setState({comments,total,isLoad:false,currentPageNum:finalPageNum,forTrack});
-        location.state = null;
-      })
+    var finalPageNum = num;
+    var commentid, parentcommentid, forTrack ;
+    if ( location && location.search ){
+        var pattern = /(\w+)=(.*?)&/g;
+        var str = location.search;
+        var params = {};
+        var result = pattern.exec(str);
+        while(result){
+            params[result[1]] = result[2];
+            result = pattern.exec(str);
+        }
+        finalPageNum = Number(params.pageNum);
+        commentid = params.commentid;
+        parentcommentid = params.parentcommentid;
+        forTrack = params.forTrack ? true : false;
     }
-    
-    
+    //console.log(params);
+    if (uniquekey && username){      
+      fetch(`/api/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
+          .then(response=>response.json())
+          .then(json=>{
+            var data = json.data;
+            var { comments, total } = data; 
+            comments = comments.map(item=>{
+                item['owncomment'] = username === item.username ? true : false;
+                item['selected'] = item._id == commentid ? true : false;
+                item.replies = item.replies.map(reply=>{
+                  reply['owncomment'] = reply.fromUser === username ? true : false;
+                  return reply;
+                })
+                return item;
+            })
+            //console.log(comments);
+            this.setState({comments,total,isLoad:false,currentPageNum:finalPageNum,forTrack});
+          })
+    }      
  }
 
 handlePageChange(num){
@@ -103,7 +102,7 @@ handleShareVisible(boolean,commentid,parentcommentid,onUpdateShareBy){
           this.setState({visible:boolean,text:str,translateData:data,commentid,parentcommentid})
       })    
     } else {
-      console.log(boolean);
+      
       this.setState({visible:boolean})
     }
 }
@@ -113,7 +112,7 @@ componentWillUnmount(){
 }
 
 render(){
-  var { socket, uniquekey, hasCommentInput, warnMsg , item, commentType, history, setScrollTop } = this.props;
+  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop } = this.props;
   var { comments, total, value, visible, text, translateData, commentid, parentcommentid, isLoad, currentPageNum, forTrack } = this.state;
   
   const dropdownStyle = {
@@ -158,7 +157,7 @@ render(){
               commentType={commentType} 
               onVisible={this.handleShareVisible.bind(this)}
               forTrack={forTrack}
-              setScrollTop={setScrollTop} 
+              onSetScrollTop={onSetScrollTop} 
               warnMsg={warnMsg} />
         }  
         

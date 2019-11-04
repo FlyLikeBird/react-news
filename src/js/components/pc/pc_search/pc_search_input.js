@@ -6,11 +6,12 @@ import SearchComponent from './search_component';
 
 const Search = Input.Search;
 
+const arr = [{title:'赵丽颖'},{title:'美国'},{title:'中国'},{title:'拼娃之战'},{title:'个人素质'},{title:'歼20'}];
+
 export default class SearchInput extends React.Component {
     
     constructor(props) {
       super();
-      //console.log(props);
       this.state = {
         visible:false,
         iconType:'search',
@@ -24,21 +25,18 @@ export default class SearchInput extends React.Component {
     }
 
     handleClick(){
-      //console.log('hello');
-      //console.log('click');
-      //console.log(this);
-      this.setState({visible:!this.state.visible});
+      var { visible, iconType } = this.state;
       if (this.state.iconType == 'search'){
-        this.setState({iconType:'close'});
+        this.setState({iconType:'close',visible:!visible});
       } else {
-        this.setState({iconType:'search'});
+        this.setState({iconType:'search',visible:!visible});
       }
       setTimeout(()=>{
-        var span = document.getElementsByClassName('search-container')[0];
+        var span = document.getElementsByClassName('search-input')[0];
         var input = span.getElementsByClassName('ant-input')[0];
         //console.log(span);
-        if (input) input.focus();
-        
+        if (input && input.focus) input.focus();
+        console.log(span);
         if(!span.classList.contains('click')){
           span.classList.add('click');
         } else {
@@ -55,60 +53,91 @@ export default class SearchInput extends React.Component {
       this.handleClick();
     }
 
-    handleRemoveClick(){
+    handleRemoveHistory(){
       localStorage.removeItem('searchHistory');
       this.setState({searchList:[]});
     }
 
     handleGotoSearch(title){
-      var { history } = this.props;  
-      
+      var { history } = this.props;       
       history.push(`/search?words=${title}`);
-      this.handleClick()
+      //this.handleClick()
+    }
+
+    handleBlur(){
+      this._handleCloseSearchInput();
+    }
+
+    _handleCloseSearchInput(){
+      this.setState({visible:false})
+    }
+
+    handleVisibleChange(visible){
+      if (visible == true){
+          this.setState({iconType:'close'});
+          setTimeout(()=>{
+              var span = document.getElementsByClassName('search-input')[0];
+              var input = span.getElementsByClassName('ant-input')[0];
+              
+              if (input && input.focus) input.focus();
+              span.classList.add('click');
+          },0);
+      } else {
+          this.setState({iconType:'search'});
+          setTimeout(()=>{
+              var span = document.getElementsByClassName('search-input')[0];
+              span.classList.remove('click');
+          },0);
+      }
     }
 
     render() {
-
-        const arr = [{title:'赵丽颖'},{title:'美国'},{title:'中国'},{title:'拼娃之战'},{title:'个人素质'},{title:'歼20'}];
+        var { iconType, visible, searchList } = this.state;
+        
 
         return (
             <Popover 
-              className="search-popover"
-              trigger="click" 
-              visible={this.state.visible}
-             
-              onClick={this.handleClick.bind(this)}
-              content={<div>
-                <SearchComponent onModalVisible={this.handleModalVisible.bind(this)} {...this.props}/>
-                <div style={{width:'420px',paddingTop:'10px'}}>
-                  <Card bordered={false} className="tags" size="small" title="热门搜索">
-                    <ul>
-                      {
-                        arr.map((item,index)=>(
-                          <li key={index} onClick={this.handleGotoSearch.bind(this,item.title)}><a>{item.title}</a></li>
-                        ))
-                      }
-                    </ul>
-                  </Card>
-                  <Card bordered={false} className="tags" size="small" title="搜索历史" extra={<a onClick={this.handleRemoveClick.bind(this)}>删除历史</a>}>
-                    <ul>
-                      { 
-                        this.state.searchList 
-                        ?
-                        (this.state.searchList.length ?
-                        this.state.searchList.map((item,index)=>(
-                          <li key={index} onClick={this.handleGotoSearch.bind(this,item.title)}><a>{item.title}</a></li>
-                        ))
-                        :
-                        '暂无搜索历史!')
-                        :
-                        '暂无搜索历史!'
-                      }
-                    </ul>
-                  </Card>
+              //trigger="click" 
+              
+              autoAdjustOverflow={false}
+              placement="bottom"
+              //onClick={this.handleClick.bind(this)}
+              //onBlur={this.handleBlur.bind(this)}
+              onVisibleChange={this.handleVisibleChange.bind(this)}
+              content={
+                <div className="search-container">
+                    <SearchComponent onModalVisible={this.handleModalVisible.bind(this)} {...this.props}/>
+                    <div>
+                      <div className="tags">
+                          <span>热门搜索</span>
+                          <ul>
+                            {
+                              arr.map((item,index)=>(
+                                <li key={index} onClick={this.handleGotoSearch.bind(this,item.title)}><a>{item.title}</a></li>
+                              ))
+                            }
+                          </ul>
+                      </div>
+                      <div className="tags">
+                          <span>搜索历史</span>
+                          <span className="button" onClick={this.handleRemoveHistory.bind(this)}>删除历史</span>
+                          <ul>
+                            { 
+                              searchList && searchList.length
+                              ?
+                              searchList.map((item,index)=>(
+                                <li key={index} onClick={this.handleGotoSearch.bind(this,item.title)}><a>{item.title}</a></li>
+                              ))
+                              :
+                              '暂无搜索历史!'
+                              
+                            }
+                          </ul>
+                      </div>
+                    </div>
                 </div>
-              </div>}>
-                <Button type="primary" size="small" shape="circle" icon={this.state.iconType} />
+            }>
+                <Button type="primary" size="small" shape="circle" icon={iconType} />
             </Popover>
         )
     }

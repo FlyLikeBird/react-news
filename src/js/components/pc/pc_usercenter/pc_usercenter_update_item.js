@@ -16,7 +16,7 @@ export default class UpdateItem extends React.Component{
     constructor(){
         super();
         this.state = {
-            item:{},
+            
             isLiked:false,
             isdisLiked:false,
             likeUsers:[],
@@ -68,7 +68,7 @@ export default class UpdateItem extends React.Component{
 
     handleUserAction(id,action,isCancel){
         
-        fetch('/action/operate?action='+action+'&id='+ id +'&isCancel='+isCancel+'&userid='+localStorage.getItem('userid'))
+        fetch('/api/action/operate?action='+action+'&id='+ id +'&isCancel='+isCancel+'&userid='+localStorage.getItem('userid'))
         .then(response=>response.json())
         .then(json=>{ 
             var data = json.data;
@@ -85,7 +85,7 @@ export default class UpdateItem extends React.Component{
         
         if ( isAllowed ) {
           if(action === 'like' && !isCancel )
-          fetch(`/usr/operatecomment?user=${localStorage.getItem('username')}`)
+          fetch(`/api/usr/operatecomment?user=${localStorage.getItem('username')}`)
           .then(()=>{
 
             isAllowed = false;
@@ -128,8 +128,15 @@ export default class UpdateItem extends React.Component{
         window.confirm('别举报了，逻辑我还没写完.....from 阿山')
     }
 
+    handleGotoDetail(id){
+        var { history } = this.props;
+        if (history){
+            history.push(`/action/${id}`)
+        }
+    }
     
     componentWillReceiveProps(newProps){
+
         this._loadItemData(newProps);
     }
 
@@ -177,7 +184,7 @@ export default class UpdateItem extends React.Component{
 
         return(
             
-            <div className="action">
+            <div className={forDetail?'action forDetail':'action'}>
                 {
                     forDetail
                     ?
@@ -287,11 +294,11 @@ export default class UpdateItem extends React.Component{
                                 :
                                 <span>{finalText}</span>
                             }
-                            <div style={{padding:'10px 20px',backgroundColor:'rgb(249, 249, 249)',borderRadius:'4px'}}>
+                            <div>
                                 {
                                   contentType === 'topic'
                                   ?
-                                  <TopicListItem uniquekey={contentId} noAction={true} history={history} forSimple={true}/>
+                                  <TopicListItem uniquekey={contentId} history={history} forSimple={true}/>
                                   :
                                   contentType === 'news'
                                   ?
@@ -304,7 +311,15 @@ export default class UpdateItem extends React.Component{
                     }    
                 </div>                
                    
-                <div className="user-action">                  
+                <div className="user-action">
+                    {
+                        forDetail
+                        ?
+                        null
+                        :
+                        <span onClick={this.handleGotoDetail.bind(this,id)}><span className="text"><Icon type="right-square" />详情</span></span> 
+                    }
+                                     
                     <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} text="赞"/>}>
                         <span onClick={this.handleUserAction.bind(this,id,'like',isLiked?'true':'')} className="text" ref={span=>this.likeDom=span}>
                             <Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>
@@ -321,12 +336,17 @@ export default class UpdateItem extends React.Component{
                             <Icon className="caret" type={dislikeIconType} />
                         </span>
                     </Popover>
-                
-                    <span onClick={this.handleReplyVisible.bind(this)} className="text" >
-                        <Icon type="edit" />回复
-                        <span className="num">{comments}</span>
-                    </span>
-                
+                    {
+                        forDetail
+                        ?
+                        null
+                        :
+                        <span onClick={this.handleReplyVisible.bind(this)} className="text" >
+                            <Icon type="edit" />回复
+                            <span className="num">{comments}</span>
+                        </span>
+                    }
+                             
                     <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} text="转发"/>}>
                         <span onClick={this.handleShareVisible.bind(this,id)} className="text">
                             <Icon type="export" />转发
@@ -336,7 +356,7 @@ export default class UpdateItem extends React.Component{
                     </Popover>
                 </div>
 
-                <div style={{display:forDetail?'block':visible?'block':'none'}}>
+                <div style={{display:forDetail?'block':visible?'block':'none',marginTop:'30px'}}>
                     <CommentsListContainer 
                             history={history}
                             location={location}

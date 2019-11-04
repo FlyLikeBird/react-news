@@ -25,46 +25,49 @@ export default class TopicItemPopover extends React.Component{
                 return `userid[]=${item}`;
             })
         }
-        params = params.join('&');
-        fetch(`/action/getUsersInfo?${params}`)
-            .then(response=>response.json())
-            .then(json=>{
-                var responseData = json.data;
-                
-                if (forShare){
-                    this.setState({data:responseData});
-                } else if ( forRate){
-                    
-                    data = data.map(item=>{
-                        for(var i=0,len=responseData.length;i<len;i++){
-                            if (item.userid == responseData[i].userid){
-                                item.username = responseData[i].username;
-                                item.avatar = responseData[i].avatar;
-                                return item;
+        if (params.length){
+            params = params.join('&');
+            fetch(`/api/action/getUsersInfo?${params}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var responseData = json.data;                    
+                    if (forShare){
+                        this.setState({data:responseData});
+                    } else if ( forRate){
+                        
+                        data = data.map(item=>{
+                            for(var i=0,len=responseData.length;i<len;i++){
+                                if (item.userid == responseData[i].userid){
+                                    item.username = responseData[i].username;
+                                    item.avatar = responseData[i].avatar;
+                                    return item;
+                                }
                             }
-                        }
-                    })
-                    this.setState({data:sortByDate(data)})
-                } else {
-                    data = data.map(item=>{
-                        for(var i=0,len=responseData.length;i<len;i++){
-                            if (item.userid == responseData[i].userid){
-                                item.username = responseData[i].username;
-                                item.avatar = responseData[i].avatar;
-                                return item;
+                        })
+                        this.setState({data:sortByDate(data)})
+                    } else {
+                        data = data.map(item=>{
+                            for(var i=0,len=responseData.length;i<len;i++){
+                                if (item.userid == responseData[i].userid){
+                                    item.username = responseData[i].username;
+                                    item.avatar = responseData[i].avatar;
+                                    return item;
+                                }
                             }
-                        }
-                    })
+                        })
+                        
+                        this.setState({data:sortByDate(data)})
+                    }
                     
-                    this.setState({data:sortByDate(data)})
-                }
-                
-            })      
+                })  
+        } else {
+            this.setState({data:[]})
+        }
+            
         
     }
 
-    componentDidMount(){  
-        console.log('mounted');      
+    componentDidMount(){       
         this._loadUsersAvatar(this.props);        
     }
 

@@ -124,44 +124,24 @@ function changeIdsToTags(ids,resolve){
     })
 }
 
-function changeIdsToFollows(follows,resolve){
-    var ids = follows.map(item=>item.userid);
-    User.find({_id:{$in:ids}},(err,users)=>{
-        var data = follows.map(item=>{
-            var obj = {};
-            obj.date = item.date;
-            for(var i=0,len=users.length;i<len;i++){
-                if (item.userid == users[i]._id){
-                    obj.username = users[i].username;
-                    obj.avatar = users[i].userImage;
-                    break;
-                }
-            }
-            return obj;
-        })
-        resolve(data);
-    })
-}
-
-function changeIdsToShareBy(ids,resolve){
-    Action.find({_id:{$in:ids}},(err,actions)=>{
-        resolve(actions);
-    })
-}
-
 function getTopic(topic,resolve){   
     var promise1 = new Promise((resolve,reject)=>{
         changeIdsToTags(topic.tag,resolve)
     });
-    
-    Promise.all([promise1])
-        .then(([tags])=>{
+    var promise2 = new Promise((resolve,reject)=>{
+        Comment.count({uniquekey:topic._id},(err,count)=>{
+            resolve(count)
+        })
+    })
+    Promise.all([promise1,promise2])
+        .then(([tags,replies])=>{
             var obj = {};                
             obj.tag = tags.map(item=>item.tag);
             obj.follows = topic.follows;
             obj.shareBy = topic.shareBy;
             obj.title = topic.title;
-            obj.sponsor = topic.sponsor;
+            obj.replies = replies;
+            obj.username = topic.username;
             obj.date = topic.date;
             obj.description = topic.description;
             obj.isHot = topic.isHot;
@@ -235,7 +215,7 @@ function getAllTopics(topics,res){
 
 */
 router.post('/upload',upload.array('images'),(req,res)=>{
-    var { title, description, tags, privacy, userid } = req.body; 
+    var { title, description, tags, privacy, userid, username } = req.body; 
     var date = new Date().toString(), images = [];  
     if (!tags) {
         tags = [];
@@ -260,20 +240,25 @@ router.post('/upload',upload.array('images'),(req,res)=>{
     });
     
     promise.then(tagIds=>{
+        
         var topic = new Topic({
             title,
             description,
             date,
             userid,
+            username,
             privacy,
             images,
             tag:tagIds    
-        });
+            });
+
         topic.save()
             .then(()=>{
                 Tag.updateMany({_id:{$in:tagIds}},{$push:{content:topic._id}},(err,result)=>{});
                 getUserTopic(userid,res);
             })
+        
+        
     })
 })
 
@@ -358,7 +343,7 @@ router.post('/edit',upload.array('images'),(req,res)=>{
     if(req.files){        
         req.files.forEach(item=>{
             var obj = {};
-            obj.filename  = 'http://localhost:8080/topic/'+item.filename;
+            obj.filename  = config.uploadPath + '/topic/'+item.filename;
             obj.originalname = item.originalname;
             obj.originalpath = item.destination;
             images.push(obj);
@@ -384,7 +369,15 @@ router.post('/edit',upload.array('images'),(req,res)=>{
                 images:finalImages       
             };
             Topic.updateOne({_id:topicId},{$set:updateObj},(err,result)=>{
-                getUserTopic(userid,res);
+                Topic.findOne({_id:topicId},(err,topic)=>{
+                    var promise = new Promise((resolve,reject)=>{
+                        getTopic(topic,resolve)
+                    });
+                    promise.then(obj=>{
+                        util.responseClient(res,200,0,'ok',obj);
+                    })
+                })
+                
             })
         })
 })
@@ -392,7 +385,7 @@ router.post('/edit',upload.array('images'),(req,res)=>{
 router.get('/getUserFollowTopic',(req,res)=>{
     var { userid } = req.query;
     User.findOne({_id:userid},(err,user)=>{
-        var followTopic = user.userTopic.map(item=>item.topicId);
+        var followTopic = user.userTopic;
         Topic.find({_id:{$in:followTopic}},(err,topics)=>{
             var allPromises = [];
             for(var i=0,len=topics.length;i<len;i++){

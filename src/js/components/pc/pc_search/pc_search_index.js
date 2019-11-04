@@ -5,7 +5,7 @@ import PCSearchContainer from './pc_search_container';
 export default class PCSearchIndex extends React.Component{
   
   render(){
-
+    
     return(
       
       <section style={{paddingTop:'30px'}}>

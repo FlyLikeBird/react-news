@@ -53,9 +53,10 @@ function translateUserCollect(collect,resolve){
                 item.articleId = article.articleId;
                 item.title = article.title;
                 item.newstime = article.newstime;
+                item.thumbnails = article.thumbnails;
                 item.auth = article.auth;
                 item.type = article.type;
-                item.thumbnail = selectImgByUniquekey(article.content)[0];
+                
                 break;
               }
             }
@@ -191,28 +192,10 @@ function getUserComments(username,resolve){
           }
 
         }
-        return obj
-        
+        return obj        
       })
+      resolve(data);
       
-      Article.find({articleId:{$in:ids}},(err,articles)=>{          
-          data = data.map(item=>{           
-            for(var i=0,len=articles.length;i<len;i++){
-              if(item.uniquekey === articles[i].articleId){
-                item['newstime'] = articles[i].newstime;
-                item['type'] = articles[i].type;
-                item['auth'] = articles[i].auth;
-                item['title'] = articles[i].title;
-                item['thumbnail'] = selectImgByUniquekey(articles[i].content)[0];
-                break;
-              }
-            }
-            return item;
-          })
-          
-          resolve(data)
-      })
- 
     })
 }
 
@@ -229,24 +212,20 @@ function getUserHistory(userid,resolve){
             return item.articleId
         })
         
-        Article.find({'articleId':{$in:ids}},(err,articles)=>{
-            
+        Article.find({'articleId':{$in:ids}},(err,articles)=>{           
             data = data.map(item=>{
-
                 articles.map(article=>{
 
                     if(item.articleId === article.articleId){
                         item.articleId = article.articleId;
                         item.auth = article.auth;
                         item.title = article.title;             
-                        item.thumbnail = selectImgByUniquekey(article.content)[0];
+                        item.thumbnails = article.thumbnails;
                         item.newstime = article.newstime;
                         item.type = article.type;
                     }
-                })
-                
-                return item;
-                
+                })                
+                return item;               
             })
             
             resolve(sort(data,'viewtime'));
@@ -260,8 +239,8 @@ function getUserCollect(userid,resolve){
         for(var i=0,len=collects.length;i<len;i++){
           (function(i){
               var collect = collects[i];
-              var promise = new Promise((innerResolve,reject)=>{
-                  translateUserCollect(collect,innerResolve);
+              var promise = new Promise((resolve,reject)=>{
+                  translateUserCollect(collect,resolve);
               });
               allPromise.push(promise)
           })(i)

@@ -51,7 +51,7 @@ export default class PCUserCenter extends React.Component{
 	}
 	
 	render(){
-		console.log(this.props);
+		
 		var { socket, history, msg } = this.props;
 		var { user, userFollow, userFans, userAction, userComments, userHistory, userCollect, isSelf, isLoad  } = this.state;
 

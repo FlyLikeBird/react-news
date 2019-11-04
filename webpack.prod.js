@@ -11,8 +11,8 @@ module.exports = {
     mode:'production',
     entry:{
         //index:['./src/root.js'] 
-        index:'./src/root.js',
-        login:'./src/login.js'  
+        index:'./src/root.js'
+       //login:'./src/login.js'  
     },
     //devtool:'source-map',
     module:{
@@ -137,14 +137,16 @@ module.exports = {
         new HtmlWebpackPlugin({
             title:'react-news',
             template:'./src/index.template.html',
-            chunks:['index']
+            //chunks:['index']
             
         }),
+        /*
         new HtmlWebpackPlugin({
             filename:'login.html',
             template:'./src/login.template.html',
             chunks:['login']
         }),
+        */
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
         new MiniCssExtractPlugin({

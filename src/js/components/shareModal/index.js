@@ -15,7 +15,7 @@ export default class ShareModal extends React.Component{
     handleShare(){        
         var { onVisible, forUserAction, actionInfo, isActionPage, onUpdate, commentid, parentcommentid, onUpdateShareBy, isSelf } = this.props;
         var userid = localStorage.getItem('userid'); 
-        var params = {},fetchParams = '/action/share?';       
+        var params = {},fetchParams = '/api/action/share?';       
         if(this.textArea){
             var value = this.textArea.textAreaRef.value;
         }       
@@ -73,7 +73,7 @@ export default class ShareModal extends React.Component{
 
     render(){
         
-        var { actionInfo, uniquekey, data, visible, history, forUserAction, onVisible } = this.props;
+        var { actionInfo, uniquekey, data, visible, history, forUserAction, onVisible, topicItem } = this.props;
         var { contentType, hasInnerAction, innerAction, contentId, username, composeAction, value, text } = actionInfo;
        
         return(
@@ -127,7 +127,7 @@ export default class ShareModal extends React.Component{
                                         null
                                     }
                                 </div>
-                                <div style={{padding:'10px 20px',backgroundColor:'rgb(249, 249, 249)'}}>
+                                <div>
                                     {
                                         contentType === 'news' 
                                         ?
@@ -135,7 +135,7 @@ export default class ShareModal extends React.Component{
                                         :
                                         contentType === 'topic' 
                                         ?
-                                        <TopicListItem uniquekey={uniquekey} noAction={true} forSimple={true}/>
+                                        <TopicListItem uniquekey={uniquekey} item={topicItem} noAction={true} forSimple={true}/>
                                         :  
                                         null                                                  
                                     }

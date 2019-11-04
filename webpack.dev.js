@@ -21,7 +21,7 @@ module.exports = {
         ]
         */
         index:'./src/root.js',
-        login:'./src/login.js'
+        //login:'./src/login.js'
     },
     devtool:'inline-source-map',
     module:{
