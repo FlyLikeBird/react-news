@@ -8,7 +8,7 @@ var Article = require('../../models/Article');
 
 function getUserCollect(userid, uniquekey, res){
     var promise = new Promise((resolve,reject)=>{
-      userPromise.getUserCollect(userid,resolve);
+      userPromise.getUserCollect(userid,resolve,true);
     })
     promise.then(data=>{
       // 判断某篇文章是否已存在于收藏夹中
@@ -44,7 +44,7 @@ router.get('/createCollect',(req,res)=>{
               .then(()=>{
                   
                   var promise = new Promise((resolve,reject)=>{
-                      userPromise.getUserCollect(userid,resolve)
+                      userPromise.getUserCollect(userid,resolve,true)
                   });
                   promise.then(data=>{                      
                     util.responseClient(res,200,1,'ok',data);
@@ -78,30 +78,86 @@ router.get('/checkContentExist',(req,res)=>{
 })
 
 router.get('/addIntoCollect',(req,res)=>{
-    var { userid , uniquekey, id } = req.query;
-    Collect.updateOne({'_id':id},{$push:{content:{id:uniquekey,addtime:new Date().toString()}}},(err,result)=>{
-        var promise = new Promise((resolve,reject)=>{
-          userPromise.getUserCollect(userid,resolve);
-        });
-        promise.then(data=>{
-          util.responseClient(res,200,1,'ok',data)
-        })      
+    var { contentId, collectId } = req.query;
+    Collect.updateOne({'_id':collectId},{$push:{content:{id:contentId,addtime:new Date().toString()}}},(err,result)=>{      
+        Collect.findOne({_id:collectId},(err,collect)=>{
+            var promise = new Promise((resolve,reject)=>{
+                userPromise.translateUserCollect(collect,resolve);
+            });
+            promise.then(data=>{
+                util.responseClient(res,200,0,'ok',data);
+            })
+            
+        })    
     })  
 })
 
-router.get('/removeCollect',(req,res)=>{
-  var { userid , id } = req.query;
-  User.updateOne({_id:userid},{$pull:{userCollect:{id:id}}},(err,result)=>{
-      Collect.deleteOne({'_id':id},(err,result)=>{
-          util.responseClient(res,200,0,'ok')
+router.get('/followCollect',(req,res)=>{
+    var { userid, collectId, unFollow } = req.query;
+    var date = new Date().toString();
+    var operation = '$push';
+    var option = {
+        userid,
+        addtime:date
+    }
+    if (unFollow){
+      operation = '$pull';
+      option = {userid}
+    }
+
+    /*
+    Collect.updateOne({_id:collectId},{$set:{followedBy:[]}},(err,result)=>{
+      console.log(result);
+      User.updateOne({_id:userid},{$set:{userCollect:[]}},(err,result)=>{
+          Collect.findOne({_id:collectId},(err,collect)=>{
+                util.responseClient(res,200,0,'ok',collect.followedBy);           
+            }) 
       })
+    })
+    */
+    
+    User.updateOne({_id:userid},{[operation]:{userCollect:collectId}},(err,result)=>{
+        Collect.updateOne({_id:collectId},{[operation]:{followedBy:option}},(err,result)=>{
+            Collect.findOne({_id:collectId},(err,collect)=>{
+                util.responseClient(res,200,0,'ok',collect.followedBy);           
+            }) 
+        })
+    })
+  
+    
+})
+
+router.get('/getFollowedCollect',(req,res)=>{
+    var { userid } = req.query;
+    var promise = new Promise((resolve,reject)=>{
+        userPromise.getFollowedCollect(userid, resolve)
+    });
+    promise.then(data=>{
+
+        util.responseClient(res,200,0,'ok',data);
+    })
+})
+
+router.get('/removeCollect',(req,res)=>{
+  var { userid , id } = req.query; 
+  Collect.deleteOne({'_id':id},(err,result)=>{
+      util.responseClient(res,200,0,'ok')
   })
+  
 })
 
 router.get('/removeCollectContent',(req,res)=>{
-  var { collectId, contentId, userid, uniquekey } = req.query;
-  Collect.updateOne({'_id':collectId},{$pull:{content:{_id:contentId}}},(err,result)=>{
-      getUserCollect(userid, uniquekey, res);
+  var { collectId, contentId } = req.query;
+  Collect.updateOne({'_id':collectId},{$pull:{content:{id:contentId}}},(err,result)=>{
+      Collect.findOne({_id:collectId},(err,collect)=>{
+            var promise = new Promise((resolve,reject)=>{
+                userPromise.translateUserCollect(collect,resolve);
+            });
+            promise.then(data=>{
+                util.responseClient(res,200,0,'ok',data);
+            })
+            
+        }) 
   })
 })
 

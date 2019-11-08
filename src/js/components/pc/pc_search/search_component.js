@@ -1,7 +1,5 @@
 import React from 'react';
-
-
-import { Form, Input, Select } from 'antd';
+import { Form, Input, Select, message } from 'antd';
 
 const Search = Input.Search;
 const FormItem = Form.Item;
@@ -10,7 +8,7 @@ const Option = Select.Option;
 class SearchComponent extends React.Component {
     
     handleSearch(value){
-      var { history, form } = this.props;
+      var { history, form,  } = this.props;
       var { validateFields } = form;
       // 去掉首尾多余空格
       var pattern = /(^\s*)|(\s*$)/g;
@@ -18,7 +16,10 @@ class SearchComponent extends React.Component {
       validateFields(['search'],(errors,values)=>{
         //console.log(a);console.log(b);
         if ( !errors ) {
-            
+            if (!userid){
+                message.info('请先完成登录后再操作！');
+                return ;
+            }
             var state = {
               value:value
             };

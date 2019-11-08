@@ -16,23 +16,21 @@ export default class UserListItem extends React.Component{
   
   
   componentDidMount(){
-    var { isFollowed } = this.props.item;
+    var { item } = this.props;
+    var { isFollowed } = item;
     this.setState({isFollowed});
   }
   
-  handleAddFollow(){
-    //console.log(this._id);
-    var { id } = this.props.item;
-    fetch(`/usr/addFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+  handleAddFollow(id){
+    fetch(`/api/usr/addFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
       .then(response=>response.json())
       .then(data=>{
         this.setState({isFollowed:1});
       })
   }
 
-  handleRemoveFollow(){
-    var { id } = this.props.item;
-    fetch(`/usr/removeFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+  handleRemoveFollow(id){
+    fetch(`/api/usr/removeFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
       .then(response=>response.json())
       .then(data=>{
         this.setState({isFollowed:0})
@@ -40,24 +38,18 @@ export default class UserListItem extends React.Component{
   }
 
   handleShowChatList(){
-    //console.log(this);
-    var user = this.props.item;
-    var { username } = user;
-
-    if (this.props.onShowChatList){
-          this.props.onShowChatList(true,username)
-    }
-    
+    var { item, onShowChatList } = this.props;
+    var { username, _id } = item;
+    if ( onShowChatList ) onShowChatList(true, username, _id);
   }
 
   gotoUsercenter(id){
     var { history } = this.props;
-    console.log(id);
     history.push(`/usercenter/${id}`);
   }
 
   render(){
-    var { item } = this.props;
+    var { item, expand } = this.props;
     var  { username, description, level, userImage, description, userFans, userFollow, isLogined, _id } = item;
     var { isFollowed } = this.state;
   
@@ -81,12 +73,12 @@ export default class UserListItem extends React.Component{
               <Menu.Item key="0">
                 {
                   isFollowed == 0 ?
-                  <a onClick={this.handleAddFollow.bind(this)}><Icon type="plus"/><span className="ant-text">加关注</span></a>
+                  <a onClick={this.handleAddFollow.bind(this,_id)}><Icon type="plus"/><span className="ant-text">加关注</span></a>
                   :
                   isFollowed == 1 ?
-                  <a onClick={this.handleRemoveFollow.bind(this)}><Icon type="check"/><span className="ant-text">已关注</span></a>
+                  <a onClick={this.handleRemoveFollow.bind(this,_id)}><Icon type="check"/><span className="ant-text">已关注</span></a>
                   :
-                  <a onClick={this.handleRemoveFollow.bind(this)}><Icon type="swap"/><span className="ant-text">互相关注</span></a>
+                  <a onClick={this.handleRemoveFollow.bind(this,_id)}><Icon type="swap"/><span className="ant-text">互相关注</span></a>
                 }
               </Menu.Item>
               <Menu.Item key="1">
@@ -122,7 +114,7 @@ export default class UserListItem extends React.Component{
               <div><span className="ant-text">{description}</span></div>
          </div>
          {
-          this.props.isSmall
+          expand
           ?
           null
           :
@@ -144,29 +136,28 @@ export default class UserListItem extends React.Component{
            ?
            null
            :
-           this.props.isSmall 
+           expand 
            ?
-           <div className="user-action-container">
-             
-             <Dropdown overlay={menu} trigger={['click']}>
-                <a className="ant-dropdown-link" href="">
+           <div className="user-action-container">        
+             <Dropdown overlay={menu}>
+                <span style={{color:'#1890ff'}}>
                   更多操作<Icon type="down" />
-                </a>
+                </span>
              </Dropdown>
            </div>
            :
            <div className="user-action-container">
              {
               isFollowed == 0 ?
-              <Button onClick={this.handleAddFollow.bind(this)} type="default" size="small"><Icon type="plus"/><span className="ant-text">加关注</span></Button>
+              <Button onClick={this.handleAddFollow.bind(this,_id)} type="default" size="small"><Icon type="plus"/><span className="ant-text">加关注</span></Button>
               :
               isFollowed == 1 ?
-              <Button onClick={this.handleRemoveFollow.bind(this)} type="primary" size="small"><Icon type="check"/><span className="ant-text">已关注</span></Button>
+              <Button onClick={this.handleRemoveFollow.bind(this,_id)} type="primary" size="small"><Icon type="check"/><span className="ant-text">已关注</span></Button>
               :
-              <Button onClick={this.handleAddFollow.bind(this)} type="primary" size="small"><Icon type="swap"/><span className="ant-text">互相关注</span></Button>
+              <Button onClick={this.handleRemoveFollow.bind(this,_id)} type="primary" size="small"><Icon type="swap"/><span className="ant-text">互相关注</span></Button>
              }
-             <Button style={{marginLeft:'-10px'}} onClick={this.handleShowChatList.bind(this)} type="primary" size="small"><Icon type="message"/><span className="ant-text">发消息</span></Button>
-             <Button style={{marginLeft:'-10px'}} onClick={this.gotoUsercenter.bind(this,_id)} type="primary" size="small"><Icon type="idcard"/><span className="ant-text">TA的空间</span></Button>
+             <Button onClick={this.handleShowChatList.bind(this)} type="primary" size="small"><Icon type="message"/><span className="ant-text">发消息</span></Button>
+             <Button onClick={this.gotoUsercenter.bind(this,_id)} type="primary" size="small"><Icon type="idcard"/><span className="ant-text">TA的空间</span></Button>
            </div>
           }
                      

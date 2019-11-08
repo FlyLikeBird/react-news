@@ -29,7 +29,6 @@ class PCHeader extends React.Component {
       }
     }
 
-    
 
     handleLoginClick(e){
       this.setState({current:e.key})
@@ -91,7 +90,7 @@ class PCHeader extends React.Component {
     }
     
     render() {
-        console.log(this.props);
+        
         var { hasLogined, current, username, userid, avatar, modalVisible, LoginContainer } = this.state;
         var  { msg } = this.props;
         //console.log(msg);
@@ -152,14 +151,16 @@ class PCHeader extends React.Component {
                                 {
                                     hasLogined
                                     ?
-                                    <div className="user-login">
-                                        <Link className="ant-dropdown-link" to={`/usercenter/${userid}`}>
-                                          <Badge count={msg.total}><span className="img-container"><img src={avatar} /></span></Badge>
-                                        </Link>
-                                        <Dropdown  overlay={menu}>
+                                                                           
+                                    <Dropdown  overlay={menu}>
+                                        <div className="user-login">
+                                            <Link className="ant-dropdown-link" to={`/usercenter/${userid}`}>
+                                                <Badge count={msg.total}><span className="img-container"><img src={avatar} /></span></Badge>
+                                            </Link>
                                             <Icon type="down" />
-                                        </Dropdown>
-                                    </div>
+                                        </div>
+                                    </Dropdown>
+                                    
                                     :
                                     <div onClick={this.setModalVisible.bind(this,true)}>
                                         <Icon type="user"/>注册/登录

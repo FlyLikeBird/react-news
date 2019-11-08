@@ -10,7 +10,7 @@ module.exports = new mongoose.Schema({
     password:String,
     userFollow:[String],
     userFans:[String],
-    addCollect:[String],
+    userCollect:[String],
     userAction:[String],
     userHistory:[{articleId:String,viewtime:String}],
     userTopic:[String],

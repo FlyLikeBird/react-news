@@ -13,23 +13,24 @@ export default class UserList extends React.Component{
       list:[],
       visible:false,
       toUser:'',
-      chatId:''
+      toId:''
     }
   }
   
   _checkUserLoginedAndFollowd(props){
       var { data, socket } = props;
-      var users = data.map(item=>item.username);
-      socket.emit('checkLogined',users);
-      socket.on('checkLoginedResult',(result)=>{
-          //console.log(result);
-          var filterArr = data.map(item=>{
-            item['isLogined'] = result[item.username]?result[item.username]:false;
-            return item;
+      var userids = data.map(item=>item._id);
+      if (socket){
+          socket.emit('checkLogined',userids,localStorage.getItem('userid'));
+          socket.on('checkLoginedResult',(logined,followed)=>{
+              var filterArr = data.map(item=>{
+                item['isLogined'] = logined[item._id]?logined[item._id]:false;
+                item['isFollowed'] = followed[item._id];
+                return item;
+              });
+              this.setState({list:filterArr});
           });
-          this.setState({list:filterArr});
-          
-      });
+      }
           
   }
 
@@ -45,13 +46,13 @@ export default class UserList extends React.Component{
   }
 
   handleShowChatList(bool,toUser,id){
-    this.setState({visible:bool,toUser,chatId:id});
+    this.setState({visible:bool,toUser,toId:id});
   }
 
 
   render(){
-    var { list, visible }  = this.state;
-    var { socket, history, text } = this.props;
+    var { list, visible, toUser, toId }  = this.state;
+    var { socket, history, expand, text } = this.props;
      
     return(
 
@@ -64,6 +65,7 @@ export default class UserList extends React.Component{
                       list.map((item,index)=>(
                           <UserListItem 
                               key={index}
+                              expand={expand}
                               socket={socket} 
                               history={history} 
                               onShowChatList={this.handleShowChatList.bind(this)} 
@@ -75,7 +77,7 @@ export default class UserList extends React.Component{
                   {
                     visible
                     ?        
-                    <ChatList socket={socket} visible={this.state.visible} toUser={this.state.toUser} id={this.state.chatId} onModalVisible={this.handleModalVisible.bind(this)}/>
+                    <ChatList socket={socket} visible={visible} toUser={toUser} toId={toId} onModalVisible={this.handleModalVisible.bind(this)}/>
                     :
                     null
                   }

@@ -41,18 +41,13 @@ var storage = multer.diskStorage({
 var upload = multer({storage});
 
 
-router.get('/register',(req,res)=>{
-
-	var { r_userName, r_password } = req.query;
-	
-	
+function _createUser(r_userName, r_password, managerUser, res){
 	var date = new Date().toString();
-	let user = new User({
+	var user = new User({
 		username:r_userName,
 		password:util.md5(r_password),
 		registerTime:date,
 		loginTime:date
-
 	});
 	user.save()
 		.then(()=>{
@@ -61,9 +56,9 @@ router.get('/register',(req,res)=>{
 				data.username = userInfo.username;
 				data.userid = userInfo._id;
 				data.avatar = userInfo.userImage;
-				User.updateOne({'username':r_userName},{$push:{message:{
-					fromUser:'React-News平台',
-					toUser:r_userName,
+				User.updateOne({_id:user._id},{$push:{message:{
+					fromUser:managerUser._id,
+					toUser:user._id,
 					msgtype:'system',
 					content:'欢迎使用React-News新闻平台',
 					msgtime:date
@@ -71,17 +66,39 @@ router.get('/register',(req,res)=>{
 					util.responseClient(res,200,0,'ok',data);
 				})
 			})
-			
+			//  初始化默认收藏夹
 			var collect = new Collect({
 				tag:'默认收藏夹',
 				createtime:date,
 				userid:user._id,
 				defaultCollect:true
 			});
-
 			collect.save();
+			//  默认关注react-news这个管理用户
+			User.updateOne({_id:user._id},{$push:{userFollow:managerUser._id}},(err,result)=>{});
 		})
-	
+}
+
+router.get('/register',(req,res)=>{
+	var { r_userName, r_password } = req.query;
+	var date = new Date().toString();
+	User.findOne({'username':'React-News平台'},(err,manager)=>{
+		if(!manager){
+			var managerUser = new User({
+				username:'React-News平台',
+				password:123,
+				registerTime:date,
+				loginTime:date,
+				userImage:config.uploadPath + '/logo.png'
+			});
+			managerUser.save()
+				.then(()=>{
+					_createUser(r_userName,r_password,managerUser,res);
+				})
+		} else {
+			_createUser(r_userName, r_password, manager, res);
+		}
+	})	
 })
 
 router.get('/login',(req,res)=>{
@@ -94,7 +111,7 @@ router.get('/login',(req,res)=>{
 			if (userInfo.password === util.md5(password)) {
 				obj.username = userInfo.username;
 				obj.userid = userInfo._id;	
-				obj.avatar = 
+				obj.avatar = userInfo.userImage;
 				util.responseClient(res,200,0,'',obj);
 			} else {
 				util.responseClient(res,200,1,'密码输入错误!')
@@ -105,56 +122,32 @@ router.get('/login',(req,res)=>{
 })
 
 router.get('/getChatList',(req,res)=>{
-	let { username, other } = req.query;	
-	User.findOne({'username':username},(err,user)=>{
+	let { userid, other } = req.query;	
+	User.findOne({_id:userid},(err,user)=>{
 		var data = [];
 		var msgs = user.message;
-		
-		User.findOne({'username':other},(err,otherUser)=>{
-
+		User.findOne({_id:other},(err,otherUser)=>{
 			data = msgs.filter(item=>{
-
 				return item.fromUser === other || item.toUser === other
+			});
+			data = data.map(item=>{
+				var obj = {};
+                obj.fromUser = item.fromUser;
+                obj.toUser = item.toUser;
+                obj.msgtype = item.msgtype;
+                obj.msgtime = item.msgtime;
+                obj.content = item.content;
+                obj.selfAvatar = user.userImage;
+                obj.otherAvatar = otherUser.userImage;
+                return obj;
 			})
-	
-		
 			util.responseClient(res,200,0,'ok',data);
-		})
-		
+		})	
 	})	
 })
 
-router.get('/getUserAvatar',(req,res)=>{
-	var { user, other } = req.query;
-
-	User.findOne({'username':other},(err,otherUser)=>{
-		var avatar = {};
-		if (!user){
-			if(!otherUser){
-				avatar.otherAvatar = "http://localhost:8080/logo.png";
-			} else {
-				avatar.otherAvatar = otherUser.userImage;
-			}			
-			util.responseClient(res,200,0,'ok',avatar);
-			return ;
-		}
-		User.findOne({'username':user},(err,selfUser)=>{
-
-			if(!otherUser){
-				avatar.otherAvatar = "http://localhost:8080/logo.png";
-			} else {
-				avatar.otherAvatar = otherUser.userImage;
-			}
-			
-			avatar.selfAvatar = selfUser.userImage;
-			util.responseClient(res,200,0,'ok',avatar);			
-		})
-		
-	})
-})
-
 router.get('/usercenter',(req,res)=>{
-	let { userid } = req.query;
+	let { userid, isSelf } = req.query;
 	//mongooseOperations.createComments(20);
 	User.findOne({_id:userid},{password:0})
 		.then(user=>{
@@ -181,7 +174,7 @@ router.get('/usercenter',(req,res)=>{
 				userPromise.getUserHistory(userid,resolve);
 			});
 			var promise6 = new Promise((resolve,reject)=>{
-				userPromise.getUserCollect(userid,resolve);
+				userPromise.getUserCollect(userid,resolve,isSelf);
 			});
 			
 			Promise.all([promise1,promise2,promise3,promise4,promise5,promise6])
@@ -190,8 +183,7 @@ router.get('/usercenter',(req,res)=>{
 					data.userFans = fans;
 					data.userAction = actions;
 					data.userHistory = userHistory;
-					data.userCollect = userCollect;
-			
+					data.userCollect = userCollect;			
 					data.comments = comments;
 					util.responseClient(res,200,0,'ok',data);
 
@@ -262,40 +254,24 @@ router.get('/checkusername',(req,res)=>{
 })
 
 router.get('/addFollow',(req,res)=>{
-	let { username, follow } = req.query;
+	let { userid, followId } = req.query;
 	
-	User.findOne({'username':username},(err,user)=>{
-		if (user){
-			var userId = user._id;
-			User.updateOne({'username':username},{$push:{userFollow:follow}},(err,result)=>{
-				//console.log(result);
-				User.updateOne({_id:follow},{$push:{userFans:userId}},(err,result)=>{
-					//console.log(result);
-			})
-
-			util.responseClient(res,200,0,'');
-
-			})
-		}
+	User.updateOne({_id:userid},{$push:{userFollow:followId}},(err,result)=>{
+		User.updateOne({_id:followId},{$push:{userFans:userid}},(err,result)=>{
+			util.responseClient(res,200,0,'ok');
+		})
 	})	
 	
 })
 
-
 router.get('/removeFollow',(req,res)=>{
-	let { username, follow } = req.query;
-
-	User.updateOne({'username':username},{$pull:{userFollow:follow}},(err,result)=>{
-		//console.log(result);
-		User.findOne({'username':username},(err,user)=>{
-			User.updateOne({_id:follow},{$pull:{userFans:user._id}},(err,result)=>{
-				//console.log(result);
-			});
-
+	let { userid, followId } = req.query;
+	
+	User.updateOne({_id:userid},{$pull:{userFollow:followId}},(err,result)=>{
+		User.updateOne({_id:followId},{$pull:{userFans:userid}},(err,result)=>{
 			util.responseClient(res,200,0,'ok');
 		})
-		
-	})
+	})	
 
 })
 
@@ -395,6 +371,34 @@ router.get('/getUserFollows',(req,res)=>{
 			})
 			
 			util.responseClient(res,200,0,'ok',users);
+		})
+	})
+})
+
+router.get('/getCommonUsers',(req,res)=>{
+	var { userId, currentUserId, follow } = req.query;
+
+	User.findOne({_id:userId},(err,localUser)=>{
+		User.findOne({_id:currentUserId},(err,currentUser)=>{
+			var data1,data2,result = [];
+			if (follow){
+				data1 = localUser.userFollow;
+				data2 = currentUser.userFollow;
+			} else {
+				data1 = localUser.userFans;
+				data2 = currentUser.userFans;
+			}
+			data1.map(item=>{
+				if(data2.includes(item)){
+					result.push(item);
+				}
+			});
+			var promise = new Promise((resolve,reject)=>{
+				userPromise.getUserFollows(result,resolve);
+			});
+			promise.then(data=>{
+				util.responseClient(res,200,0,'ok',data);
+			})
 		})
 	})
 })

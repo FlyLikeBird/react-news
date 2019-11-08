@@ -83,13 +83,13 @@ export default class Root extends React.Component {
     }
     
     componentWillMount(){
-      var username = localStorage.getItem('username');     
-      if ( username  ){
+      var userid = localStorage.getItem('userid');     
+      if ( userid  ){
         var socket = io.connect(`${config.socket}`);
         socket.on('connect',()=>{
-           socket.emit('user-login',username);
+           socket.emit('user-login',userid);
            socket.on('receive-message',(msg)=>{
-              //console.log(msg);
+              console.log(msg);
               this.setState({msg});
            });
            this.setState({socket})           
@@ -101,7 +101,7 @@ export default class Root extends React.Component {
     connectSocket(){      
         var socket = io.connect(`${config.socket}`);       
         socket.on('connect',()=>{
-           socket.emit('user-login',localStorage.getItem('username'));
+           socket.emit('user-login',localStorage.getItem('userid'));
            socket.on('receive-message',(msg)=>{
               this.setState({msg});
            });

@@ -13,11 +13,11 @@ export default class PCUserCenter extends React.Component{
 			userFollow:[],
 			userFans:[],
 			userCollect:[],
+			
 			userAction:[],
 			userComments:[],
 			userHistory:[],
 			isLoad:true
-			
 		}
 	}
 
@@ -25,21 +25,21 @@ export default class PCUserCenter extends React.Component{
 		
 		var params = props.match.params.id;
 		var isSelf = localStorage.getItem('userid') === params ? true :false;
-		fetch(`/api/usr/usercenter?userid=${params}`)
+		fetch(`/api/usr/usercenter?userid=${params}&isSelf=${isSelf?'true':''}`)
 			.then(response=>response.json())
 			.then(json=>{
 				//console.log(data);
 				var user = json.data;
 				//console.log(responseData);
-				var { userFollow, userFans, userAction, userHistory, userCollect, username, comments } = user;				
-				this.setState({user, userFollow, userFans, userAction, userCollect, userHistory,userComments:comments,isSelf,isLoad:false})
+				var { userFollow, userFans, userAction, userHistory, userCollect,  username, comments } = user;				
+				this.setState({user, userFollow, userFans, userAction, userCollect,  userHistory,userComments:comments,isSelf,isLoad:false})
 		})
 
 	}
 
 	componentWillReceiveProps(newProps){
-		var params = this.props.match.params.userid;
-		if ( params != newProps.match.params.userid){
+		var params = this.props.match.params.id;
+		if ( params != newProps.match.params.id){
 			this.setState({isLoad:true});
 			this._loadUserInfo(newProps);
 		}	
@@ -52,8 +52,8 @@ export default class PCUserCenter extends React.Component{
 	
 	render(){
 		
-		var { socket, history, msg } = this.props;
-		var { user, userFollow, userFans, userAction, userComments, userHistory, userCollect, isSelf, isLoad  } = this.state;
+		var { socket, history, match, msg } = this.props;
+		var { user, userFollow, userFans, userAction, userComments, userHistory, userCollect,  isSelf, isLoad  } = this.state;
 
 		return(
 
@@ -79,9 +79,10 @@ export default class PCUserCenter extends React.Component{
 										userComments={userComments}
 										userHistory={userHistory}
 										userCollect={userCollect}
-										
+			
 										socket={socket}
 										history={history}
+										match={match}
 										msg={msg}
 										isSelf={isSelf}
 									/>

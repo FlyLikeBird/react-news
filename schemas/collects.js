@@ -12,7 +12,7 @@ module.exports = new mongoose.Schema({
     defaultCollect:{type:Boolean,default:false},
     // 0 公开的 1 关注的人可见 2 私密,仅自己可见  
     privacy:{type:Number,default:0},
-    followedBy:[String],
+    followedBy:[{userid:String,addtime:String}],
     shareBy:[String]
    
 });

@@ -4,6 +4,19 @@ var userPromise = require('../userPromise');
 
 var onlineUsers = {};
 
+function _checkIsFollowd(userid,checkFollow, checkFans, isFollowed){
+    //  0 表示未关注  1 表示已关注  2 表示互相关注
+    if (checkFollow.includes(userid)){
+        if (checkFans.includes(userid)){
+            isFollowed[userid] = 2;
+        } else {
+            isFollowed[userid] = 1;
+        }
+    } else {
+        isFollowed[userid] = 0 ;
+    }
+}
+
 function sort(arr){
   arr.sort((a,b)=>{
     var time1 = Date.parse(a.date);
@@ -19,15 +32,14 @@ function filterMsgType(type){
     }
 }
 
-function showNotReadMsg(type,msg,user,obj){
+function showNotReadMsg(type,msg,userid,obj){
     obj[type] = {};
     var users = Object.keys(msg);
-    //console.log(users);
-    //console.log(msg);
+    
     for(var i=0,len=users.length;i<len;i++){
 
         var tempArr = msg[users[i]].filter(item=>{
-            return item.toUser == user && item.isRead == false
+            return item.toUser == userid && item.isRead == false
         })
         //console.log(tempArr);
         obj[type][users[i]] = tempArr.length;
@@ -36,30 +48,30 @@ function showNotReadMsg(type,msg,user,obj){
 
 }
 
-function deepFilter(arr,user){
-    var userList = {};
+function deepFilter(arr,userid){
+    var msgList = {};
     arr.map(item=>{
         // 先判断此条消息是发送方还是接收方
-         if(item.fromUser == user){
-             if(!userList[item.toUser]) {
+         if(item.fromUser == userid){
+             if(!msgList[item.toUser]) {
                  var userArr = [];
                  userArr.push(item);
-                 userList[item.toUser] = userArr;
+                 msgList[item.toUser] = userArr;
              } else {
-                 userList[item.toUser].push(item);
+                 msgList[item.toUser].push(item);
              }             
          } else {
-             if(!userList[item.fromUser]){
+             if(!msgList[item.fromUser]){
                  var userArr = [];
                  userArr.push(item);
-                 userList[item.fromUser] = userArr;
+                 msgList[item.fromUser] = userArr;
              } else {
-                 userList[item.fromUser].push(item);
+                 msgList[item.fromUser].push(item);
              }
          }    
     });
 
-    return userList;
+    return msgList;
 }
 
 
@@ -72,14 +84,10 @@ function storeMsg(fromUser,toUser,content,resolve){
             msgtype:'user',
             msgtime:date,
         };
-
-        User.updateOne({username:fromUser},{$push:{message:option}},(err,result)=>{
-            User.updateOne({username:toUser},{$push:{message:option}},(err)=>{                
-                if(resolve){
-                    resolve()
-                }
-            })               
-               
+        User.updateOne({_id:fromUser},{$push:{message:option}},(err,result)=>{
+            User.updateOne({_id:toUser},{$push:{message:option}},(err)=>{                
+                resolve()
+            })                            
         })           
 }
 
@@ -99,14 +107,18 @@ function sendActionMsg( user, sender, commentid, io ){
     })
 }
 
-function getMsg(socket,user){  
+function getMsg(socket,userid){  
     var promise = new Promise((resolve,reject)=>{
-        User.findOne({username:user},(err,userInfo)=>{            
+        User.findOne({_id:userid},(err,userInfo)=>{            
             if (userInfo) {                   
                     /*
                         消息数据格式
                         msg = {                           
-                                systemMsg:[],
+                                systemMsg:{
+                                    'system1':[],
+                                    'system2':[],
+                                    ...
+                                },
                                 actionMsg:[],
                                 userMsg:{
                                     '001':[],
@@ -126,26 +138,29 @@ function getMsg(socket,user){
                         }                    
                     */
 
-                    var msg = {},username = userInfo.username;                    
+                    var msg = {};                    
                     var result = userInfo.message;
                     var allSystemMsg = result.filter(filterMsgType('system'));
                     var allUserMsg =result.filter(filterMsgType('user'));
                     var allActionMsg = result.filter(filterMsgType('action'));
                     msg['total'] = 0;
-                    var userMsg = deepFilter(allUserMsg,username);
-                    var systemMsg = deepFilter(allSystemMsg,username);
+                    var userMsg = deepFilter(allUserMsg,userid);
+                    var systemMsg = deepFilter(allSystemMsg,userid);
                     //   筛选未读的动态消息
+                    var actionNotRead = 0;
+                    /*
                     var actionNotRead = allActionMsg.filter(item=>{
                         return item.toUser == username && item.isRead == false
                     })
-                    
-                    showNotReadMsg('userNotRead',userMsg,username,msg);
-                    showNotReadMsg('systemNotRead',systemMsg,username,msg);
-                    msg['actionNotRead'] = actionNotRead.length; 
-                    msg['total'] += actionNotRead.length;
+                    */
+                    showNotReadMsg('userNotRead', userMsg, userid, msg);
+                    showNotReadMsg('systemNotRead', systemMsg, userid, msg);
+                    msg['actionNotRead'] = actionNotRead; 
+                    msg['total'] += actionNotRead;
                     msg['systemMsg'] = systemMsg;
                     msg['userMsg'] = userMsg;
-                    //  构建动态消息需要的数据结构                   
+                    //  构建动态消息需要的数据结构      
+                    /*             
                     var allPromises = [];
                     for(var i=0,len=allActionMsg.length;i<len;i++){
                         (function(i){
@@ -161,6 +176,8 @@ function getMsg(socket,user){
                             msg['actionMsg'] = sort(data);
                             resolve(msg);
                         })
+                    */
+                    resolve(msg);
             } 
         })
     });
@@ -172,15 +189,16 @@ function getMsg(socket,user){
 
 function socketIndex(socket,io){
     
-    socket.on('user-login',(user)=>{       
-        onlineUsers[user] = {
+    socket.on('user-login',(userid)=>{       
+        onlineUsers[userid] = {
             id:socket.id
         };
-        getMsg(socket,user);       
+        getMsg(socket,userid); 
+             
     })
     
-    socket.on('user-loginout',(user)=>{       
-        onlineUsers[user] = null;   
+    socket.on('user-loginout',(userid)=>{       
+        onlineUsers[userid] = null;   
     })
 
     socket.on('isChatting',(fromUser,toUser)=>{
@@ -200,73 +218,24 @@ function socketIndex(socket,io){
         })
     })
 
-    socket.on('checkLogined',(list)=>{
-        //console.log(list);
-        var result = {}
-        for(var i=0,len=list.length;i<len;i++){
-            if (onlineUsers[list[i]]){
-                if (onlineUsers[list[i]].id) {
-                    result[list[i]] = true;
-                }
-            }
-            
+    socket.on('checkLogined',( users, checkUserId)=>{
+        var logined = {},isFollowed = {};
+        for(var i=0,len=users.length;i<len;i++){
+            var user = users[i];
+            if (onlineUsers[user] && onlineUsers[user].id){
+                logined[user] = true;
+            }  
         }
-        socket.emit('checkLoginedResult',result)
-    })
-
-
-    socket.on('checkIsFollowed',(list,user)=>{
-
-        // 0未关注  1已关注  2互相关注
-
-        var data = [];
-        User.findOne({'username':user},(err,checkUser)=>{
-            var follows = checkUser.userFollow;
-            var fans = checkUser.userFans;
-
-            User.find({'username':{$in:list}},(err,result)=>{
-                
-                var ids = result.map(item=>({username:item.username,id:item._id}));
-                // 遍历每个用户列表的用户
-                one:for(let i=0,len=ids.length;i<len;i++){
-                    // 先检查某个用户是否在关注列表里
-                   two:for(let j=0,len=follows.length;j<len;j++){
-                        
-                        if (ids[i].id == follows[j].id) {
-                            // 如果在关注列表里再继续判断是否在粉丝列表里
-                            three:for(let k=0,len=fans.length;k<len;k++){
-                                    if(ids[i].id == fans[k].id) {
-                                       
-                                       data.push({
-                                           id:fans[k].id,
-                                           state:2
-                                       })
-                                       continue one;
-                                } 
-                            }
-
-                            data.push({
-                                id:follows[j].id,
-                                state:1
-                            });
-                            
-                            continue one;
-                        } 
-                   }
-
-                   data.push({
-                    id:ids[i].id,
-                    state:0
-                   })
-                }
-
-                socket.emit('checkIsFollowedResult',data)
-
-            })
-            
-
+        User.findOne({_id:checkUserId},(err,userInfo)=>{
+            var follows = userInfo.userFollow;
+            var fans = userInfo.userFans;
+            for(var i=0,len=users.length;i<len;i++){
+                _checkIsFollowd(users[i],follows,fans,isFollowed);
+            };
+            socket.emit('checkLoginedResult',logined,isFollowed);
         })
-    });
+        
+    })
 
     socket.on('markMsgIsRead',(otherUser,selfUser)=>{       
         User.findOne({'username':selfUser},(err,user)=>{
@@ -309,24 +278,22 @@ function socketIndex(socket,io){
             storeMsg(fromUser,toUser,value,resolve);
         })
         promise.then(()=>{
-
-             User.findOne({'username':fromUser},(err,from_user)=>{
-
-                User.findOne({'username':toUser},(err,to_user)=>{
+             User.findOne({_id:fromUser},(err,from_user)=>{
+                User.findOne({_id:toUser},(err,to_user)=>{
                     var data = [];
-
                      data = from_user.message.filter(item=>{
                          return item.fromUser === toUser || item.toUser === toUser
-                     })
+                     });
     
                      data = data.map(item=>{
-                        var obj={};
-                       
-                        obj.content = item.content;
+                        var obj = {};
+                        obj.fromUser = item.fromUser;
+                        obj.toUser = item.toUser;
+                        obj.msgtype = item.msgtype;
                         obj.msgtime = item.msgtime;
-                        obj.fromUser = item.fromUser;                        
-                        obj.fromUserAvatar = from_user.userImage;
-                        obj.toUserAvatar = to_user.userImage;
+                        obj.content = item.content;
+                        obj.selfAvatar = from_user.userImage;
+                        obj.otherAvatar = to_user.userImage;
                         return obj;
                      })                
                      socket.emit('send-chatList',data);

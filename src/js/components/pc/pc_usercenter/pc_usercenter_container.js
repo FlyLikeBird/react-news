@@ -13,6 +13,7 @@ import NewsList from './pc_newslist';
 import MessageContainer from './pc_usercenter_message';
 import CollectContainer from '../../collectComponent';
 import UpdateContainer from './pc_usercenter_update';
+import FollowContainer from './pc_usercenter_follow';
 
 export default class PCUserCenterContainer extends React.Component{
 
@@ -51,7 +52,7 @@ export default class PCUserCenterContainer extends React.Component{
 
     render(){
         var { loadChart, loadUserComment, loadUserTopic, UserComment, UserTopic, UserChart } = this.state;
-        var { userFollow, userFans, userAction, userComments, userHistory, userCollect, socket, history, isSelf, msg } = this.props;
+        var { userFollow, userFans, userAction, userComments, userHistory, userCollect, followedCollect, socket, history, match, isSelf, msg } = this.props;
         
         return(
 
@@ -60,11 +61,11 @@ export default class PCUserCenterContainer extends React.Component{
                             <TabPane tab={isSelf?"我的动态":"TA的动态"} key="action" className="background-color">
                                 <UpdateContainer data={userAction} history={history} socket={socket} isSelf={isSelf}/>
                             </TabPane>
-                            <TabPane tab={isSelf?"我的关注":"TA的关注"} key="follow">
-                                <UserList socket={socket} history={history} data={userFollow} isSmall text="还没有关注任何人!"/>
+                            <TabPane tab={isSelf?"我的关注":"TA的关注"} key="follow"> 
+                                <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFollow} text="follow"/>
                             </TabPane>
                             <TabPane tab={isSelf?"我的粉丝":"TA的粉丝"} key="fans">
-                                <UserList socket={socket} history={history} data={userFans} isSmall text="还没有任何追随者!"/>
+                                <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFans} text="fans"/>
                             </TabPane>                            
                             {
                                 isSelf
@@ -76,7 +77,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 null
                             }                            
                             <TabPane tab={isSelf?"我的收藏":"TA的收藏"} key="collect">
-                                <CollectContainer data={userCollect} forUser={true}/>
+                                <CollectContainer isSelf={isSelf} data={userCollect} match={match} forUser={true}/>
                             </TabPane>
                             
                             <TabPane tab={isSelf?"我的话题":"TA的话题"} key="topic">
@@ -110,7 +111,7 @@ export default class PCUserCenterContainer extends React.Component{
                             </TabPane>
                     
                     </Tabs>
-                    <div style={{position:'absolute',top:'0',right:'0'}}>
+                    <div className="chart-container">
                         <Button type="primary"  shape="circle" onClick={this.loadChartSource.bind(this)}><Icon type="bar-chart" /></Button>                       
                     </div>
                     { loadChart && <UserChart visible={true} />}

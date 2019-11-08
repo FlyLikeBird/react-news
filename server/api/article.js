@@ -94,7 +94,7 @@ function selectImgByUniquekey(content){
 
 
 router.get('/search',(req,res)=>{
-  var { words, pageNum, type, orderBy, start, end } = req.query;
+  var { words, pageNum, type, orderBy, start, end, userid } = req.query;
   var total = 0;
   //console.log(type);
   var skip = (pageNum -1) > 0 ? (pageNum-1)*20 : 0;

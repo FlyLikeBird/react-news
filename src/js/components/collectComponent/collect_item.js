@@ -1,7 +1,8 @@
 import React from 'react';
-import { Row, Col, BackTop, Button, Icon, Popover, Modal, Input, Form, Select, Card, Collapse } from 'antd';
+import { Row, Col, BackTop, Button, Icon, Tooltip, Popover, Modal, Input, Form, Select, Card, Collapse } from 'antd';
 
 import NewsList from '../pc/pc_usercenter/pc_newslist';
+import TopicItemPopover from '../pc/pc_topic/pc_topic_item_popover';
 
 const { Option } = Select;
 const { Meta } = Card;
@@ -13,34 +14,52 @@ var privacyObj = {
     '2':'私密的仅自己可见'
 }
 
-class PanelHeader extends React.Component {
 
+export default class CollectItem extends React.Component {
     constructor(){
         super();
         this.state = {
+            item:{},
             className:'',
-            isCollected:false
+            isCollected:false,
+            followedBy:[],
+            visible:false,
+            iconType:'caret-right',
+            innerIcon:'caret-left',
+            userCollected:false,
+            addFlash:'',
+            motion:''
         }
     }
 
+    componentDidMount(){
+        var { data } = this.props;
+        var { isCollected, followedBy, userCollected } = data;
+        this.setState({item:data,isCollected,followedBy, userCollected});
+    }
+    
     handleAddIntoCollect(id,uniquekey,e){
         e.stopPropagation();
+        this.setState({motion:'curvePath'});
+        setTimeout(()=>{
+                        this.setState({motion:''})
+                    },1000)
+        /*
         var { onShowMsg, onAddCollect } = this.props;
         var userid = localStorage.getItem('userid');
         if (userid){                 
-            fetch(`/api/collect/addIntoCollect?userid=${userid}&uniquekey=${uniquekey}&id=${id}`)
+            fetch(`/api/collect/addIntoCollect?collectId=${id}&contentId=${uniquekey}`)
                 .then(response=>response.json())
-                .then(json=>{
+                .then(json=>{            
                     var data = json.data;
-                    if (onAddCollect){
-                        onAddCollect(data);
-                    }
-                    this.setState({className:'add-motion',isCollected:true});
+                    this.setState({item:data,className:'add-motion',isCollected:true});
                     setTimeout(()=>{
                         this.setState({className:''})
                     },1000)
+
                 })   
-        }        
+        }    
+        */    
     }
 
     handleRemoveCollect(id,e){
@@ -50,159 +69,145 @@ class PanelHeader extends React.Component {
             onVisible(true,id);
         }
     }
-
-    componentDidMount(){
-        var { item } = this.props;
-        var { isCollected } = item;
-        this.setState({isCollected})
-    }
-
-    handleRemoveContent(id,e){
-        e.stopPropagation();
-        var { item, uniquekey, onAddCollect } = this.props;
-        var { content } = item;
-        var contentId = '';
-        for(var i=0,len=content.length;i<len;i++){
-            if ( content[i].articleId === uniquekey){
-                contentId = content[i].id;
-            }
+    
+    componentWillReceiveProps(newProps){
+        if (this.props.data.id != newProps.data.id){
+            var { isCollected, followedBy, userCollected } = newProps.data;
+            this.setState({item:newProps.data,isCollected,followedBy, userCollected});
         }
-        fetch(`/api/collect/removeCollectContent?userid=${localStorage.getItem('userid')}&collectId=${id}&contentId=${contentId}&uniquekey=${uniquekey}`)
+    }
+    
+    handleRemoveContent(id, uniquekey, e){
+        e.stopPropagation();
+        this.setState({motion:'curvePath'});
+        setTimeout(()=>{
+                        this.setState({motion:''})
+                    },1000)
+        /*
+        fetch(`/api/collect/removeCollectContent?collectId=${id}&contentId=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                if (onAddCollect){
-                    onAddCollect(data);
-                }
-                this.setState({isCollected:false})
+                this.setState({item:data,isCollected:false})
             })
+        */
     }
 
-    render(){
-        var { isCollected, className } = this.state;
-        var { item, uniquekey, forUser } = this.props;
-        var { privacy, content, tag, defaultCollect, id, followedBy, shareBy } = item; 
-
-        return (
-            
-                <div style={{display:'flex',alignItems:'center',marginLeft:'20px',width:'100%'}}>
-
-                    <div style={{fontSize:'30px',color:'#ccc',flex:'1'}}><Icon style={{color:'#1890ff'}} className={className} type="folder-add" theme="filled" /></div>
-                    <div style={{flex:'7'}}>
-                        <span>{tag}</span>
-                        <div>
-                            <span className="collect-card-text">{privacyObj[privacy]}</span>
-                            <span className="collect-card-text">{`${content.length}条内容`}</span>
-                            {
-                                defaultCollect 
-                                ?
-                                null
-                                :
-                                privacy == 2 
-                                ?
-                                null
-                                :
-                                <span className="collect-card-text">{`${followedBy.length}人收藏`}</span>
-                            }
-                            {
-                                defaultCollect 
-                                ?
-                                null
-                                :
-                                privacy == 2 
-                                ?
-                                null
-                                :
-                                <span className="collect-card-text">{`${shareBy.length}人分享`}</span>
-                            }
-                            
-                        </div>
-                    </div>
-                    {
-                        forUser
-                        ?
-                        null
-                        :
-                        isCollected
-                        ?
-                        <Button size="small" className="cancel" onClick={this.handleRemoveContent.bind(this,id)} shape="circle" icon="check"/> 
-                        :
-                        <Button size="small" className="add"  onClick={this.handleAddIntoCollect.bind(this,id,uniquekey)} shape="circle" icon="plus"/> 
-                    }
-                    
-                    {
-                        forUser
-                        ?
-                        defaultCollect
-                        ?
-                        null
-                        :
-                        <Button size="small" onClick={this.handleRemoveCollect.bind(this,id)} shape="circle" icon="close"/>
-                        :
-                        null
-                    }
-                       
-                    
-                </div>
-            
-        )
+    handleChangeIcon(type,visible){
+        if (visible===true){
+            this.setState({innerIcon:'caret-down'})
+        } else {
+            this.setState({innerIcon:'caret-left'})
+        }
     }
-}
 
-export default class CollectItem extends React.Component {
-    
-    render(){
-        var { data, uniquekey, forUser, onVisible, text, onAddCollect, onShowMsg } = this.props;
+    handleFollowCollect(id, unFollow, e){
+        e.stopPropagation();   
+        var userid = localStorage.getItem('userid');
+        fetch(`/api/collect/followCollect?collectId=${id}&userid=${userid}&unFollow=${unFollow?unFollow:''}`)
+            .then(response=>response.json())
+            .then(json=>{
+                var data = json.data;
+                this.setState({followedBy:data,userCollected:!this.state.userCollected,className:'add-motion'});
+                setTimeout(()=>{
+                    this.setState({className:''})
+                },1000)
+            })
         
-        return(
-            
-        <div>
-            {
-                data.length
-                ?
-                <Collapse
-                 className="collect-card"
-                 bordered={false}
-                 expandIcon={({ isActive }) => <Icon type="caret-right" rotate={isActive ? 90 : 0} />}
-    
-                >
-                    {                        
-                     
-                         data.map((item,index)=>(
-                        
-                             <Panel 
-                                key={index} 
-                                header={
-                                    <PanelHeader 
-                                        forUser={forUser} 
-                                        onShowMsg={onShowMsg} 
-                                        onAddCollect={onAddCollect} 
-                                        item={item}
-                                        onVisible={onVisible} 
-                                        uniquekey={uniquekey}/>
-                                    }
-                            >
-                                {
-                                    item.content.length
-                                    ?
-                                    <NewsList data={item.content} collectId={item.id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
-                                    :
-                                    <div>还没有收藏任何内容</div>
+    }
 
+    handleShowContent(){
+        var { visible } = this.state;
+        if (visible){
+            this.setState({visible:false,iconType:'caret-right'})
+        } else {
+            this.setState({visible:true,iconType:'caret-down'});
+        }
+        
+    }
+
+    render(){
+        var { forUser, forCollect, isSelf, uniquekey, onAddCollect } = this.props;
+        var { item, iconType, innerIcon, className, isCollected, followedBy, userCollected, addFlash, motion, visible } = this.state;
+        var { tag, defaultCollect, privacy, content, id } = item;
+        return(
+            <div className="collect-container">
+                <div className="collect-header" onClick={this.handleShowContent.bind(this)}>
+                    <Icon type={iconType} />
+                    <div className="collect-card">
+                        <span style={{flex:'1',position:'relative'}}>
+                            <span style={{fontSize:'30px',color:'#1890ff'}}><Icon className={className} type="folder-add" theme="filled" /></span>
+                            <span className={motion?'motion curvePath':'motion'}><Icon type="file-text" /></span>
+                        </span>
+                        <div style={{flex:'7'}}>
+                            <span>{tag}</span>
+                            <div>
+                                <span className="text">{privacyObj[privacy]}</span>
+                                <span className="text">{`${content?content.length:0}条内容`}</span>
+                                {
+                                    defaultCollect 
+                                    ?
+                                    null
+                                    :
+                                    privacy == 2 
+                                    ?
+                                    null
+                                    :
+                                    <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏"/>}>
+                                        <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>
+                                    </Popover>
+                                    
                                 }
-                                 
-                             </Panel>
+                                
+                            </div>
+                        </div>
+                        {
+                            forUser
+                            ?
+                            null
+                            :
+                            isCollected
+                            ?
+                            <Button size="small" className="cancel" onClick={this.handleRemoveContent.bind(this,id,uniquekey)} shape="circle" icon="check"/> 
+                            :
+                            <Button size="small" className="add"  onClick={this.handleAddIntoCollect.bind(this,id,uniquekey)} shape="circle" icon="plus"/> 
+                        }
                         
-                         ))
-                    }
+                        {
+                            forUser
+                            ?
+                            defaultCollect
+                            ?
+                            null
+                            :
+                            isSelf && !forCollect
+                            ?
+                            <Button size="small"  onClick={this.handleRemoveCollect.bind(this,id)} shape="circle" icon="close"/> 
+                            :
+                            
+                            // #fadb14  outlined
+                            <Tooltip title={userCollected?'取消收藏':'收藏'}>
+                                <Icon type="star" className={addFlash} theme={userCollected?'filled':'outlined'} style={{color:userCollected?'#1890ff':'rgba(0, 0, 0, 0.65)'}} onClick={this.handleFollowCollect.bind(this,id,userCollected?true:'')} />
+                            </Tooltip>
+                            
+                            :
+                            null
+                        }
                        
-                </Collapse>
-                :
-                <span>{text}</span>
-            }            
-            
-        </div>   
                     
+                    </div>
+                </div>
+                <div style={{display:visible?'block':'none'}}>
+                    {
+                        content && content.length
+                        ?
+                        <NewsList data={content} collectId={id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
+                        :
+                        <div>还没有收藏任何内容</div>
+
+                    }
+                </div>
+            </div>    
 
         )
     }

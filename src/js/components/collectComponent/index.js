@@ -17,7 +17,7 @@ export default class CollectContainer extends React.Component {
         super()
         this.state={
             createCollect:[],
-            addCollect:[],
+            followedCollect:[],
             text:'',
             value:'',
             privacy:0,
@@ -28,7 +28,6 @@ export default class CollectContainer extends React.Component {
     }
     
     componentDidMount(){
-
         var { data } = this.props;
         this.setState({createCollect:data})
     }
@@ -114,14 +113,44 @@ export default class CollectContainer extends React.Component {
         this.setState({createCollect:data})
     }
 
+    handleChange(activeKey){
+        var { match } = this.props;
+        var userid = '';
+        if( match && match.params.id ){
+            userid = match.params.id;
+        }
+        if(activeKey==1){
+            fetch(`/api/collect/getFollowedCollect?userid=${userid}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    var localUser = localStorage.getItem('userid');
+                    data = data.map(item=>{
+                        var follows = item.followedBy.map(item=>item.userid);
+                        if (follows.includes(localUser)){
+                            item['userCollected'] = true;
+                        }
+                        return item;
+                    })
+                    this.setState({followedCollect:data});
+                })
+        }
+    }
     render(){
-        var { show, text, createCollect, addCollect, value, visible, deleteId } = this.state;
+        var { show, text, createCollect, followedCollect, value, visible, deleteId } = this.state;
         var { isSelf, uniquekey, forUser } = this.props;
-        
+       
         return(
             
             <div style={{position:'relative',textAlign:'left'}}>
-                <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleCollectShow.bind(this)}>创建收藏夹</Button>
+                {
+                    isSelf
+                    ?
+                    <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleCollectShow.bind(this)}>创建收藏夹</Button>
+                    :
+                    null
+                }
+                
                 <div style={{display:show?'block':'none'}}>
                     
                     <Form layout="inline">
@@ -143,31 +172,54 @@ export default class CollectContainer extends React.Component {
                     </Form>
                 </div>
                 <span style={{fontSize:'12px',color:'#f5222d',position:'absolute',left:'110px',top:'10px'}}>{text}</span>
-                <Tabs defaultActiveKey="0">
-                    <TabPane tab="我创建的" key="0">
-                        <CollectItem  
-                            data={createCollect} 
-                            forUser={forUser} 
-                            uniquekey={uniquekey} 
-                            onAddCollect={this.handleUpdateCollection.bind(this)} 
-                            onShowMsg={this.handleShowMsg.bind(this)}
-                            onVisible={this.handleModalVisible.bind(this)}
-                            text="还没有创建收藏夹"
-                        />
+                <Tabs defaultActiveKey="0" onChange={this.handleChange.bind(this)}>
+                    <TabPane tab={isSelf?"我创建的":"TA创建的"} key="0">
+                        {
+                            createCollect.length
+                            ?
+                            createCollect.map((item,index)=>(
+                                <CollectItem 
+                                    data={item}
+                                    key={index}
+                                    forUser={forUser}
+                                    isSelf={isSelf}
+                                    uniquekey={uniquekey}
+                                    onAddCollect={this.handleUpdateCollection.bind(this)} 
+                                    onShowMsg={this.handleShowMsg.bind(this)}
+                                    onVisible={this.handleModalVisible.bind(this)}
+                                    text="还没有创建收藏夹"
+                                />
+                            ))
+                            :
+                            null
+                        }
+                                  
                     </TabPane>
                     {
                         forUser
                         ?
-                        <TabPane tab="我收藏的" key="1">
-                            <CollectItem  
-                                data={addCollect} 
-                                forUser={forUser} 
-                                uniquekey={uniquekey} 
-                                onAddCollect={this.handleUpdateCollection.bind(this)} 
-                                onShowMsg={this.handleShowMsg.bind(this)}
-                                onVisible={this.handleModalVisible.bind(this)}
-                                text="还没有收藏他人的收藏夹"
-                            />
+                        <TabPane tab={isSelf?"我收藏的":"TA收藏的"} key="1">
+                            {
+                                followedCollect.length
+                                ?
+                                followedCollect.map((item,index)=>(
+                                    <CollectItem  
+                                        data={item} 
+                                        forUser={forUser}
+                                        forCollect={true} 
+                                        key={index}
+                                        isSelf={isSelf}
+                                        uniquekey={uniquekey} 
+                                        onAddCollect={this.handleUpdateCollection.bind(this)} 
+                                        onShowMsg={this.handleShowMsg.bind(this)}
+                                        onVisible={this.handleModalVisible.bind(this)}
+                                        text="还没有收藏他人的收藏夹"
+                                    />
+                                ))
+                                :
+                                null
+                            }
+                            
                         </TabPane>
                         :
                         null

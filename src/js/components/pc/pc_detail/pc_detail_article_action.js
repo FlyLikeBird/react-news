@@ -93,7 +93,7 @@ export default class ArticleAction extends React.Component {
                 </div>   
                 
                 <Modal className="collect-container" visible={collectVisible} footer={null} onCancel={this.handleModalVisible.bind(this,false)} maskClosable={true}>
-                    <CollectContainer data={userCollect} uniquekey={uniquekey}/>
+                    <CollectContainer data={userCollect} uniquekey={uniquekey} isSelf={true}/>
                 </Modal>
                 <Modal className="score-container" visible={rateVisible} footer={null} onCancel={this.handleRateVisible.bind(this)}>
                     <PCDetailRate uniquekey={uniquekey} onVisible={this.handleRateVisible.bind(this)} onUpdateViewUsers={this.updateViewUsers.bind(this)}/>

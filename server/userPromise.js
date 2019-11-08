@@ -42,14 +42,11 @@ function translateUserCollect(collect,resolve){
     var contentIds = collect.content.map(item=>item.id);
     var contents = collect.content.map(item=>{var obj={};obj.id=item._id;obj.articleId=item.id;return obj});
 
-    Article.find({articleId:{$in:contentIds}},(err,articles)=>{
-        
+    Article.find({articleId:{$in:contentIds}},(err,articles)=>{     
         contents = contents.map(item=>{
-
             for(var i=0,len=articles.length;i<len;i++){
               var article = articles[i];
               if (item.articleId === article.articleId){
-
                 item.articleId = article.articleId;
                 item.title = article.title;
                 item.newstime = article.newstime;
@@ -74,9 +71,10 @@ function getUserFollows(ids,resolve){
             var obj = {};
             obj.username = item.username;
             obj.level = item.level;
+            obj.userImage = item.userImage;
             obj.userFans = item.userFans.length;
             obj.userFollow = item.userFollow.length;
-            obj.id = item._id;
+            obj._id = item._id;
             obj.description = item.description;
             return obj;
         })
@@ -233,8 +231,17 @@ function getUserHistory(userid,resolve){
     })
 }
 
-function getUserCollect(userid,resolve){
-    Collect.find({userid:userid},(err,collects)=>{
+function getUserCollect(userid, resolve, isSelf){
+    var option = {userid:userid};
+    if (!isSelf){
+      option={
+        $and:[
+          {userid:userid},
+          {privacy:0}
+        ]
+      }
+    }
+    Collect.find(option,(err,collects)=>{
         var allPromise = [];
         for(var i=0,len=collects.length;i<len;i++){
           (function(i){
@@ -249,6 +256,34 @@ function getUserCollect(userid,resolve){
               .then(data=>{
                   resolve(data);
               })      
+    })
+}
+
+function getFollowedCollect(userid, resolve){
+    
+    User.findOne({_id:userid},(err,user)=>{
+        if (user){
+            var userCollect = user.userCollect;
+            var allPromise = [];
+            Collect.find({_id:{$in:userCollect}},(err,collects)=>{
+                for(var i=0,len=collects.length;i<len;i++){
+                    (function(i){
+                        var collect = collects[i];
+                        var promise = new Promise((resolve,reject)=>{
+                            translateUserCollect(collect,resolve);
+                        });
+                        allPromise.push(promise)
+                    })(i)
+                }
+                Promise.all(allPromise)
+                    .then(data=>{
+                        resolve(data);
+                    }) 
+            })
+        } else {
+            resolve()
+        }
+        
     })
 }
 
@@ -269,6 +304,8 @@ module.exports = {
     getUserComments,
     getUserHistory,
     getUserCollect,
+    getFollowedCollect,
+    translateUserCollect,
     getUserActionMsg,
     getActionsInfo
 }
