@@ -1,39 +1,28 @@
 import React from 'react';
+import secret from '../../../utils/secret';
 import { Form, Input, Button, message, Tooltip, Icon, Badge } from 'antd';
 
 const FormItem = Form.Item;
 
+import style from './style.css';
+
 class RegisterForm extends React.Component {
-  constructor(){
-    super();
-    this.state = {
-      validateStatus:'',
-      visible:false,
-      status:''
-    }
-  }
-
+  
   handleRegisterSubmit(e){
-      
       e.preventDefault();
-      var formData = this.props.form.getFieldsValue();
+      var { onLogin, form } = this.props;
 
-      this.props.form.validateFields(['r_userName','r_password','r_confirmPassword'],(err,values)=>{
+      form.validateFields(['r_userName','r_password','r_confirmPassword'],(err,values)=>{
         if(!err){
-          var formData = new FormData();
           var { r_userName, r_password } = values;
-      
+          r_password = secret.encrypt(r_password);        
           fetch(`/api/usr/register?r_userName=${r_userName}&r_password=${r_password}`)
             .then(response=>response.json())
             .then(json=>{
               var data = json.data;  
-              //console.log(json);            
-              if (json.code ===0){
-                  message.success('注册成功!');
-                  if (this.props.onLogined){
-                      this.props.onLogined(data)
-                  }
-              }
+              //console.log(json); 
+              message.success('注册成功!');           
+              if (onLogin) onLogin(data);
 
             })          
         }
@@ -116,7 +105,7 @@ class RegisterForm extends React.Component {
     var { getFieldDecorator } = form;
 
     return (
-      <Form {...formItemLayout} onSubmit={this.handleRegisterSubmit.bind(this)}>
+      <Form {...formItemLayout} className={style.login} onSubmit={this.handleRegisterSubmit.bind(this)}>
           <FormItem label="用户名" hasFeedback >
             {getFieldDecorator('r_userName',{
               

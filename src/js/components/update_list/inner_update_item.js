@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Popover, Button, Input, Select, Radio, Icon, Modal, Card  } from 'antd';
-import CommentPopoverUserAvatar from '../../common_comments/comment_popover_useravatar';
-import { TopicListItem } from '../pc_topic/pc_topic_list';
-import { NewsListItem } from './pc_newslist';
-import { formatContent } from '../../../../utils/translateDate';
+import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import TopicListItem  from '../topic_list/topic_list';
+import NewsListItem from '../news_list/news_list';
+import { formatContent } from '../../../utils/translateDate';
 
 export default class UpdateInnerItem extends React.Component{
     constructor(){
@@ -15,9 +15,12 @@ export default class UpdateInnerItem extends React.Component{
     }
 
     componentDidMount(){
-        var { uniquekey, actionInfo, forAction } = this.props;
-        if (uniquekey && forAction){
-            fetch(`/action/getActionContent?contentId=${uniquekey}`)
+        var { uniquekey, actionInfo, noFetch } = this.props;
+        if (noFetch){
+            this.setState({actionInfo});
+        } else if ( uniquekey && !noFetch){
+        
+            fetch(`/api/action/getActionContent?contentId=${uniquekey}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;
@@ -26,9 +29,8 @@ export default class UpdateInnerItem extends React.Component{
                     data.translateData = formatContent(data.text);
                     this.setState({actionInfo:data})
                 })
-        } else {
-            this.setState({actionInfo})
         }
+        
     }
 
     handleClick(){
@@ -40,13 +42,13 @@ export default class UpdateInnerItem extends React.Component{
 
     render(){
         var { actionInfo } = this.state;       
-        var { contentId, contentType, value, text, username, translateData } = actionInfo;
+        var { contentId, contentType, value, text, images, username, translateData } = actionInfo;
        
         return(
             
-            <div onClick={this.handleClick.bind(this)} style={{fontSize:'12px',color:'rgba(0, 0, 0, 0.65)',padding:'10px 20px',backgroundColor:'rgb(249, 249, 249',cursor:'pointer',borderRadius:'4px'}}>
+            <div className="inner-action" onClick={this.handleClick.bind(this)}>
                 
-                <span style={{fontWeight:'500',color:'#000'}}>{`@${username}:`}</span>
+                <span className="title">{`@${username}:`}</span>
                 <div>
                     {
                         translateData && translateData.length
@@ -65,6 +67,17 @@ export default class UpdateInnerItem extends React.Component{
                                 ))
                         :
                         <span>{text}</span>
+                    }
+                </div>
+                <div>
+                    {
+                        images && images.length
+                        ?                           
+                        images.map((item,index)=>(
+                            <span key={index} className="img-container"><img src={item} /></span>
+                        ))                                   
+                        :
+                        null
                     }
                 </div>
                 

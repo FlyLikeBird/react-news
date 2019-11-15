@@ -1,8 +1,8 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Tooltip, Popover, Modal, Input, Form, Select, Card, Collapse } from 'antd';
 
-import NewsList from '../pc/pc_usercenter/pc_newslist';
-import TopicItemPopover from '../pc/pc_topic/pc_topic_item_popover';
+import NewsList from '../news_list/news_list';
+import TopicItemPopover from '../topic_list/topic_item_popover';
 
 const { Option } = Select;
 const { Meta } = Card;
@@ -27,8 +27,7 @@ export default class CollectItem extends React.Component {
             iconType:'caret-right',
             innerIcon:'caret-left',
             userCollected:false,
-            addFlash:'',
-            motion:''
+            addFlash:''
         }
     }
 
@@ -40,26 +39,22 @@ export default class CollectItem extends React.Component {
     
     handleAddIntoCollect(id,uniquekey,e){
         e.stopPropagation();
-        this.setState({motion:'curvePath'});
-        setTimeout(()=>{
-                        this.setState({motion:''})
-                    },1000)
-        /*
-        var { onShowMsg, onAddCollect } = this.props;
-        var userid = localStorage.getItem('userid');
-        if (userid){                 
-            fetch(`/api/collect/addIntoCollect?collectId=${id}&contentId=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{            
-                    var data = json.data;
-                    this.setState({item:data,className:'add-motion',isCollected:true});
+        fetch(`/api/collect/addIntoCollect?collectId=${id}&contentId=${uniquekey}`)
+            .then(response=>response.json())
+            .then(json=>{            
+                var data = json.data;
+                var rollIn;
+                if (this.rollIn) rollIn = this.rollIn;
+                if (rollIn && rollIn.classList) {
+                    rollIn.classList.add('addFlash');
                     setTimeout(()=>{
-                        this.setState({className:''})
+                        rollIn.classList.remove('addFlash');
                     },1000)
-
-                })   
-        }    
-        */    
+                } 
+                this.setState({item:data,isCollected:true});               
+            })   
+        
+           
     }
 
     handleRemoveCollect(id,e){
@@ -79,18 +74,21 @@ export default class CollectItem extends React.Component {
     
     handleRemoveContent(id, uniquekey, e){
         e.stopPropagation();
-        this.setState({motion:'curvePath'});
-        setTimeout(()=>{
-                        this.setState({motion:''})
-                    },1000)
-        /*
         fetch(`/api/collect/removeCollectContent?collectId=${id}&contentId=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                this.setState({item:data,isCollected:false})
-            })
-        */
+                var rollOut;
+                if (this.rollOut) rollOut = this.rollOut;
+                if (rollOut && rollOut.classList) {
+                    rollOut.classList.add('addFlash');
+                    setTimeout(()=>{
+                        rollOut.classList.remove('addFlash');
+                    },1000)
+                } 
+                this.setState({item:data,isCollected:false});
+                
+            })     
     }
 
     handleChangeIcon(type,visible){
@@ -137,7 +135,12 @@ export default class CollectItem extends React.Component {
                     <div className="collect-card">
                         <span style={{flex:'1',position:'relative'}}>
                             <span style={{fontSize:'30px',color:'#1890ff'}}><Icon className={className} type="folder-add" theme="filled" /></span>
-                            <span className={motion?'motion curvePath':'motion'}><Icon type="file-text" /></span>
+                            
+                                <span ref={rollOut=>this.rollOut=rollOut} className='motion rollOut'><Icon type="file-text" /></span>
+                                
+                                <span ref={rollIn=>this.rollIn=rollIn} className='motion rollIn'><Icon type="file-text" /></span>
+                            
+                            
                         </span>
                         <div style={{flex:'7'}}>
                             <span>{tag}</span>

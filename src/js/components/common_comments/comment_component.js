@@ -6,9 +6,8 @@ import { Row,Col, Avatar, List, Card, Popover, Modal, Icon, Badge } from 'antd';
 import  CommentsList  from './comments_list';
 import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
-import { NewsListItem } from '../pc/pc_usercenter/pc_newslist';
-import { TopicListItem } from '../pc/pc_topic/pc_topic_list';
-
+import NewsListItem from '../news_list/news_list_item';
+import TopicListItem  from '../topic_list/topic_list_item';
 import { parseDate, formatDate, getElementTop, formatContent } from '../../../utils/translateDate';
 const { Meta } = Card;
 

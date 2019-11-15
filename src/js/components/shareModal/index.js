@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Menu, Icon, Tabs, Modal, Card, List, Spin, Badge, Input, Button, Popover, message } from 'antd';
-import { TopicListItem } from '../pc/pc_topic/pc_topic_list';
-import { NewsListItem } from '../pc/pc_usercenter/pc_newslist';
-import UpdateInnerItem from '../pc/pc_usercenter/pc_usercenter_inner_update_item';
+import TopicListItem from '../topic_list/topic_list_item';
+import NewsListItem  from '../news_list/news_list_item';
+import UpdateInnerItem from '../update_list/inner_update_item';
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
 import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 
@@ -21,13 +21,14 @@ export default class ShareModal extends React.Component{
         }       
         //  动态页面的转发逻辑
         if ( forUserAction && actionInfo ){
-            var { username, contentType, innerAction, hasInnerAction, composeAction, actionId, contentId, text } = actionInfo;             
+            var { username, contentType, innerAction, hasInnerAction, composeAction, isCreated, actionId, contentId, text } = actionInfo;             
             params = {
                 userid,
                 value,
                 text:`@${username}:${text}`,
                 contentId,
-                innerAction:isSelf ? innerAction : actionId,
+                //  
+                innerAction: hasInnerAction ? innerAction : actionId,
                 contentType,
                 actionId,
                 isActionPage:isSelf ? 'true': '',
@@ -84,7 +85,7 @@ export default class ShareModal extends React.Component{
                         {
                             forUserAction && !hasInnerAction
                             ?
-                            <UpdateInnerItem actionInfo={actionInfo} history={history} noLink={true}/>
+                            <UpdateInnerItem actionInfo={actionInfo} noFetch={true} history={history} noLink={true}/>
                             :
                             forUserAction && hasInnerAction
                             ?
@@ -98,7 +99,7 @@ export default class ShareModal extends React.Component{
                                         `@${username}:${value}`
                                     }
                                 </span>
-                                <UpdateInnerItem forAction={true} uniquekey={innerAction} history={history} noLink={true}/>
+                                <UpdateInnerItem uniquekey={innerAction} history={history} noLink={true}/>
                             </div>
                             
                             :

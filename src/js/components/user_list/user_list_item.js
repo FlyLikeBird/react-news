@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { List, Avatar, Popover, Steps, Icon, Button, Menu, Dropdown } from 'antd';
-import { levelArr, formatLevel } from '../../../../utils/translateUserLevel';
+import { levelArr, formatLevel } from '../../../utils/translateUserLevel';
 
 const { Step } = Steps;
 
@@ -139,7 +139,7 @@ export default class UserListItem extends React.Component{
            expand 
            ?
            <div className="user-action-container">        
-             <Dropdown overlay={menu}>
+             <Dropdown overlay={menu} >
                 <span style={{color:'#1890ff'}}>
                   更多操作<Icon type="down" />
                 </span>

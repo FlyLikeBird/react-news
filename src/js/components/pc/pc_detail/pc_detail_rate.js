@@ -27,7 +27,7 @@ export default class PCDetailRate extends React.Component {
   handleClick(){
       var { value } = this.state;
       var { uniquekey, onVisible, onUpdateViewUsers } = this.props;
-      fetch(`/article/rateArticle?rate=${value}&uniquekey=${uniquekey}&userid=${localStorage.getItem('userid')}`)
+      fetch(`/api/article/rateArticle?rate=${value}&uniquekey=${uniquekey}&userid=${localStorage.getItem('userid')}`)
           .then(response=>response.json())
           .then(json=>{
               var data = json.data;            

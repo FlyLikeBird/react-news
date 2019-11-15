@@ -1,8 +1,7 @@
 var express = require('express');
 var router = express.Router();
-
 var util = require('../util');
-
+var secret = require('../../src/utils/secret');
 var Article = require('../../models/Article');
 var User = require('../../models/User');
 var mongooseOperations = require('../mongooseOperations');
@@ -257,8 +256,9 @@ router.get('/getArticleList',(req,res)=>{
               
               var data = articles.map(item=>{
                 var obj = {};
-                obj.uniquekey = item.articleId,
+                obj.articleId = item.articleId,
                 obj.type = item.type;
+                obj.thumbnails = item.thumbnails;
                 obj.newstime = item.newstime;
                 obj.auth = item.auth;
                 obj.title = item.title;
@@ -294,6 +294,7 @@ router.get('/getArticleContent',(req,res)=>{
 
 router.get('/rateArticle',(req,res)=>{
   let { userid, uniquekey, rate } = req.query;
+  userid = secret.decrypt(userid);
   var date = new Date().toString();
   Article.findOne({'articleId':uniquekey},(err,article)=>{
     var fever = article.articleFever + Number(rate);

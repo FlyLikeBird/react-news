@@ -69,7 +69,7 @@ router.get('/share',(req,res)=>{
     action.save()
         .then(()=>{
             
-            //  如当前用户在动态页面
+            //  如当前用户在动态列表页面
             if (isActionPage){
                 Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err,result)=>{
                     
@@ -112,6 +112,13 @@ router.get('/share',(req,res)=>{
                         util.responseClient(res,200,0,'ok',article.shareBy);
                     })
                 })
+                //  在动态详情页
+            } else if (contentType=='action'){
+                Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err,result)=>{
+                    Action.findOne({_id:actionId},(err,action)=>{
+                        util.responseClient(res,200,0,'ok',action.shareBy);
+                    })
+                })
             }
             
             
@@ -129,8 +136,10 @@ router.post('/create',upload.array('images'),(req,res)=>{
     }  
     var action = new Action({
         date,
-        text:description,
+        value:description,
         images,
+        contentType:'action',
+        contentId:'',
         userid,
         isCreated:true
     });
@@ -198,8 +207,8 @@ router.get('/getUsersInfo',(req,res)=>{
 })
 
 router.get('/getActionContent',(req,res)=>{
-    var { actionId } = req.query;
-    Action.findOne({_id:actionId},(err,action)=>{
+    var { contentId } = req.query;
+    Action.findOne({_id:contentId},(err,action)=>{
         var userid = action.userid;
         User.findOne({_id:userid},(err,user)=>{
             var obj = {};
@@ -215,7 +224,8 @@ router.get('/getActionContent',(req,res)=>{
             obj.contentType = action.contentType;
             obj.innerAction = action.innerAction;
             obj.composeAction = action.composeAction;
-            obj.images = action.images;       
+            obj.images = action.images;
+            obj.isCreated = action.isCreated;       
             util.responseClient(res,200,0,'ok',obj);
         })
     })

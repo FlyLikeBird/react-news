@@ -1,38 +1,102 @@
 
-.auto-carousel {
-    position:relative;
+.auto-carousel { 
     width:100%;
     height:100%;
+    text-align:center;
 }
 
 .auto-carousel .bg {
     width:100%;
-    height:100%;    
+    height:85%; 
+    position:relative;   
     transition: all 0.8s cubic-bezier(.46, 1, .23, 1.52);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius:4px;
+    text-align:center;
 }
 
-.auto-carousel img {
+.auto-carousel .text-container {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: absolute;
+    left: 0;
+    bottom: 0;
     width:100%;
-    height:100%;
-    border-radius:4px;
+    background-color: rgba(0,0,0,0.6);
+    border-bottom-left-radius:4px;
+    border-bottom-right-radius:4px;
+    color:#fff;
+    font-size:12px;
+    padding: 2px 6px;
 }
 
-.auto-carousel .float {
+
+.auto-carousel .img-container {
+    display:flex;
     position:absolute;
-    bottom:0;
-    padding:4px;
-    opacity:0.7;
+    bottom:-60px;
+    width:100%;
 }
 
-.auto-carousel .float>img {
+.auto-carousel .img-container>div {
+    flex:1;
+    height:60px;
+    margin:10px;
+    margin-bottom:20px;
+    cursor: pointer;
+    position:relative;
+    box-shadow:8px -6px 10px rgba(0,0,0,0.15);
     border-radius:4px;
-    border:1px solid transparent;
+    border:4px solid #fff;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
 }
 
-.auto-carousel .float.selected {
+.auto-carousel .img-container>div.selected {
+    border:4px solid #1890ff;
+}
+
+.auto-carousel .img-container>div:last-of-type {
+    margin-right:20px;
+}
+
+.auto-carousel .img-container>div:first-of-type {
+    margin-left:20px;
+}
+
+/*
+    移动端轮播图样式
+
+*/
+@media screen and (max-width: 640px) {
+    .auto-carousel .bg {
+        border-radius:0;
+    }
+}
+
+.auto-carousel .dot-container {
+    position:absolute;
+    bottom:10px;
+    left:50%;
+    margin-left:-60px;
+    display:flex;
+    width:120px;
+    height:2px;
+}
+
+.auto-carousel .dot-container .dot{
+    flex:1;
+    opacity:0.8;
+    background-color:#fff;
+    border-radius:2px;
+    margin:0 2px;
+}
+
+.auto-carousel .dot-container .dot.selected{
+    flex:8;
     opacity:1;
-}
-
-.auto-carousel .float.selected>img {
-    border:1px solid #f9f9f9;
 }

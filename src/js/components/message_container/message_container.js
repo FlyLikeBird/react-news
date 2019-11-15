@@ -1,11 +1,11 @@
 import React from 'react';
 import { Collapse, Button, Modal, Input, Badge } from 'antd';
 
-import MessageItem from './pc_usercenter_message_item';
-import ChatList from '../pc_search/pc_user_chatlist';
-import CommentsList  from '../../common_comments/comments_list';
-import DeleteModal from '../../deleteModal';
-import { parseDate, formatDate } from '../../../../utils/translateDate';
+import MessageItem from './message_item';
+import ChatList from '../user_list/user_chatlist';
+import CommentsList  from '../common_comments/comments_list';
+import DeleteModal from '../deleteModal';
+import { parseDate, formatDate } from '../../../utils/translateDate';
 
 const { Panel } = Collapse;
 

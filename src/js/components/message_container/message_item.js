@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Avatar, Badge } from 'antd';
-import { parseDate, formatDate } from '../../../../utils/translateDate';
+import { parseDate, formatDate } from '../../../utils/translateDate';
 
 export default class MessageItem extends React.Component{
     constructor(){

@@ -1,5 +1,5 @@
 import React from 'react';
-import UserList from '../pc_search/pc_user_list';
+import UserList from '../../user_list/user_list';
 
 export default class FollowContainer extends React.Component{
 

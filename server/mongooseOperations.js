@@ -1,6 +1,6 @@
 var Article = require('../models/Article');
 var Comment = require('../models/Comment');
-
+var config = require('../config/config.js');
 /*
     去掉文章里过期的图片资源
 */
@@ -59,7 +59,32 @@ function createComments(length){
   }
 }
 
+function _singleArticleDoc(id){
+    var arr = [];
+    var filename = config.uploadPath+'/thumbnails/img'+Math.floor(Math.random()*168)+'.jpeg';
+    arr.push(filename);
+    Article.updateOne({_id:id},{$set:{thumbnails:arr}},(err,result)=>{
+      //console.log(result);
+    })
+
+}
+
+function addThumbnails(){ 
+  Article.find({},(err,articles)=>{
+      for(var i=0,len=articles.length;i<len;i++){
+          _singleArticleDoc(articles[i]._id);
+      }
+  }) 
+}
+
+function resetArticles(){
+    Article.updateMany({},{$set:{shareBy:[],viewUsers:[]}},(err,result)=>{
+      console.log(result);
+    })
+}
 module.exports = {
     changeArticlesContents,
-    createComments
+    createComments,
+    addThumbnails,
+    resetArticles
 }

@@ -83,7 +83,6 @@ function getUserFollows(ids,resolve){
 }
 
 function _translateAction(action,resolve){
-    console.log(action);
     var promise = new Promise((resolve,reject)=>{
         User.findOne({_id:action.userid},(err,user)=>{
             var obj = {};

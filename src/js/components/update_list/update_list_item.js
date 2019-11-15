@@ -1,13 +1,13 @@
 import React from 'react';
 import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card, Popover, Menu, Dropdown  } from 'antd';
 
-import CommentPopoverUserAvatar from '../../common_comments/comment_popover_useravatar';
-import { parseDate, formatDate, translateType, formatContent } from '../../../../utils/translateDate';
-import CommentsListContainer  from '../../common_comments/comments_list_container';
-import TopicItemPopover from '../pc_topic/pc_topic_item_popover';
-import { TopicListItem } from '../pc_topic/pc_topic_list';
-import { NewsListItem } from './pc_newslist';
-import UpdateInnerItem from './pc_usercenter_inner_update_item';
+import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
+import CommentsListContainer  from '../common_comments/comments_list_container';
+import TopicItemPopover from '../topic_list/topic_item_popover';
+import TopicListItem  from '../topic_list/topic_list_item';
+import NewsListItem  from '../news_list/news_list_item';
+import UpdateInnerItem from './inner_update_item';
 
 var isAllowed = true;
 
@@ -48,11 +48,11 @@ export default class UpdateItem extends React.Component{
         } else if ( innerAction && composeAction){
             finalText = value + '//' + text;
             this._getTranslateData(finalText);
-        //  转发的评论
+        //  如果包含text字段，表示转发的评论
         } else if(text){
             finalText = value + '//' +text;
             this._getTranslateData(finalText);
-        //  转发的新闻或者话题
+        //  如果text为空，表示转发的是新闻/话题/其他动态/发布的动态
         } else {
             finalText = value;
             this._getTranslateData(finalText);
@@ -124,6 +124,10 @@ export default class UpdateItem extends React.Component{
         }
     }
 
+    _updateShareBy(data){
+        this.setState({shareBy:data});
+    }
+
     handleComplaint(id){
         window.confirm('别举报了，逻辑我还没写完.....from 阿山')
     }
@@ -136,14 +140,15 @@ export default class UpdateItem extends React.Component{
     }
     
     componentWillReceiveProps(newProps){
-
-        this._loadItemData(newProps);
+        if (this.props.data.id != newProps.data.id){
+            this._loadItemData(newProps);
+        }     
     }
 
     handleShareVisible(){
         var { finalText, translateData } = this.state;
         var { data, onShareVisible } = this.props;
-        var { contentType, innerAction, contentId, composeAction, value, text, id, username } = data;
+        var { contentType, innerAction, images, contentId, isCreated, composeAction, value, text, id, username } = data;
         
         if (onShareVisible){
             var option = {
@@ -154,11 +159,13 @@ export default class UpdateItem extends React.Component{
                 actionId:id,
                 composeAction,
                 value,
+                images,
+                isCreated,
                 text:finalText,
                 username,
                 translateData                  
             }
-            onShareVisible(true,option)
+            onShareVisible(true,option, this._updateShareBy.bind(this))
         }
     }
 
@@ -167,7 +174,6 @@ export default class UpdateItem extends React.Component{
         var { translateData, finalText, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
         var { data, history, socket, loaction, forDetail, isSelf } = this.props;
         var { contentType, composeAction, innerAction, images, username, avatar, text, value, id, comments, isCreated, contentId, date } = data;
-        
         const menu = (
             <Menu>
               <Menu.Item key="0">
@@ -210,8 +216,8 @@ export default class UpdateItem extends React.Component{
                     {   
                         isCreated
                         ?
-                        <div style={{margin:'2px 0'}}>
-                            <div>
+                        <div>
+                            <div style={{padding:'4px'}}>
                                 {
                                     translateData.length
                                     ?
@@ -229,20 +235,16 @@ export default class UpdateItem extends React.Component{
                                         </span>
                                     ))
                                     :
-                                    <span>{text}</span>
+                                    <span>{finalText}</span>
                                 }
                             </div>
                             <div>
                                 {
-                                    images
-                                    ?
-                                    images.length
-                                    ?
+                                    images && images.length
+                                    ?                           
                                     images.map((item,index)=>(
-                                        <span className="img-container"><img src={item} /></span>
-                                    ))
-                                    :
-                                    null
+                                        <span key={index} className="img-container"><img src={item} /></span>
+                                    ))                                   
                                     :
                                     null
                                 }
@@ -251,49 +253,53 @@ export default class UpdateItem extends React.Component{
                         :
                         innerAction  //  说明包含嵌套的动态 -- 二级动态
                         ?
-                        <div style={{margin:'2px 0'}}>
-                            {
-                                translateData.length
-                                ?
-                                translateData.map((item,index)=>(
-                                    <span key={index}>
-                                        <span>{item.text}</span>
-                                        {
-                                            item.user
-                                            ?
-                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
-                                            :
-                                            null
-                                        }
-                                        
-                                    </span>
-                                ))
-                                :
-                                <span>{ finalText }</span>
-                            }
-                            <UpdateInnerItem uniquekey={innerAction} forAction={true} history={history} />
+                        <div>
+                            <span style={{display:'inline-block',padding:'4px'}}>
+                                {
+                                    translateData.length
+                                    ?
+                                    translateData.map((item,index)=>(
+                                        <span key={index}>
+                                            <span>{item.text}</span>
+                                            {
+                                                item.user
+                                                ?
+                                                <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                                :
+                                                null
+                                            }
+                                            
+                                        </span>
+                                    ))
+                                    :
+                                    <span>{ finalText }</span>
+                                }
+                            </span>
+                            <UpdateInnerItem  uniquekey={innerAction} history={history} />
                         </div>
                         :  //  说明包含新闻或者话题 -- 一级动态
-                        <div style={{margin:'2px 0'}}>
-                            {
-                                translateData.length
-                                ?
-                                translateData.map((item,index)=>(
-                                    <span key={index}>
-                                        <span>{item.text}</span>
-                                        {
-                                            item.user
-                                            ?
-                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
-                                            :
-                                            null
-                                        }
-                                        
-                                    </span>
-                                ))
-                                :
-                                <span>{finalText}</span>
-                            }
+                        <div>
+                            <span style={{display:'inline-block',padding:'4px'}}>
+                                {
+                                    translateData.length
+                                    ?
+                                    translateData.map((item,index)=>(
+                                        <span key={index}>
+                                            <span>{item.text}</span>
+                                            {
+                                                item.user
+                                                ?
+                                                <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                                :
+                                                null
+                                            }
+                                            
+                                        </span>
+                                    ))
+                                    :
+                                    <span>{finalText}</span>
+                                }
+                            </span>
                             <div>
                                 {
                                   contentType === 'topic'
@@ -312,50 +318,46 @@ export default class UpdateItem extends React.Component{
                 </div>                
                    
                 <div className="user-action">
-                    {
-                        forDetail
-                        ?
-                        null
-                        :
-                        <span onClick={this.handleGotoDetail.bind(this,id)}><span className="text"><Icon type="right-square" />详情</span></span> 
-                    }
-                                     
-                    <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} text="赞"/>}>
-                        <span onClick={this.handleUserAction.bind(this,id,'like',isLiked?'true':'')} className="text" ref={span=>this.likeDom=span}>
-                            <Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>
-                            {   isLiked?'取消点赞':'点赞' }
-                            <span className="num">{ likeUsers.length  }</span>
-                            <Icon className="caret" type={likeIconType} />
+                                  
+                    <Popover trigger="click" autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} text="赞"/>}>
+                        <span onClick={this.handleUserAction.bind(this,id,'like',isLiked?'true':'')} ref={span=>this.likeDom=span}>
+                            <span className="text">
+                                <Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>
+                                {   isLiked?'取消点赞':'点赞' }
+                                <span className="num">{ likeUsers.length  }</span>
+                                <Icon className="caret" type={likeIconType} />
+                            </span>
                         </span>
                     </Popover>
                     <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} text="踩"/>}>    
-                        <span onClick={this.handleUserAction.bind(this,id,'dislike',isdisLiked?'true':'')} className="text" ref={span=>this.dislikeDom=span}>
-                            <Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />
-                            {   isdisLiked?'取消反对':'反对'} 
-                            <span className="num">{ dislikeUsers.length }</span>
-                            <Icon className="caret" type={dislikeIconType} />
+                        <span onClick={this.handleUserAction.bind(this,id,'dislike',isdisLiked?'true':'')}  ref={span=>this.dislikeDom=span}>
+                            <span className="text">
+                                <Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />
+                                {   isdisLiked?'取消反对':'反对'} 
+                                <span className="num">{ dislikeUsers.length }</span>
+                                <Icon className="caret" type={dislikeIconType} />
+                            </span>
                         </span>
                     </Popover>
-                    {
-                        forDetail
-                        ?
-                        null
-                        :
-                        <span onClick={this.handleReplyVisible.bind(this)} className="text" >
+                    
+                    <span onClick={this.handleGotoDetail.bind(this,id)}>
+                        <span className="text">
                             <Icon type="edit" />回复
                             <span className="num">{comments}</span>
                         </span>
-                    }
-                             
-                    <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} text="转发"/>}>
-                        <span onClick={this.handleShareVisible.bind(this,id)} className="text">
-                            <Icon type="export" />转发
-                            <span>{shareBy.length}</span>
-                            <Icon className="caret" type={shareByIconType}/>
+                    </span>
+                          
+                    <Popover trigger="click" autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} text="转发"/>}>
+                        <span onClick={this.handleShareVisible.bind(this,id)}>
+                            <span className="text">
+                                <Icon type="export" />转发
+                                <span>{shareBy.length}</span>
+                                <Icon className="caret" type={shareByIconType}/>
+                            </span>
                         </span>
                     </Popover>
                 </div>
-
+                {/*
                 <div style={{display:forDetail?'block':visible?'block':'none',marginTop:'30px'}}>
                     <CommentsListContainer 
                             history={history}
@@ -365,7 +367,8 @@ export default class UpdateItem extends React.Component{
                             commentType="action" 
                             warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
                     />
-                </div>                
+                </div>  
+                */}              
             </div>
                       
         )

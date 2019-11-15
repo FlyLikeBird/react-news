@@ -8,9 +8,11 @@ export default class AutoCarousel extends React.Component {
     constructor(){
         super();
         this.state = {
+            width:0,
             currentIndex:0,
             isLoading:true,
             images:[]
+
         }
     }
 
@@ -32,9 +34,10 @@ export default class AutoCarousel extends React.Component {
             resolve(reader.result);
         }
     }
-    
-    _fetchAllImages(fetchImages, resolve){
-        var allPromises = fetchImages.map(url=>{
+    /*
+    componentDidMount(){
+        var { data } = this.props;
+        var allPromises = data.map(url=>{
             return this._fetchImg(url);
         });
         Promise.all(allPromises)
@@ -50,56 +53,50 @@ export default class AutoCarousel extends React.Component {
                 }
                 Promise.all(readPromises)
                     .then(images=>{
-                        resolve(images);
+                        //console.log(images);
+                        this.setState({isLoading:false,images})
                     })
 
             })
+        if (data.length){
+            var container = this.container;
+            if (container){
+                var width = (container.offsetWidth)/(data.length)   
+                this.setState({width})
+            }
+            this._setTimer();
+            
+        }        
     }
-    
+    */
 
     componentDidMount(){
-        var { count } = this.props;      
+        var { count } = this.props;
+        
         var typeArr = ['shehui','guonei','guoji','yule','keji'];
         var type = typeArr[Math.floor(Math.random()*(typeArr.length))];
         fetch(`/api/article/getArticleList?type=${type}&count=${count}`)
             .then(response=>response.json())
             .then(json=>{
-                var data = json.data, fetchImages = [];
+                var data = json.data;
                 var container = this.container;
                 if (container){
                     var width = (container.offsetWidth)/count   
                 }
-                for(var i=0,len=data.length;i<len;i++){
-                    fetchImages.push(data[i].thumbnails[0]);
-                }
-                var promise = new Promise((resolve,reject)=>{
-                    this._fetchAllImages(fetchImages,resolve);
-                })
-                promise.then(imgBlob=>{
-                    data = data.map((item,index)=>{
-                        item.thumbnails[0] = imgBlob[index]
-                        return item;
-                    })
-                    this.setState({images:data,isLoading:false});
-                    this._setTimer();
-                })
-                
+                this.setState({images:data,width,isLoading:false});
             })
     }
 
-    handleClick(id){
-        var { history } = this.props;
-        if (history){
-            history.push(`/details/${id}`);
-        }
+    handleClick(){
+
     }
 
     _setTimer(){
-        var { count } = this.props;
+        var { data } = this.props;
         this.timer = setInterval(()=>{
                 var { currentIndex } = this.state;
                 ++currentIndex;
-                if ( currentIndex < count ) {                   
+                if ( currentIndex < data.length ) {                   
                     this.setState({currentIndex:currentIndex})
                 } else {
                     this.setState({currentIndex:0})
@@ -126,8 +123,8 @@ export default class AutoCarousel extends React.Component {
     }
    
     render() {
-        var { currentIndex, isLoading, images } = this.state;
-        var { size } = this.props;
+        var { width, currentIndex, isLoading, images } = this.state;
+        //var { data } = this.props;
         return(
 
             <div ref={container=>this.container = container} className={style['auto-carousel']}>
@@ -136,37 +133,27 @@ export default class AutoCarousel extends React.Component {
                     ?
                     <Spin />
                     :
-                    <div className={style.bg} style={{backgroundImage:`url(${images[currentIndex].thumbnails[0]})`}}>
+                    <div className={style.bg}>
+                        <img src={images[currentIndex].thumbnails[0]} />
                         {
-                            size == 'small'
-                            ?
-                            <div className={style['dot-container']}>
-                                {
-                                    images.map((item,index)=>(
-                                        <span key={index} className={currentIndex==index?style.dot+' '+style.selected : style.dot}></span>
-                                    ))
-                                }
-                            </div>
-                            :
-                            <div className={style["img-container"]}>
-                                {
-                                    images.map((item,index)=>(
-                                        <div 
-                                            style={{backgroundImage:`url(${item.thumbnails[0]})`}}
-                                            className={currentIndex==index?style['selected']:''}
-                                            onClick={this.handleClick.bind(this,item.articleId)}    
-                                            onMouseOver={this.handleMouseOver.bind(this,index)}
-                                            onMouseOut={this.handleMouseOut.bind(this)}
-                                            key={index} 
-                                            
-                                        >
-                                            <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
-                                        </div>
-                                    ))
-                                }
-                            </div>
+                            images.map((item,index)=>(
+                                <div 
+                                    className={index===currentIndex?style.float+' '+style.selected:style.float}
+                                    onClick={this.handleClick.bind(this)}
+
+                                    onMouseOver={this.handleMouseOver.bind(this,index)}
+                                    onMouseOut={this.handleMouseOut.bind(this)}
+                                    key={index} 
+                                    style={{
+                                        width:width,
+                                        left:index*width
+                                    }}
+                                >
+                                    <img id={`img${index}`} src={item.thumbnails[0]} />
+                                    <span className={style.text}>{item.title}</span>
+                                </div>
+                            ))
                         }
-                        
                     </div>
                     
                 }

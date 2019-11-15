@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon, Popover, message } from 'antd';
 import CommentsInput from './comments_input';
-import TopicItemPopover from '../pc/pc_topic/pc_topic_item_popover';
+import TopicItemPopover from '../topic_list/topic_item_popover';
 import { parseDate, formatDate } from '../../../utils/translateDate';
 
 var isAllowed = true ;
@@ -42,7 +42,7 @@ export default class CommentsComponentButton extends React.Component{
         //  用户评论后加积分逻辑     
         if ( isAllowed ) {
           if(action === 'like' && !isCancel )
-          fetch(`/api/usr/operatecomment?user=${localStorage.getItem('username')}`)
+          fetch(`/api/usr/operatecomment?userid=${localStorage.getItem('userid')}`)
           .then(()=>{
             isAllowed = false;
             setTimeout(()=>{
@@ -54,16 +54,14 @@ export default class CommentsComponentButton extends React.Component{
         if(action == 'like') {          
           if (this.likeDom){
               var span = this.likeDom;
-              var i = span.getElementsByClassName('anticon')[0];
-              i.classList.add('addFlash');
-              setTimeout(()=>i.classList.remove('addFlash'),500)
+              span.classList.add('addFlash');
+              setTimeout(()=>span.classList.remove('addFlash'),500)
           }
         } else if(action == 'dislike'){
           if(this.dislikeDom){
             var span = this.dislikeDom;
-            var i = span.getElementsByClassName('anticon')[0];
-            i.classList.add('addFlash'); 
-            setTimeout(()=>i.classList.remove('addFlash'),500)
+            span.classList.add('addFlash');
+            setTimeout(()=>span.classList.remove('addFlash'),500)
           }
         }    
     } else {
@@ -171,8 +169,8 @@ export default class CommentsComponentButton extends React.Component{
                   </div>
                   :
                   <div>
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><span className="text"><Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></span></Popover>
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><span className="text"><Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><span className="text"><Icon type="like" className="motion" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></span></Popover>
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><span className="text"><Icon className="motion" type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
                       {
                           isSub && hasDelete
                           ?

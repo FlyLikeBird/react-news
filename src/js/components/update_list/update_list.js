@@ -1,11 +1,11 @@
 import React from 'react';
 
 import { Upload, Form, Button, Input, Select, Radio, Icon, Spin, Modal, Card  } from 'antd';
-import DeleteModal from '../../deleteModal';
-import ShareModal from '../../shareModal';
-import { formatContent } from '../../../../utils/translateDate';
+import DeleteModal from '../deleteModal';
+import ShareModal from '../shareModal';
+import { formatContent } from '../../../utils/translateDate';
 
-import UpdateItem from './pc_usercenter_update_item';
+import UpdateItem from './update_list_item';
 const { Meta } = Card;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -22,15 +22,14 @@ export default class UpdateContainer extends React.Component{
             actionId:'',
             showForm:false,
             TopicForm:null,
-            loaded:false,
-            isLoading:true
+            loaded:false
+            
         }
     }
 
     componentDidMount(){
         var { data } = this.props;
-        this.setState({userAction:data,isLoading:false})
-
+        this.setState({userAction:data})
     }
     
     handleModalVisible(boolean,deleteId){
@@ -45,8 +44,9 @@ export default class UpdateContainer extends React.Component{
         
     }
 
-    handleShareVisible(boolean,option){
+    handleShareVisible(boolean,option, _updateShareBy){
         if ( boolean == true ){
+            this._updateShareBy = _updateShareBy;
             var { actionId } = option;
             this.setState({shareVisible:boolean, actionInfo:option, actionId })
         } else {
@@ -75,7 +75,7 @@ export default class UpdateContainer extends React.Component{
     handleFormShow(loaded){
         var { showForm } = this.state;
         if ( !loaded ){
-            import('../../topic_form').then(TopicForm=>{
+            import('../topic_form').then(TopicForm=>{
                 this.setState({TopicForm:TopicForm.default,loaded:true})
                 return ;
             })
@@ -83,9 +83,10 @@ export default class UpdateContainer extends React.Component{
         this.setState({showForm:!showForm});
     }
 
+    
     render(){
         var { history, socket, isSelf } = this.props;
-        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded, isLoading } = this.state;
+        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded } = this.state;
 
         return(
             
@@ -93,20 +94,17 @@ export default class UpdateContainer extends React.Component{
                 {
                     isSelf
                     ?
-                    <Button type="primary" size="small" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this,loaded)}>发布动态</Button>
+                    <Button type="primary" style={{fontSize:'12px',marginBottom:'20px'}} onClick={this.handleFormShow.bind(this,loaded)}>发布动态</Button>
                     :
                     null
                 }
                 
                 { TopicForm && <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateAction.bind(this)} forAction={true}/> }
                 {
-                    isLoading
-                    ?
-                    <Spin />
-                    :
+                    
                     userAction.length
                     ?
-                    <div>
+                    <div style={{backgroundColor:'#f7f7f7',padding:'10px 20px 20px 20px',borderRadius:'4px'}}>
                         <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共${userAction.length}条动态`}</span>
                         {
                             userAction.map((item,index)=>(
@@ -150,6 +148,7 @@ export default class UpdateContainer extends React.Component{
                         history={history}    
                         onVisible={this.handleShareVisible.bind(this)} 
                         onUpdate={this.handleUpdateAction.bind(this)}
+                        onUpdateShareBy={this._updateShareBy}
                         forUserAction={true}
                         isSelf={isSelf}
                     />

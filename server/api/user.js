@@ -11,6 +11,7 @@ var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Collect = require('../../models/Collect');
 var Comment = require('../../models/Comment');
+var secret = require('../../src/utils/secret');
 
 var createFolder = function(folder){
     try{
@@ -45,7 +46,7 @@ function _createUser(r_userName, r_password, managerUser, res){
 	var date = new Date().toString();
 	var user = new User({
 		username:r_userName,
-		password:util.md5(r_password),
+		password:r_password,
 		registerTime:date,
 		loginTime:date
 	});
@@ -54,7 +55,7 @@ function _createUser(r_userName, r_password, managerUser, res){
 			User.findOne({_id:user._id},(err,userInfo)=>{
 				var data = {};
 				data.username = userInfo.username;
-				data.userid = userInfo._id;
+				data.userid = secret.encrypt(userInfo._id);
 				data.avatar = userInfo.userImage;
 				User.updateOne({_id:user._id},{$push:{message:{
 					fromUser:managerUser._id,
@@ -76,17 +77,19 @@ function _createUser(r_userName, r_password, managerUser, res){
 			collect.save();
 			//  默认关注react-news这个管理用户
 			User.updateOne({_id:user._id},{$push:{userFollow:managerUser._id}},(err,result)=>{});
+			User.updateOne({_id:managerUser._id},{$push:{userFans:user._id}},(err,result)=>{});
 		})
 }
 
 router.get('/register',(req,res)=>{
 	var { r_userName, r_password } = req.query;
 	var date = new Date().toString();
+
 	User.findOne({'username':'React-News平台'},(err,manager)=>{
 		if(!manager){
 			var managerUser = new User({
 				username:'React-News平台',
-				password:123,
+				password:secret.encrypt(r_password),
 				registerTime:date,
 				loginTime:date,
 				userImage:config.uploadPath + '/logo.png'
@@ -99,6 +102,7 @@ router.get('/register',(req,res)=>{
 			_createUser(r_userName, r_password, manager, res);
 		}
 	})	
+	
 })
 
 router.get('/login',(req,res)=>{
@@ -108,11 +112,11 @@ router.get('/login',(req,res)=>{
 		if(!userInfo){
 				util.responseClient(res,200,1,'该用户不存在!',obj);
 		} else {
-			if (userInfo.password === util.md5(password)) {
+			if ( password === userInfo.password) {
 				obj.username = userInfo.username;
-				obj.userid = userInfo._id;	
+				obj.userid = secret.encrypt(userInfo._id);	
 				obj.avatar = userInfo.userImage;
-				util.responseClient(res,200,0,'',obj);
+				util.responseClient(res,200,0,'ok',obj);
 			} else {
 				util.responseClient(res,200,1,'密码输入错误!')
 			}
@@ -148,7 +152,7 @@ router.get('/getChatList',(req,res)=>{
 
 router.get('/usercenter',(req,res)=>{
 	let { userid, isSelf } = req.query;
-	//mongooseOperations.createComments(20);
+
 	User.findOne({_id:userid},{password:0})
 		.then(user=>{
 
@@ -189,6 +193,7 @@ router.get('/usercenter',(req,res)=>{
 
 				})			
 		})
+	
 			
 })
 
@@ -223,6 +228,7 @@ router.get('/getUserInfo',(req,res)=>{
 
 		})
 	})
+
 })
 
 router.get('/editSign',(req,res)=>{
@@ -303,7 +309,7 @@ router.post('/upload',upload.single('file'),(req,res)=>{
 
 router.get('/pushHistory',(req,res)=>{
 	let { uniquekey, userid } = req.query;
-	
+	userid = secret.decrypt(userid);
 	User.findOne({_id:userid},(err,user)=>{
 		if(user){
 			var historys = user.userHistory;
@@ -349,11 +355,8 @@ router.get('/cleanHistory',(req,res)=>{
 })
 
 router.get('/operatecomment',(req,res)=>{
-	var { user } = req.query;
-
-	User.updateOne({'username':user},{$inc:{level:1}},(err,result)=>{
-	
-		console.log(result);
+	var { userid } = req.query;
+	User.updateOne({_id:userid},{$inc:{level:1}},(err,result)=>{
 		util.responseClient(res,200,0,'ok');
 	})
 })

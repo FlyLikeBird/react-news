@@ -1,6 +1,9 @@
 import React from 'react';
+import secret from '../../../utils/secret';
 import { Form, Input, Button, message } from 'antd';
 const FormItem = Form.Item;
+
+import style from './style.css';
 
 class LoginForm extends React.Component {
   constructor(){
@@ -10,16 +13,16 @@ class LoginForm extends React.Component {
 
   handleLoginSubmit(e){
      e.preventDefault();
-     var { onLogined, form } = this.props;
+     var { onLogin, form } = this.props;
      form.validateFields(['username','password'],(err,values)=>{
        if(!err){
          var { username, password } = values; 
+         password = secret.encrypt(password);
          fetch(`/api/usr/login?username=${username}&password=${password}`)
             .then(response=>response.json())
-            .then(json=>{    
-                           
+            .then(json=>{                       
                 if (json.code == 0){
-                  if (onLogined) onLogined(json.data);
+                  if (onLogin) onLogin(json.data);
                 } else {
                   message.error(json.message);
                 }
@@ -74,7 +77,7 @@ class LoginForm extends React.Component {
     var { getFieldDecorator } = form;
     
     return (
-      <Form {...formItemLayout} onSubmit={this.handleLoginSubmit.bind(this)}>
+      <Form className={style.login} {...formItemLayout} onSubmit={this.handleLoginSubmit.bind(this)}>
         <FormItem label="用户名" hasFeedback >
           {getFieldDecorator('username',{
             rules:[{

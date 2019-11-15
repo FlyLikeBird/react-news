@@ -13,106 +13,35 @@ const FormItem = Form.Item;
 const TabPane = Tabs.TabPane;
 
 
-class PCHeader extends React.Component {
-    
-    constructor(props) {
-      super();
-      this.state = {
-        current:'top',      
-        hasLogined:false,
-        username:'',
-        userid:'',
-        avatar:'',
-        activeKey:'',
-        modalVisible:false,
-        LoginContainer:null
-      }
+export default class PCHeader extends React.Component {
+    constructor(){
+        super();
+        this.state = {
+            current:'top'
+        }
     }
-
 
     handleLoginClick(e){
       this.setState({current:e.key})
     }
-
-    setModalVisible(boolean){
-      if ( boolean == true){         
-          import('../pc_login_container').then(loginContainer=>{
-              this.setState({LoginContainer:loginContainer.default,modalVisible:true});
-          })
-          
-      } else {
-          this.setState({LoginContainer:null,modalVisible:false})
-      }
-    }
-
-    logout(){
-        var { socket, history } = this.props;
-        if(socket.close){
-          socket.emit('user-loginout',localStorage.getItem('username'));
-          socket.close();
-        }    
-        localStorage.removeItem('username');
-        localStorage.removeItem('userid');
-        localStorage.removeItem('avatar');
-        if (history){
-          history.push('/');
-          this.setState({hasLogined:false});       
-        }
-    }
  
-    handleLogined(userInfo){
-      var { username, userid, avatar } = userInfo;
-      localStorage.setItem('username',username);
-      localStorage.setItem('userid',userid);
-      localStorage.setItem('avatar',avatar);
-      if (this.props.onsocket){
-        this.props.onsocket();
-      }
-      this.setState({hasLogined:true,modalVisible:false,username,userid,avatar});
-      
-    }
 
-    componentWillMount(){
-      var userid = localStorage.getItem('userid');
-      var username = localStorage.getItem('username');
-      var avatar = localStorage.getItem('avatar');     
-      if ( userid ){
-        this.setState({hasLogined:true, userid, username, avatar})
-      }  
-
-    }
-
-    handleSearchClick(){
-      var input = this.refs.search.input.input;
-      var span = input.parentNode;
-      // console.log(span);
-      span.classList.add('click');
-    }
-    
     render() {
-        
-        var { hasLogined, current, username, userid, avatar, modalVisible, LoginContainer } = this.state;
-        var  { msg } = this.props;
-        //console.log(msg);
-        const styleObj = {
-          width:'70px',
-          display:'inline-block',
-          whiteSpace: 'nowrap', 
-          overflow: 'hidden', 
-          textOverflow: 'ellipsis',
-          textAlign:'right'
-        } ;
-        
-        const menu = (
-            <Menu>
-              <Menu.Item>
-                <Link to={`/usercenter/${userid}`}><Icon type="home" />个人中心</Link>
-              </Menu.Item>
-              <Menu.Item>
-                <span onClick={this.logout.bind(this)}><Icon type="logout" />退出登录</span>
-              </Menu.Item>
-            </Menu>
-        );
+        var { current } = this.state;
+        var  { msg, user, onLoginVisible, onLoginOut } = this.props;
+        var hasLogined = user && user.userid ? true : false;     
+        var menu =  hasLogined ?                   
+                      <Menu>
+                        <Menu.Item>
+                          <Link to={`/usercenter/${user.userid}`}><Icon type="home" />个人中心</Link>
+                        </Menu.Item>
+                        <Menu.Item>
+                          <span onClick={()=>onLoginOut()}><Icon type="logout" />退出登录</span>
+                        </Menu.Item>
+                      </Menu>
+                      :
+                      null
+                      
         return (
             <header>
                 <Row>
@@ -150,27 +79,23 @@ class PCHeader extends React.Component {
                             <div className="usercenter">
                                 {
                                     hasLogined
-                                    ?
-                                                                           
+                                    ?                                                                         
                                     <Dropdown  overlay={menu}>
                                         <div className="user-login">
-                                            <Link className="ant-dropdown-link" to={`/usercenter/${userid}`}>
-                                                <Badge count={msg.total}><span className="img-container"><img src={avatar} /></span></Badge>
+                                            <Link className="ant-dropdown-link" to={`/usercenter/${user.userid}`}>
+                                                <Badge count={msg.total}><span className="img-container"><img src={user.avatar} /></span></Badge>
                                             </Link>
                                             <Icon type="down" />
                                         </div>
-                                    </Dropdown>
-                                    
+                                    </Dropdown>                                   
                                     :
-                                    <div onClick={this.setModalVisible.bind(this,true)}>
+                                    <div onClick={()=>onLoginVisible(true)}>
                                         <Icon type="user"/>注册/登录
                                     </div>
                                 }
                             </div>                 
                           </div>     
-                     </div>
-                     { LoginContainer && <LoginContainer onModalVisible={this.setModalVisible.bind(this)} onLogined={this.handleLogined.bind(this)} modalVisible={modalVisible}/> }
-                    
+                     </div>                 
                     </Col>
                     <Col span={2}></Col>
                 </Row>
@@ -180,7 +105,6 @@ class PCHeader extends React.Component {
     }    
 }
 
-export default withRouter(PCHeader) ;
 
 
 

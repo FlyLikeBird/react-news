@@ -3,7 +3,7 @@ import React from 'react';
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Popover } from 'antd';
 
 import TopicListContainer from './pc_topic_list_container';
-import TopicList from './pc_topic_list';
+import TopicList from '../../topic_list/topic_list';
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;

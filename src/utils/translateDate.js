@@ -100,6 +100,10 @@ export function sortByDate(arr){
   return arr; 
 }
 
+export function checkArrIsEqual(arr1, arr2){
+    return arr1.sort().toString() == arr2.sort().toString();
+}
+
 
 
 

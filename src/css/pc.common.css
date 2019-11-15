@@ -1,3 +1,8 @@
+html, body{
+    width:100%;
+    height:100%;
+}
+
 .header {
     display:flex;
     align-items: center;
@@ -1050,11 +1055,11 @@ section .leftContainer {
 
 .user-list .user-list-item .user-img-container {
     display: inline-block;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     overflow: hidden;
-    margin-right: 4px;
+    margin-right: 10px;
 }
 
 .user-list .user-list-item .user-img-container img{
@@ -1326,7 +1331,7 @@ section .leftContainer {
 }
 
 .comment .comment-user-action>div>span {
-    width:80px;
+    width:100px;
 }
 
 /*
@@ -1393,18 +1398,16 @@ section .leftContainer {
     padding:0;
 }
 
-.comment .comment-user-action>div>span>i{
+.comment .comment-user-action>div span i{
     padding-right:4px;  
 }
 
-.comment .comment-user-action>div>span>i.caret{
-    margin-left:10px;  
+.comment .comment-user-action>div span i.caret{
+    margin-left:4px;  
 }
 
-.comment .comment-user-action>div>span>i.addFlash{
-    
-    animation:iconAction 0.5s ease-out;
-    
+.comment .comment-user-action>div span.addFlash i.motion{ 
+    animation:iconAction 0.5s ease-out;  
 }
 
 .commentsContainer  span.comment_date {
@@ -1531,22 +1534,33 @@ section .leftContainer {
 }
 
 .collect-container .collect-header .motion {
-    width: 10px;
-    height: 10px; 
-    position: absolute;
-    left: -500px;
-    display: inline-block;
-    top: -500px;
-    margin-top: -5px;
-    margin-left: -5px;
+    width:300px;
+    position:absolute;
+    margin-left:-10px;
+    opacity: 0;
+    transform-origin: left;
+    color: #1890ff;
+    font-size: 24px;
 }
 
-.collect-container .collect-header .motion.curvePath  {
-    animation:xPath 2s cubic-bezier(0,0,1,1);
+.collect-container .collect-header .motion i{
+    float:right;
 }
 
-.collect-container .collect-header .motion.curvePath i {
-    animation:yPath 2s cubic-bezier(0,1,0,1);
+.collect-container .collect-header .motion.rollIn {
+    transform:translateX(-300px) rotate(-90deg);
+}
+
+.collect-container .collect-header .motion.rollOut {
+    transform:translateX(-300px) rotate(0deg);
+}
+
+.collect-container .collect-header .motion.rollIn.addFlash {
+    animation: rollIn 0.5s cubic-bezier(.645,.045,.355,1);
+}
+
+.collect-container .collect-header .motion.rollOut.addFlash {
+    animation: rollOut 0.5s cubic-bezier(.645,.045,.355,1);
 }
 
 
@@ -1717,6 +1731,7 @@ section .leftContainer {
     align-items: center;
     padding:10px;
     min-width:300px;
+
 }
 
 .topic-shareBy:last-of-type {
@@ -1783,12 +1798,6 @@ section .leftContainer {
     transform: scale(0.8);
 }
 
-.ant-tabs .ant-tabs-tabpane.background-color {
-    background-color:#f7f7f7;
-    border-radius:4px;
-    padding:20px;
-}
-
 .comment-form .ant-form-item {
     margin-bottom:4px;
 }
@@ -1847,7 +1856,8 @@ section .leftContainer {
 }
 
 .action.forDetail > .action-body{
-    background-color:#f7f7f7;
+    background-color:#fff;
+    padding:0;
 }
 
 .action>.action-body .avatar-container {
@@ -1906,6 +1916,11 @@ section .leftContainer {
     flex:1;
     padding: 4px 0px;
     text-align: center;
+
+}
+
+.action .user-action>span:hover {
+    background-color:rgb(247, 247, 247);
 }
 
 .action .user-action span>i{   
@@ -1920,6 +1935,37 @@ section .leftContainer {
     background-color:#f7f7f7;
     cursor: pointer;
 }
+
+/*
+    内部动态样式
+*/
+
+.inner-action {
+    font-size:12px;
+    color:rgba(0, 0, 0, 0.65);
+    padding:10px 20px;
+    background-color:#f7f7f7;
+    cursor:pointer;
+    border-radius:4px;
+}
+
+.inner-action .title {
+    font-weight:500;
+    color:#000;
+}
+
+.inner-action .img-container {
+    width: 33%;
+    height: 60px;
+    display: inline-block;
+}
+
+.inner-action .img-container img{
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+}
+
 /*
 
     个人中心---浏览历史样式
@@ -1951,13 +1997,12 @@ section .leftContainer {
 
 .news .news-img{
     width:120px;
+    height:60px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
 }
 
-.news .news-img img{
-    width:100%;
-    height:100%;
-    border-radius:4px;
-}
 
 .news .news-body {
     flex: 1;
@@ -2128,6 +2173,11 @@ section .leftContainer {
 .ant-dropdown li.ant-dropdown-menu-item a , .ant-dropdown li.ant-dropdown-menu-item span{
     font-size:12px;
 }
+
+.ant-dropdown li.ant-dropdown-menu-item i {
+    margin-right:4px;
+}
+
 /*
 
     评论框@弹出框样式
@@ -2135,6 +2185,17 @@ section .leftContainer {
 .ant-select.forUser .ant-select-selection {
     min-width:200px;
 }
+/*
+    动画遮挡问题
+*/
+.ant-modal .ant-modal-body .ant-tabs {
+    overflow: visible;
+}
+
+/*
+
+    
+*/
 
 @keyframes selectedComment {
     0% {
@@ -2146,24 +2207,6 @@ section .leftContainer {
     }
     100%{
         background-color:#fff;
-    }
-}
-
-@keyframes xPath {
-    0% {
-        left:-1000px;
-    }
-    100%{
-        left:50%;
-    }
-}
-
-@keyframes yPath {
-    0% {
-        top:-1000px;
-    }
-    100%{
-        top:50%;
     }
 }
 
@@ -2283,3 +2326,36 @@ section .leftContainer {
         opacity: 0
     }
 }
+
+@keyframes rollIn {
+    0% {
+        opacity: 1;
+        transform:translateX(-300px) rotate(-90deg);
+    }
+    
+    90%{
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform:translateX(-300px) rotate(0deg);
+    }
+}
+
+@keyframes rollOut {
+    0% {
+        opacity: 1;
+
+        transform:translateX(-300px) rotate(0deg);
+    }
+    
+    90%{
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform:translateX(-300px) rotate(-90deg);
+    }
+}
+
+

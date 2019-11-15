@@ -2,9 +2,8 @@ import React from 'react';
 
 import { List, Avatar, Popover, Steps, Icon, Button, Spin, Modal } from 'antd';
 
-
-import UserListItem from './pc_user_list_item';
-import ChatList from './pc_user_chatlist';
+import UserListItem from './user_list_item';
+import ChatList from './user_chatlist';
 
 export default class UserList extends React.Component{
   constructor(){

@@ -172,8 +172,9 @@ export default class CollectContainer extends React.Component {
                     </Form>
                 </div>
                 <span style={{fontSize:'12px',color:'#f5222d',position:'absolute',left:'110px',top:'10px'}}>{text}</span>
+
                 <Tabs defaultActiveKey="0" onChange={this.handleChange.bind(this)}>
-                    <TabPane tab={isSelf?"我创建的":"TA创建的"} key="0">
+                    <TabPane tab={isSelf ? "我创建的":"TA创建的"} key="0">
                         {
                             createCollect.length
                             ?
@@ -187,14 +188,14 @@ export default class CollectContainer extends React.Component {
                                     onAddCollect={this.handleUpdateCollection.bind(this)} 
                                     onShowMsg={this.handleShowMsg.bind(this)}
                                     onVisible={this.handleModalVisible.bind(this)}
-                                    text="还没有创建收藏夹"
+                                    
                                 />
                             ))
                             :
-                            null
+                            <div>还没有创建收藏夹</div>
                         }
-                                  
                     </TabPane>
+                    
                     {
                         forUser
                         ?
@@ -213,11 +214,11 @@ export default class CollectContainer extends React.Component {
                                         onAddCollect={this.handleUpdateCollection.bind(this)} 
                                         onShowMsg={this.handleShowMsg.bind(this)}
                                         onVisible={this.handleModalVisible.bind(this)}
-                                        text="还没有收藏他人的收藏夹"
+                                        
                                     />
                                 ))
                                 :
-                                null
+                                <span>还没有收藏他人的收藏夹</span>
                             }
                             
                         </TabPane>

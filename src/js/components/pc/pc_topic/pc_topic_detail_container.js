@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Menu, Icon, Tabs, Modal, Card, List, Spin, Badge, Input, Button, message } from 'antd';
-import { TopicListItem } from './pc_topic_list';
+import TopicListItem from '../../topic_list/topic_list_item';
 import CommentsInput from '../../common_comments/comments_input';
 
 import ShareModal from '../../shareModal';

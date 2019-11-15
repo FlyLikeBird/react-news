@@ -8,36 +8,16 @@ const TabPane = Tabs.TabPane;
 
 export default class LoginContainer extends React.Component {
     
-    constructor(props) {
-      super();
-      this.state = {
-        
-      }
-    }
-
-    handleModalCancel(){
-      this.props.onModalVisible(false);
-    }
-    
-
-    
-   
-    handleModalCancel(){
-      if(this.props.onModalVisible){
-        this.props.onModalVisible(false);
-      }
-    }
-
     render() {
-      var { modalVisible, onLogined } = this.props;
+      var { modalVisible, onLoginVisible, onLogin } = this.props;
       const formItemLayout = {
           labelCol: {
             xs: { span: 24 },
-            sm: { span: 8 },
+            sm: { span: 4 },
           },
           wrapperCol: {
             xs: { span: 24 },
-            sm: { span: 16 },
+            sm: { span: 20 },
           }
       };
       const tailFormItemLayout = {
@@ -47,19 +27,19 @@ export default class LoginContainer extends React.Component {
               offset: 0,
             },
             sm: {
-              span: 16,
-              offset: 8,
+              span: 20,
+              offset: 4,
             },
           }
       };
       return (
-         <Modal title="用户入口" visible={modalVisible} onCancel={this.handleModalCancel.bind(this)} footer={null} closable={true} destroyOnClose={true}>
+         <Modal title="用户入口" visible={modalVisible} onCancel={()=>onLoginVisible(false)} footer={null} destroyOnClose={true}>
               <Tabs type="card">
                 <TabPane tab="登录" key="login">                           
-                  <LoginForm formItemLayout={formItemLayout} tailFormItemLayout={tailFormItemLayout} onLogined={onLogined} />
+                  <LoginForm formItemLayout={formItemLayout} tailFormItemLayout={tailFormItemLayout} onLogin={onLogin} />
                 </TabPane>
                 <TabPane tab="注册" key="register">
-                  <RegisterForm formItemLayout={formItemLayout} tailFormItemLayout={tailFormItemLayout} onLogined={onLogined} />
+                  <RegisterForm formItemLayout={formItemLayout} tailFormItemLayout={tailFormItemLayout} onLogin={onLogin} />
                 </TabPane>
               </Tabs>
         </Modal>

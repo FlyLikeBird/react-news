@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Popover, Button } from 'antd';
-import TopicList from './pc_topic_list';
+import TopicList from '../../topic_list/topic_list';
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;

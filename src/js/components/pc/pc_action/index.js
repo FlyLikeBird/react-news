@@ -1,8 +1,9 @@
 import React from 'react';
 import {  Row, Col, Spin  } from 'antd';
 
-import UpdateItem from '../pc_usercenter/pc_usercenter_update_item';
+import UpdateItem from '../../update_list/update_list_item';
 import CommentsListContainer from '../../common_comments/comments_list_container';
+import ShareModal from '../../shareModal';
 
 export default class PCActionContainer extends React.Component{
     constructor(){
@@ -16,8 +17,9 @@ export default class PCActionContainer extends React.Component{
     }
 
     componentDidMount(){
-        var uniquekey = this.props.match.params.id;       
-        fetch(`/api/action/getActionContent?actionId=${uniquekey}`)
+        var uniquekey = this.props.match.params.id;   
+        console.log(uniquekey);    
+        fetch(`/api/action/getActionContent?contentId=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
@@ -26,8 +28,13 @@ export default class PCActionContainer extends React.Component{
         
     }
 
-    handleShareVisible(boolean,option){
+    handleShareVisible(boolean,option, _updateShareby){
+        this._updateShareby = _updateShareby;
         this.setState({shareVisible:boolean,actionInfo:option})
+    }
+
+    componentWillUnmount(){
+        this._updateShareby = null;
     }
 
     render(){
@@ -66,9 +73,9 @@ export default class PCActionContainer extends React.Component{
                                     actionInfo={actionInfo}                                   
                                     history={history}    
                                     onVisible={this.handleShareVisible.bind(this)} 
-                                    onUpdate={this.handleUpdateAction.bind(this)}
+                                    onUpdateShareBy={this._updateShareby}
                                     forUserAction={true}
-                                    isSelf={isSelf}
+                                    
                                 />
                                 :
                                 null

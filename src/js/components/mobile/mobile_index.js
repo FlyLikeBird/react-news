@@ -1,61 +1,64 @@
 import React from 'react';
-import { Tabs, Carousel } from 'antd';
+import ReactDOM from 'react-dom';
+import Loadable from 'react-loadable';
 
-const TabPane = Tabs.TabPane;
+import AutoCarousel from '../autoCarousel';
+import NewsList from '../news_list/news_list';
+import { Menu, Spin } from 'antd';
 
-export default class MobileIndex extends React.Component {
+export default class MobileNewsContainer extends React.Component {
+    
+    constructor(){
+        super();
+        this.state = {
+            newsList:[],
+            isLoading:true
+        }
+
+    }
+    componentDidMount(){
+        console.log('hello');
+        fetch('/api/article/getArticleList?type=yule&count=20')
+        .then(response=>response.json())
+        .then(json=>{
+            var data = json.data;
+            this.setState({newsList:data,isLoading:false});       
+        })
+    }
+
     render(){
+        
+        var { isLoading, newsList } = this.state;
+        console.log(newsList);
         return (
-            <div>mobile page</div>
-        )
-    }
-}
-/*
-export default class MobileIndex extends React.Component {
-    render() {
+                   
+                <div>
+                    <div style={{height:'200px'}}>
+                        <AutoCarousel count={4} size="small"/>
+                    </div>
+                    
+                        {
+                            isLoading
+                            ?
+                            <Spin/>
+                            :
+                            <NewsList data={newsList} hasImg={true}/>
+                        }
+                    
+               
+                    <div>
+                        <span>hot news</span>
+                        <span>hot topics </span>
+                    </div>
 
-        const settings = {
-            dots:true,
-            infinite:true,
-            speed:500,
-            slidesToShow:1,
-            autoplay:true
-        };
-
-        return (
-            <div id="mobileContainer">
-                <MobileHeader/>
-
-                <div className="carousel">
-                                <Carousel {...settings} >
-                                    <div><img src="./src/images/carousel_1.jpg" /></div>
-                                    <div><img src="./src/images/carousel_2.jpg" /></div>
-                                    <div><img src="./src/images/carousel_3.jpg" /></div>
-                                    <div><img src="./src/images/carousel_4.jpg" /></div>
-                                </Carousel>
                 </div>
-
-                <Tabs>
-                	<TabPane tab="头条" key="1">
-                        <MobileList count={20} type="top" />
-                	</TabPane>
-                	<TabPane tab="社会" key="2">
-                        <MobileList count={20} type="shehui" />
-                	</TabPane>
-                	<TabPane tab="国内" key="3">
-                        <MobileList count={20} type="guonei" />
-                	</TabPane>
-                	<TabPane tab="国际" key="4">
-                        <MobileList count={20} type="guoji" />
-                	</TabPane>
-                	<TabPane tab="娱乐" key="5">
-                        <MobileList count={20} type="yule" />
-                	</TabPane>
-                </Tabs>
-                <MobileFooter/>
-            </div>
-
+            
         )
     }
 }
-*/
+
+
+
+
+
+

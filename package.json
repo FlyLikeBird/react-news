@@ -56,6 +56,7 @@
     "autoresponsive-react": "^1.1.31",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",
+    "crypto-js": "^3.1.9-1",
     "echarts": "^4.2.1",
     "express": "^4.16.4",
     "fetch": "^1.1.0",

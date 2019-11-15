@@ -1,5 +1,5 @@
 var express = require('express');
-var usrRouter = require('./user');
+var userRouter = require('./user');
 var articleRouter = require('./article');
 var commentsRouter = require('./comments');
 var collectRouter = require('./collect');
@@ -9,7 +9,7 @@ var actionRouter = require('./action');
 
 var router = express.Router();
 
-router.use('/usr',usrRouter);
+router.use('/usr',userRouter);
 router.use('/comment',commentsRouter);
 router.use('/article',articleRouter);
 router.use('/collect',collectRouter);

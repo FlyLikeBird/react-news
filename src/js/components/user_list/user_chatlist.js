@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { List, Avatar, Popover, Steps, Icon, Button, Spin, Modal, Input } from 'antd';
-import { parseDate, formatDate } from '../../../../utils/translateDate';
+import { parseDate, formatDate } from '../../../utils/translateDate';
 
 export default class ChatList extends React.Component{
   constructor(){

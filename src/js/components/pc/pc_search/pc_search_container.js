@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Row, Col, Input, Select, DatePicker, Pagination, Spin, Tabs } from 'antd';
 
-import NewsList from '../pc_usercenter/pc_newslist';
-import UserList from './pc_user_list';
+import NewsList from '../../news_list/news_list';
+import UserList from '../../user_list/user_list';
 import SearchComponent from './search_component';
 
 const { TabPane } = Tabs;

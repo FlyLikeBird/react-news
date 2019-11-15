@@ -3,8 +3,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var fs = require('fs'); //用来操作文
 
-var url = 'https://www.zcool.com.cn/discover/607!3!619!0!0!!!!2!0!6';
-var i = 125;
+var url = 'https://www.zcool.com.cn/discover/33!3!36!0!0!!!!2!-1!8';
+var i = 100;
 
 function fetchSource(url){
     https.get(url,function(res){

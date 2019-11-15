@@ -1,11 +1,10 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Popover, Modal } from 'antd';
 
-import PCNewsImageBlock from '../pc_news_image_block';
 import PCDetailRate from './pc_detail_rate';
 import CollectContainer from '../../collectComponent';
 import ShareModal from '../../shareModal';
-import TopicItemPopover from '../pc_topic/pc_topic_item_popover';
+import TopicItemPopover from '../../topic_list/topic_item_popover';
 
 export default class ArticleAction extends React.Component {
     constructor(props){
@@ -92,7 +91,7 @@ export default class ArticleAction extends React.Component {
                     </Popover>
                 </div>   
                 
-                <Modal className="collect-container" visible={collectVisible} footer={null} onCancel={this.handleModalVisible.bind(this,false)} maskClosable={true}>
+                <Modal visible={collectVisible} footer={null} onCancel={this.handleModalVisible.bind(this,false)} maskClosable={true}>
                     <CollectContainer data={userCollect} uniquekey={uniquekey} isSelf={true}/>
                 </Modal>
                 <Modal className="score-container" visible={rateVisible} footer={null} onCancel={this.handleRateVisible.bind(this)}>

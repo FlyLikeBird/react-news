@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Rate } from 'antd';
-import { parseDate, formatDate, sortByDate } from '../../../../utils/translateDate';
+import { parseDate, formatDate, sortByDate, checkArrIsEqual } from '../../../utils/translateDate';
 
 const desc = ['肺都气炸了', '一肚子槽要吐', '一般无感', '心情愉悦', '开心的飞起来'];
 
@@ -74,6 +74,9 @@ export default class TopicItemPopover extends React.Component{
     componentWillReceiveProps(newProps){
         if ( this.props.data.length != newProps.data.length ){
             this._loadUsersAvatar(newProps);
+        // 判断shareBy字段length相同的情况下 ，元素是否相等 
+        } else if (!checkArrIsEqual(this.props.data,newProps.data)){
+            this._loadUsersAvatar(newProps);
         }
     }
 
@@ -90,7 +93,7 @@ export default class TopicItemPopover extends React.Component{
                 {
                     data.length
                     ?
-                    <ul style={{listStyle:'none',margin:'0',padding:'0'}}>
+                    <ul style={{listStyle:'none',margin:'0',padding:'0',fontSize:'12px'}}>
                         {
                             data.map((item,index)=>(
                                 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Button } from 'antd';
-import TopicList from '../pc_topic/pc_topic_list';
+import TopicList from '../../topic_list/topic_list';
 import DeleteModal from '../../deleteModal';
 import TopicForm from '../../topic_form';
 
