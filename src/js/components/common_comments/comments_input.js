@@ -7,7 +7,6 @@ const FormItem = Form.Item;
 const { TextArea } = Input;
 
 function sendActionMsg(content, commentid, socket){
-
     var data = formatContent(content);
     if (data.length){
         var users = data.map(item=>item.user);              
@@ -33,9 +32,9 @@ class CommentsInput extends React.Component{
         var { validateFields, setFieldsValue } = this.props.form;
         var { socket, uniquekey, commentType, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
         var { fileList } = this.state;
-        console.log(socket);
+        
         validateFields(['comments'],(errs,values)=>{
-            var username = localStorage.getItem('username');
+            var userid = localStorage.getItem('userid');
             if(!errs){
                 var  { comments } = values;
                 //  生成一条新评论逻辑
@@ -44,7 +43,7 @@ class CommentsInput extends React.Component{
                     for(var i=0,len=fileList.length;i<len;i++){
                         formData.append('images',fileList[i].originFileObj);
                     }
-                    formData.append('username',localStorage.getItem('username'));
+                    formData.append('userid', userid);
                     formData.append('content',comments);
                     formData.append('commentType',commentType);
                     formData.append('uniquekey',uniquekey)                    
@@ -66,7 +65,7 @@ class CommentsInput extends React.Component{
                         })
                         if(onAddComment) onAddComment(comments);
                         if(onShowReply) onShowReply();
-                        sendActionMsg(values['comments'], commentid, socket);                                               
+                        sendActionMsg(values['comments'], commentid, socket);                                         
                     })
                 } else {
                     //  回复评论逻辑
@@ -100,9 +99,9 @@ class CommentsInput extends React.Component{
                             if(onUpdateReplies) onUpdateReplies(data);
                         }
                         if (onCloseReply) onCloseReply();
-                    })
-                    
+                    })        
                 }
+
 
                 setFieldsValue({'comments':''});
                 this.setState({fileList:[]})
@@ -121,13 +120,12 @@ class CommentsInput extends React.Component{
       }    
     }
     
-    handleKeyUp(e){        
+    handleKeyDown(e){        
         if(e.keyCode === 50 && e.shiftKey){
             if(this.textArea && this.textArea.textAreaRef){
                 var textarea = this.textArea.textAreaRef;
                 var start = textarea.selectionStart;               
-                var leftPosition = start * 10 + 'px';
-                
+                var leftPosition = start * 10 + 'px';            
                 this.setState({showSelect:true,leftPosition});
                               
             }
@@ -244,11 +242,11 @@ class CommentsInput extends React.Component{
                             }]
                         })(
                           <TextArea 
-                                rows={2}
+                                rows={3}
                                 style={{fontSize:'12px'}} 
                                 ref={textArea=>this.textArea = textArea} 
                                 //onKeyDown={this.handleKeyDown.bind(this)} 
-                                onKeyUp={this.handleKeyUp.bind(this)}
+                                onKeyDown={this.handleKeyDown.bind(this)}
                                 placeholder="发表你的看法吧~输入@可通知其他用户" 
                             /> 
                         )}

@@ -11,6 +11,7 @@ var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Collect = require('../../models/Collect');
 var Comment = require('../../models/Comment');
+var Message = require('../../models/Message');
 var secret = require('../../src/utils/secret');
 
 var createFolder = function(folder){
@@ -52,21 +53,27 @@ function _createUser(r_userName, r_password, managerUser, res){
 	});
 	user.save()
 		.then(()=>{
-			User.findOne({_id:user._id},(err,userInfo)=>{
-				var data = {};
-				data.username = userInfo.username;
-				data.userid = secret.encrypt(userInfo._id);
-				data.avatar = userInfo.userImage;
-				User.updateOne({_id:user._id},{$push:{message:{
-					fromUser:managerUser._id,
-					toUser:user._id,
-					msgtype:'system',
-					content:'欢迎使用React-News新闻平台',
-					msgtime:date
-				}}},(err,result)=>{
-					util.responseClient(res,200,0,'ok',data);
+			//  初始化生成一条系统消息
+			var message = new Message({
+				fromUser:managerUser._id,
+				toUser:user._id,
+				msgtype:'system',
+				content:'欢迎使用React-News新闻平台',
+				msgtime:date
+			});
+			message.save(function(err){
+				if (err) throw err;
+				User.updateOne({_id:user._id},{$push:{message:message._id}},(err,result)=>{});
+				User.findOne({_id:user._id},(err,userInfo)=>{
+					var data = {};
+					data.username = userInfo.username;
+					data.userid = userInfo._id;
+					data.avatar = userInfo.userImage;
+					util.responseClient(res, 200, 0, 'ok', data);
+				
 				})
-			})
+			});
+		
 			//  初始化默认收藏夹
 			var collect = new Collect({
 				tag:'默认收藏夹',
@@ -75,6 +82,7 @@ function _createUser(r_userName, r_password, managerUser, res){
 				defaultCollect:true
 			});
 			collect.save();
+			
 			//  默认关注react-news这个管理用户
 			User.updateOne({_id:user._id},{$push:{userFollow:managerUser._id}},(err,result)=>{});
 			User.updateOne({_id:managerUser._id},{$push:{userFans:user._id}},(err,result)=>{});
@@ -89,7 +97,7 @@ router.get('/register',(req,res)=>{
 		if(!manager){
 			var managerUser = new User({
 				username:'React-News平台',
-				password:secret.encrypt(r_password),
+				password:secret.encrypt('1989'),
 				registerTime:date,
 				loginTime:date,
 				userImage:config.uploadPath + '/logo.png'
@@ -114,7 +122,7 @@ router.get('/login',(req,res)=>{
 		} else {
 			if ( password === userInfo.password) {
 				obj.username = userInfo.username;
-				obj.userid = secret.encrypt(userInfo._id);	
+				obj.userid = userInfo._id;	
 				obj.avatar = userInfo.userImage;
 				util.responseClient(res,200,0,'ok',obj);
 			} else {
@@ -128,31 +136,26 @@ router.get('/login',(req,res)=>{
 router.get('/getChatList',(req,res)=>{
 	let { userid, other } = req.query;	
 	User.findOne({_id:userid},(err,user)=>{
-		var data = [];
-		var msgs = user.message;
 		User.findOne({_id:other},(err,otherUser)=>{
-			data = msgs.filter(item=>{
-				return item.fromUser === other || item.toUser === other
-			});
-			data = data.map(item=>{
-				var obj = {};
-                obj.fromUser = item.fromUser;
-                obj.toUser = item.toUser;
-                obj.msgtype = item.msgtype;
-                obj.msgtime = item.msgtime;
-                obj.content = item.content;
-                obj.selfAvatar = user.userImage;
-                obj.otherAvatar = otherUser.userImage;
-                return obj;
-			})
-			util.responseClient(res,200,0,'ok',data);
+			var data = {};
+            var messageIds = user.message;
+            Message.find({_id:{$in:messageIds}},(err,messages)=>{
+                var userMsg = messages.filter(item=>{
+                    return item.fromUser == userid && item.toUser == other || item.fromUser == other && item.toUser == userid;
+                });
+                data.messages = userMsg;
+                data.selfAvatar = user.userImage;
+                data.otherAvatar = otherUser.userImage;
+               	util.responseClient(res,200,0,'ok',data);
+
+            })
+
 		})	
 	})	
 })
 
 router.get('/usercenter',(req,res)=>{
 	let { userid, isSelf } = req.query;
-
 	User.findOne({_id:userid},{password:0})
 		.then(user=>{
 
@@ -194,7 +197,6 @@ router.get('/usercenter',(req,res)=>{
 				})			
 		})
 	
-			
 })
 
 router.get('/getUserInfo',(req,res)=>{
@@ -233,7 +235,6 @@ router.get('/getUserInfo',(req,res)=>{
 
 router.get('/editSign',(req,res)=>{
 	let { user, description } = req.query;
-
 	User.updateOne({username:user},{$set:{description}},(err,result)=>{
 		if (result) {
 			User.findOne({username:user})
@@ -261,7 +262,6 @@ router.get('/checkusername',(req,res)=>{
 
 router.get('/addFollow',(req,res)=>{
 	let { userid, followId } = req.query;
-	
 	User.updateOne({_id:userid},{$push:{userFollow:followId}},(err,result)=>{
 		User.updateOne({_id:followId},{$push:{userFans:userid}},(err,result)=>{
 			util.responseClient(res,200,0,'ok');
@@ -272,7 +272,6 @@ router.get('/addFollow',(req,res)=>{
 
 router.get('/removeFollow',(req,res)=>{
 	let { userid, followId } = req.query;
-	
 	User.updateOne({_id:userid},{$pull:{userFollow:followId}},(err,result)=>{
 		User.updateOne({_id:followId},{$pull:{userFans:userid}},(err,result)=>{
 			util.responseClient(res,200,0,'ok');
@@ -281,35 +280,28 @@ router.get('/removeFollow',(req,res)=>{
 
 })
 
-router.post('/upload',upload.single('file'),(req,res)=>{
-	
-	var { username } = req.body;
+router.post('/upload',upload.single('file'),(req,res)=>{	
+	var { userid } = req.body;
 	var imgUrl = config.uploadPath+'/userAvatar/'+req.file.filename;
 
-	User.updateOne({username},{$set:{userImage:imgUrl}},(err,result)=>{
-		if (err) throw err;
-		
-		User.findOne({username})
-			.then(user=>{
-				if (!user) {
-
-				} else {
-
-					var data = {
+	User.updateOne({_id:userid},{$set:{userImage:imgUrl}},(err,result)=>{
+		if (err) throw err;		
+		User.findOne({_id:userid},(err,user)=>{
+			if(user){
+				var data = {
 						message:'success',
 						imgUrl:user.userImage
-					};
-					util.responseClient(res,200,0,'ok',data);
-				}
-
-			})	
+				};
+				util.responseClient(res,200,0,'ok',data);
+			}
+		})
+				
 	})
 	
 })
 
 router.get('/pushHistory',(req,res)=>{
 	let { uniquekey, userid } = req.query;
-	userid = secret.decrypt(userid);
 	User.findOne({_id:userid},(err,user)=>{
 		if(user){
 			var historys = user.userHistory;
@@ -341,7 +333,6 @@ router.get('/pushHistory',(req,res)=>{
 
 router.get('/removeHistory',(req,res)=>{
 	let { userid , uniquekey } = req.query;
-
 	User.updateOne({_id:userid},{$pull:{userHistory:{'articleId':uniquekey}}},(err,result)=>{
 		util.responseClient(res,200,0,'ok');
 	})
@@ -380,7 +371,6 @@ router.get('/getUserFollows',(req,res)=>{
 
 router.get('/getCommonUsers',(req,res)=>{
 	var { userId, currentUserId, follow } = req.query;
-
 	User.findOne({_id:userId},(err,localUser)=>{
 		User.findOne({_id:currentUserId},(err,currentUser)=>{
 			var data1,data2,result = [];

@@ -12,6 +12,7 @@ var Tag = require('../../models/Tag');
 var Article = require('../../models/Article');
 var User = require('../../models/User');
 var Comment = require('../../models/Comment');
+var secret = require('../../src/utils/secret');
 
 var createFolder = function(folder){
     try{
@@ -130,7 +131,6 @@ router.get('/share',(req,res)=>{
 router.post('/create',upload.array('images'),(req,res)=>{
     var { description, privacy, userid } = req.body;
     var date = new Date().toString(),images = [];
-
     if(req.files){
         images = req.files.map(item=>config.uploadPath+'/action/'+item.filename)   
     }  
@@ -170,7 +170,7 @@ function _operateAction( action, id, isCancel, userid, res ){
 }
 
 router.get('/operate',(req,res)=>{
-    var { action, id, userid, isCancel } = req.query;   
+    var { action, id, userid, isCancel } = req.query; 
     _operateAction(action,id,isCancel,userid, res);
     
 })

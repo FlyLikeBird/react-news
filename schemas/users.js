@@ -3,9 +3,9 @@
  */
 
 var mongoose = require('mongoose');
-var messageSchema = require('./messages');
+var Schema = mongoose.Schema;
 
-module.exports = new mongoose.Schema({
+module.exports = new Schema({
     username:String,
     password:String,
     userFollow:[String],
@@ -14,7 +14,8 @@ module.exports = new mongoose.Schema({
     userAction:[String],
     userHistory:[{articleId:String,viewtime:String}],
     userTopic:[String],
-    message:[messageSchema],
+    //  String指的是Message表的 ObjectId
+    message:[String],
     description:{type:String,default:'还未设置签名～'},
     level:{type:Number,default:0},
     userImage:{type:String,default:"https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"},

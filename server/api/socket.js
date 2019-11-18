@@ -38,7 +38,7 @@ function showNotReadMsg(type,msg,userid,obj){
     
     for(var i=0,len=users.length;i<len;i++){
 
-        var tempArr = msg[users[i]].filter(item=>{
+        var tempArr = msg[users[i]]['message'].filter(item=>{
             return item.toUser == userid && item.isRead == false
         })
         //console.log(tempArr);
@@ -46,6 +46,18 @@ function showNotReadMsg(type,msg,userid,obj){
         obj['total'] += tempArr.length;
     }
 
+}
+
+function translateMsgUsers(userMsgs, resolve){
+    var userIds = Object.keys(userMsgs);
+    User.find({_id:{$in:userIds}},(err,multiUsers)=>{
+        for(var i=0,len=userIds.length;i<len;i++){
+            var userid = userIds[i];
+            userMsgs[userid]['username'] = multiUsers[i].username;
+            userMsgs[userid]['avatar'] = multiUsers[i].userImage;
+        }
+        resolve(userMsgs);
+    })
 }
 
 function deepFilter(arr,userid){
@@ -56,39 +68,43 @@ function deepFilter(arr,userid){
              if(!msgList[item.toUser]) {
                  var userArr = [];
                  userArr.push(item);
-                 msgList[item.toUser] = userArr;
+                 msgList[item.toUser] = {};
+                 msgList[item.toUser]['message'] = userArr;
              } else {
-                 msgList[item.toUser].push(item);
+                 msgList[item.toUser]['message'].push(item);
              }             
          } else {
              if(!msgList[item.fromUser]){
                  var userArr = [];
                  userArr.push(item);
-                 msgList[item.fromUser] = userArr;
+                 msgList[item.fromUser] = {};
+                 msgList[item.fromUser]['message'] = userArr;
              } else {
-                 msgList[item.fromUser].push(item);
+                 msgList[item.fromUser]['message'].push(item);
              }
          }    
     });
-
-    return msgList;
+    
+    return new Promise((resolve, reject)=>{
+        translateMsgUsers(msgList, resolve);
+    })
 }
 
 
-function storeMsg(fromUser,toUser,content,resolve){
+function storeMsg( fromUser,toUser, targetUser, content,resolve){
         var date = new Date().toString();
-        var option = {
+        var message = new Message({
             fromUser:fromUser,
             content:content,
             toUser:toUser,
             msgtype:'user',
             msgtime:date,
-        };
-        User.updateOne({_id:fromUser},{$push:{message:option}},(err,result)=>{
-            User.updateOne({_id:toUser},{$push:{message:option}},(err)=>{                
-                resolve()
-            })                            
-        })           
+        }); 
+        message.save(function(err){
+            User.updateOne({_id:targetUser},{$push:{message:message._id}},(err,result)=>{
+                resolve();
+            })
+        })       
 }
 
 function sendActionMsg( user, sender, commentid, io ){
@@ -107,6 +123,37 @@ function sendActionMsg( user, sender, commentid, io ){
     })
 }
 
+function getMsg(socket, userid){  
+    User.findOne({_id:userid},(err,userInfo)=>{
+        var messageIds = userInfo.message;
+        Message.find({_id:{$in:messageIds}},(err,messages)=>{
+            var msg = {};
+            msg['total'] = 0;
+
+            var allSystemMsg = messages.filter(filterMsgType('system'));
+            var allUserMsg =messages.filter(filterMsgType('user'));
+            var allActionMsg = messages.filter(filterMsgType('action'));
+
+            var userMsg = deepFilter(allUserMsg,userid);
+            var systemMsg = deepFilter(allSystemMsg,userid);
+            
+            var actionNotRead = 0;
+            Promise.all([userMsg, systemMsg])
+                .then(([userMsg, systemMsg])=>{
+
+                    msg['systemMsg'] = systemMsg;
+                    msg['userMsg'] = userMsg;
+                    showNotReadMsg('userNotRead', userMsg, userid, msg);
+                    showNotReadMsg('systemNotRead', systemMsg, userid, msg);
+                    msg['actionNotRead'] = actionNotRead; 
+                    msg['total'] += actionNotRead;
+                    socket.emit('receive-message',msg);
+                })
+        })
+    })
+    
+}
+/*
 function getMsg(socket,userid){  
     var promise = new Promise((resolve,reject)=>{
         User.findOne({_id:userid},(err,userInfo)=>{            
@@ -115,8 +162,12 @@ function getMsg(socket,userid){
                         消息数据格式
                         msg = {                           
                                 systemMsg:{
-                                    'system1':[],
-                                    'system2':[],
+                                    'system1':{
+                                        message:[],
+                                        username:String,
+                                        avatar:String
+                                    },
+                        
                                     ...
                                 },
                                 actionMsg:[],
@@ -136,7 +187,7 @@ function getMsg(socket,userid){
                                 },
                                 total:                            
                         }                    
-                    */
+                    
 
                     var msg = {};                    
                     var result = userInfo.message;
@@ -144,23 +195,32 @@ function getMsg(socket,userid){
                     var allUserMsg =result.filter(filterMsgType('user'));
                     var allActionMsg = result.filter(filterMsgType('action'));
                     msg['total'] = 0;
+                    //  deepFilter 是异步任务
                     var userMsg = deepFilter(allUserMsg,userid);
                     var systemMsg = deepFilter(allSystemMsg,userid);
                     //   筛选未读的动态消息
                     var actionNotRead = 0;
+
                     /*
                     var actionNotRead = allActionMsg.filter(item=>{
                         return item.toUser == username && item.isRead == false
                     })
-                    */
-                    showNotReadMsg('userNotRead', userMsg, userid, msg);
-                    showNotReadMsg('systemNotRead', systemMsg, userid, msg);
-                    msg['actionNotRead'] = actionNotRead; 
-                    msg['total'] += actionNotRead;
-                    msg['systemMsg'] = systemMsg;
-                    msg['userMsg'] = userMsg;
+                    
+                    Promise.all([userMsg, systemMsg])
+                        .then(([userMsg, systemMsg])=>{
+                            msg['systemMsg'] = systemMsg;
+                            msg['userMsg'] = userMsg;
+                            showNotReadMsg('userNotRead', userMsg, userid, msg);
+                            showNotReadMsg('systemNotRead', systemMsg, userid, msg);
+                            msg['actionNotRead'] = actionNotRead; 
+                            msg['total'] += actionNotRead;
+                            resolve(msg);
+                        })
+                    
+                    
+                    
                     //  构建动态消息需要的数据结构      
-                    /*             
+                               
                     var allPromises = [];
                     for(var i=0,len=allActionMsg.length;i<len;i++){
                         (function(i){
@@ -176,8 +236,8 @@ function getMsg(socket,userid){
                             msg['actionMsg'] = sort(data);
                             resolve(msg);
                         })
-                    */
-                    resolve(msg);
+                    
+        
             } 
         })
     });
@@ -186,7 +246,7 @@ function getMsg(socket,userid){
         socket.emit('receive-message',msg);
     })
 }
-
+*/
 function socketIndex(socket,io){
     
     socket.on('user-login',(userid)=>{       
@@ -237,21 +297,36 @@ function socketIndex(socket,io){
         
     })
 
-    socket.on('markMsgIsRead',(otherUser,selfUser)=>{       
-        User.findOne({'username':selfUser},(err,user)=>{
-            var messages = user.message;            
-            for(var i=0,len=messages.length;i<len;i++){
-                if((messages[i].fromUser == otherUser || messages[i].toUser == otherUser) && messages[i].isRead == false){
-                    messages[i].isRead = true;
-                }
-            }
-            user.markModified('isRead');
-            user.save(()=>{
-                getMsg(socket,selfUser);
-            })            
-        })                
+    socket.on('markMsgIsRead',( selfUser, otherUser )=>{
+        User.findOne({_id:selfUser},(err,userInfo)=>{
+            var messageIds = userInfo.message;
+            Message.find({_id:{$in:messageIds}},(err,messages)=>{
+                var userMsg = messages.filter(item=>{
+                    return item.fromUser == selfUser && item.toUser == otherUser || item.fromUser == otherUser && item.toUser == selfUser;
+                });
+                var filterIds = userMsg.map(item=>item._id);
+                Message.updateMany({_id:{$in:filterIds}},{$set:{isRead:true}},(err,result)=>{
+                    getMsg(socket, selfUser);
+                })
+            })
+        })          
     })   
     
+    socket.on('deleteMsg',(userid, deleteId)=>{
+        User.findOne({_id:userid},(err,userInfo)=>{
+            var messageIds = userInfo.message;
+            Message.find({_id:{$in:messageIds}},(err,messages)=>{
+                var userMsg = messages.filter(item=>{
+                    return item.fromUser == userid && item.toUser == deleteId || item.fromUser == deleteId && item.toUser == userid;
+                });
+                var filterIds = userMsg.map(item=>item._id);               
+                Message.deleteMany({_id:{$in:filterIds}},(err,result)=>{
+                    getMsg(socket, userid);
+                })
+            })
+        }) 
+    })
+
     socket.on('markActionMsg',(userid,msgId)=>{
         User.findOne({_id:userid,'message._id':msgId},(err,user)=>{
             var username = user.username;
@@ -274,46 +349,42 @@ function socketIndex(socket,io){
 
     socket.on('send-message',(msg)=>{
         var { fromUser, toUser, value } = msg;       
-        var promise = new Promise((resolve,reject)=>{
-            storeMsg(fromUser,toUser,value,resolve);
-        })
-        promise.then(()=>{
-             User.findOne({_id:fromUser},(err,from_user)=>{
-                User.findOne({_id:toUser},(err,to_user)=>{
-                    var data = [];
-                     data = from_user.message.filter(item=>{
-                         return item.fromUser === toUser || item.toUser === toUser
-                     });
-    
-                     data = data.map(item=>{
-                        var obj = {};
-                        obj.fromUser = item.fromUser;
-                        obj.toUser = item.toUser;
-                        obj.msgtype = item.msgtype;
-                        obj.msgtime = item.msgtime;
-                        obj.content = item.content;
-                        obj.selfAvatar = from_user.userImage;
-                        obj.otherAvatar = to_user.userImage;
-                        return obj;
-                     })                
-                     socket.emit('send-chatList',data);
-    
-                     if(!onlineUsers[toUser]){
-                         return ;
-                     }
-    
-                     if (onlineUsers[toUser].isChatting && onlineUsers[toUser].isChatting.toUser === fromUser ) {             
-                         io.to(onlineUsers[toUser].id).emit('send-chatList',data);
-                     } else {                         
-                         // 通知聊天的另一端客户端接收消息
-                         var toSocket = io.to(onlineUsers[toUser].id);
-                         getMsg(toSocket,toUser);
-                     }
+        var promise1 = new Promise((resolve,reject)=>{
+            storeMsg(fromUser, toUser, fromUser, value, resolve);
+        });
+        var promise2 = new Promise((resolve, reject)=>{
+            storeMsg(fromUser, toUser, toUser, value, resolve);
+        });
+        Promise.all([promise1, promise2])
+            .then(()=>{
+                User.findOne({_id:fromUser},(err,from_user)=>{
+                    User.findOne({_id:toUser},(err,to_user)=>{
+                        var messageIds = from_user.message;
+                        Message.find({_id:{$in:messageIds}},(err,messages)=>{
+                            var data = {};
+                            var userMsg = messages.filter(item=>{
+                                return item.fromUser == fromUser && item.toUser == toUser || item.fromUser == toUser && item.toUser == fromUser;
+                            });
+                            data.messages = userMsg;
+                            data.selfAvatar = from_user.userImage;
+                            data.otherAvatar = to_user.userImage;
+                            socket.emit('send-chatList',data);
+                        })
+                                             
+                         if(!onlineUsers[toUser]){
+                             return ;
+                         }
+        
+                         if (onlineUsers[toUser].isChatting && onlineUsers[toUser].isChatting.toUser === fromUser ) {             
+                             io.to(onlineUsers[toUser].id).emit('send-chatList',data);
+                         } else {                         
+                             // 通知聊天的另一端客户端接收消息
+                             var toSocket = io.to(onlineUsers[toUser].id);
+                             getMsg(toSocket,toUser);
+                         }
+                    })
                 })
-                   
-            })
-        })     
-       
+            })          
     })                        
     
     socket.on('send@Msg',( users, sender, commentid)=>{

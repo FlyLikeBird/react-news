@@ -66,8 +66,6 @@ class PicturesWall extends React.Component {
   }   
     
   handleChange({ fileList }){
-    console.log(fileList);
-    console.log('upload!');
     this.setState({ fileList });
   } 
 
@@ -80,7 +78,7 @@ class PicturesWall extends React.Component {
     var fileData = this.props.form.getFieldsValue();
     
     formData.append('file',fileData.upload.file);
-    formData.append('username',localStorage.getItem('username'));
+    formData.append('userid',localStorage.getItem('userid'));
     //console.log(fileData.upload.file)
     
     fetch('/usr/upload',{

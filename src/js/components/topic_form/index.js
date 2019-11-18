@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card, message  } from 'antd';
 import { PicturesWall } from '../pc/pc_usercenter/pc_usercenter_upload';
-import { TopicListItem } from '../topic_list/topic_list';
+import TopicListItem  from '../topic_list/topic_list_item';
 
 const { Meta } = Card;
 const { Option } = Select;

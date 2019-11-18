@@ -294,7 +294,6 @@ router.get('/getArticleContent',(req,res)=>{
 
 router.get('/rateArticle',(req,res)=>{
   let { userid, uniquekey, rate } = req.query;
-  userid = secret.decrypt(userid);
   var date = new Date().toString();
   Article.findOne({'articleId':uniquekey},(err,article)=>{
     var fever = article.articleFever + Number(rate);

@@ -6,9 +6,10 @@ import { parseDate, formatDate, translateType } from '../../../utils/translateDa
 export default class DeleteModal extends React.Component{
   
   handleDelete(deleteId){
-    var { deleteType, onVisible, onDelete, parentcommentid, socket } = this.props;
+    var { deleteType, onVisible, deleteId, onDelete, parentcommentid, socket } = this.props;
+    var userid = localStorage.getItem('userid');
     if ( deleteType === 'news'){
-        fetch(`/api/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${deleteId}`)
+        fetch(`/api/usr/removeHistory?userid=${userid}&uniquekey=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{
             if (onDelete){
@@ -41,7 +42,7 @@ export default class DeleteModal extends React.Component{
             }
         })
     } else if ( deleteType === 'collect'){
-        fetch(`/api/collect/removeCollect?id=${deleteId}&userid=${localStorage.getItem('userid')}`)
+        fetch(`/api/collect/removeCollect?id=${deleteId}&userid=${userid}`)
             .then(response=>response.json())
             .then(json=>{
                 if (onDelete){
@@ -59,8 +60,8 @@ export default class DeleteModal extends React.Component{
               if (onDelete) onDelete();
               if (onVisible) onVisible(false);
           })
-    } else if ( deleteType === 'actionMsg' && socket ){
-        socket.emit('removeActionMsg',localStorage.getItem('username'),deleteId);
+    } else if ( deleteType === 'msg' && socket ){
+        socket.emit('deleteMsg',userid, deleteId);
         if ( onVisible ) onVisible(false);
     }
     

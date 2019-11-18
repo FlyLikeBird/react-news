@@ -13,7 +13,7 @@ const FormItem = Form.Item;
 const TabPane = Tabs.TabPane;
 
 
-export default class PCHeader extends React.Component {
+class PCHeader extends React.Component {
     constructor(){
         super();
         this.state = {
@@ -29,7 +29,7 @@ export default class PCHeader extends React.Component {
     render() {
         var { current } = this.state;
         var  { msg, user, onLoginVisible, onLoginOut } = this.props;
-        var hasLogined = user && user.userid ? true : false;     
+        var hasLogined = user && user.userid ? true : false;    
         var menu =  hasLogined ?                   
                       <Menu>
                         <Menu.Item>
@@ -104,6 +104,8 @@ export default class PCHeader extends React.Component {
         )
     }    
 }
+
+export default PCHeader = withRouter(PCHeader);
 
 
 

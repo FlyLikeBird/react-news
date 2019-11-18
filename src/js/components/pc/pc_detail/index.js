@@ -16,7 +16,7 @@ export default class PCNewsDetails extends React.Component {
 	}
 	
 	_loadArticle(props){
-		var { match, user } = this.props;
+		var { match, user } = this.props;	
 		var uniquekey = match.params.uniquekey;
 		fetch('/api/article/getArticleContent?uniquekey='+uniquekey)
 			.then(response=>response.json())
@@ -31,10 +31,9 @@ export default class PCNewsDetails extends React.Component {
 					articleTime.innerHTML = text;
 					*/
 					document.title = this.state.newsItem.title + " -React News | React驱动的新闻平台";
-			});
-
+			});	
 		if( user&& user.userid){
-			fetch(`/api/usr/pushHistory?uniquekey=${uniquekey}&userid=${userid}`)
+			fetch(`/api/usr/pushHistory?uniquekey=${uniquekey}&userid=${user.userid}`)
 		}		
 	}
 

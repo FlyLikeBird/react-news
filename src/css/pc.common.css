@@ -867,17 +867,16 @@ section .leftContainer {
     bottom:-20px;
     color:#ccc;
     transform: scale(0.8);
+    transform-origin:left;
     display: inline-block;
 }
 
 .chatRecord-container .ant-modal-body ul li.self {
-    float:right;
-     
+    float:right;  
 }
 
 .chatRecord-container .ant-modal-body ul li.other {
-    float:left;
-    
+    float:left;    
 }
 
 .chatRecord-container .img-container {
@@ -929,6 +928,10 @@ section .leftContainer {
     
 }
 
+.chatRecord-container .ant-form .ant-form-item {
+    margin:0;
+    text-align:left;
+}
 
 .chart-container  .ant-drawer-content-wrapper {
     width:500px !important;
@@ -1971,6 +1974,7 @@ section .leftContainer {
     个人中心---浏览历史样式
 */
 
+
 .news {
     display:flex;
     align-items: center;
@@ -1984,8 +1988,12 @@ section .leftContainer {
     background-color:#fff;
 }
 
+.news.motion {
+    animation:newsMotion 0.5s; 
+}
+
 .news.forSimple {
-    padding:10px;
+    padding:20px;
     margin:4px 0;
     background-color:#f7f7f7;
 }
@@ -2001,6 +2009,7 @@ section .leftContainer {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    border-radius:4px;
 }
 
 
@@ -2037,10 +2046,9 @@ section .leftContainer {
 
 .news .button {
     position:absolute;
-    top:4px;
-    right:4px;
-    border:none;
-    box-shadow: none;
+    right:0;
+    transform:scale(0.8);
+    font-size:12px;
 }
 
 .news .text{
@@ -2120,35 +2128,35 @@ section .leftContainer {
     消息列表样式
 */
 
-.message-container .ant-collapse-content-box {
-    padding:0;
+.message-container.ant-collapse>.ant-collapse-item>.ant-collapse-header {
+    padding:10px 20px;
 }
 
-.message-container .ant-collapse-item.ant-collapse-item-active.bg {
-    border:none;
+.message-container .ant-collapse-header i{
+    margin-right:4px;
 }
 
-.message-container .ant-collapse-item.bg .ant-collapse-content-box {
-    background-color:#f7f7f7;
+.message-container.ant-collapse>.ant-collapse-item>.ant-collapse-content>.ant-collapse-content-box {
     padding:20px;
-}
-.
-.message-container .ant-ant-collapse-item.ant-collapse-item-active .ant-collapse-header{
-    padding:4px 16px;
+    background-color:#f7f7f7;
 }
 
 .msg-container {
-    padding:10px 40px;
+    padding:10px 20px;
     position:relative;
-    display:flex;
-    align-items: center;
+    background-color:#fff;
+    box-shadow: 1px 1px 1px rgba(222, 222, 222, 1);
+    border-radius:4px;
     font-size:12px;
+    cursor:pointer;
     border-bottom:1px solid #f7f7f7;
 }
 
 .msg-container .avatar-container {
     width: 30px;
     height: 30px;
+    display:inline-block;
+    display:inline-block;
     border-radius: 50%;
     overflow: hidden;
 }
@@ -2158,16 +2166,27 @@ section .leftContainer {
     height:100%;
 }
 
+.msg-container .content-container {
+    
+}
+
 .msg-container:last-of-type{
     border-bottom:none;
 }
 
 .msg-container .text{
+    display:inline-block;
+    transform:scale(0.8);
+    transform-origin:left;
+}
+
+.msg-container .button{
     position:absolute;
     right:0;
-    top:10px;
+    top:50%;
+    margin-top:-12px;
     display:inline-block;
-    transform:scale(0.7);
+    transform:scale(0.8);
 }
 
 .ant-dropdown li.ant-dropdown-menu-item a , .ant-dropdown li.ant-dropdown-menu-item span{
@@ -2324,6 +2343,15 @@ section .leftContainer {
     }
     100%{
         opacity: 0
+    }
+}
+
+@keyframes  newsMotion {
+    0%{
+        transform:scaleY(1) translateX(0);
+    }
+    100%{
+        transform:scaleY(0.5) translateX(-500px);
     }
 }
 

@@ -3,10 +3,10 @@
  */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-module.exports = new mongoose.Schema({
-    username:String,
-    avatar:String,
+module.exports = new Schema({
+    fromUser:{type:Schema.Types.ObjectId, ref:'User'},
     date:String,
     //  评论针对的内容id ，如articleId/topicId/actionId
     uniquekey:String,
@@ -21,7 +21,6 @@ module.exports = new mongoose.Schema({
     replies:[{
         date:String,
         fromUser:String,
-        avatar:String,
         images:[String],
         toUser:String,
         commentType:String,

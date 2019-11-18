@@ -40,8 +40,7 @@ export default class PCNewsContainer extends React.Component {
 						</div>
 						
 					</Col>
-					
-					<Col span={5}>
+					<Col span={5} style={{marginLeft:'20px'}}>
 						<Tabs className="tabs_product">
 							<TabPane tab=" React 产品" key="1">
 								<PCProduct/>

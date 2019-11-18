@@ -136,7 +136,7 @@ export default class AutoCarousel extends React.Component {
                     ?
                     <Spin />
                     :
-                    <div className={style.bg} style={{backgroundImage:`url(${images[currentIndex].thumbnails[0]})`}}>
+                    <div className={style.bg} onClick={this.handleClick.bind(this,images[currentIndex].articleId)} style={{backgroundImage:`url(${images[currentIndex].thumbnails[0]})`}}>
                         {
                             size == 'small'
                             ?

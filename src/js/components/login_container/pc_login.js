@@ -23,6 +23,7 @@ class LoginForm extends React.Component {
             .then(json=>{                       
                 if (json.code == 0){
                   if (onLogin) onLogin(json.data);
+                  
                 } else {
                   message.error(json.message);
                 }

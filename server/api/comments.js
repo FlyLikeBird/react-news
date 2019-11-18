@@ -9,6 +9,7 @@ var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Topic = require('../../models/Topic');
 var Action  = require('../../models/Action');
+var config = require('../../config/config');
 
 var createFolder = function(folder){
     try{
@@ -59,50 +60,35 @@ function operateComment(commentid, action, isCancel, userid, res){
 }
 
 router.post('/addcomment',upload.array('images'),(req,res)=>{
-  let { username, uniquekey, content, commentType } = req.body;
+  var { userid, uniquekey, content, commentType } = req.body;
   var images = [];
   if(req.files){
         req.files.forEach(item=>{
-            var imgUrl = 'http://localhost:8080/comment/'+item.filename;
+            var imgUrl = config.uploadPath + '/comment/'+item.filename;
             images.push(imgUrl);
         });
   }
 
-  User.findOne({'username':username},(err,user)=>{
-
-    let comment = new Comment({
-      username:username,
-      uniquekey:uniquekey,
-      content:content,
-      commentType,
-      avatar:user.userImage,
-      images,
-      date:new Date().toString()
-    })
-
-    comment.save()
-      .then(()=>{
-  
-        Comment.find({'uniquekey':uniquekey},(err,comments)=>{
-            var data = {};
-            comments.sort((a,b)=>{
-                var time1 = Date.parse(a.date);
-                var time2 = Date.parse(b.date);
-                return time2 - time1;
-            })
-            data.commentid = comment._id;
-            data.comments = comments;
-            util.responseClient(res,200,1,'ok',data);
-        })
-        
-        User.findOne({'username':username},(err,user)=>{
-          var level = user.level;
-          level += 5;
-          User.updateOne({'username':username},{$set:{level:level}},(err,result)=>{})           
-        })
-        
+  User.findOne({_id:userid},(err,userInfo)=>{
+      var comment = new Comment({
+          fromUser:userInfo._id,
+          uniquekey:uniquekey,
+          content:content,
+          commentType,
+          images,
+          date:new Date().toString()
+      });
+      comment.save(function(err){
+          getComments(res, uniquekey);
+          User.findOne({_id:userid},(err,user)=>{
+              var prevLevel = user.level;
+              prevLevel += 5;
+              User.updateOne({_id:userid},{$set:{level:prevLevel}},(err,result)=>{});
+          })
       })
   })
+  
+  
 })
 
 router.post('/addreplycomment',upload.array('images'),(req,res)=>{
@@ -143,51 +129,57 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
   })
 })
 
-router.get('/getcomments',(req,res)=>{
-  var { uniquekey, pageNum, orderBy, commentid } = req.query;
-  var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
-  var data = {
-    total:0,
-    comments:[]
-  };
-  var orderOption;
-  //console.log(orderBy);
-  switch(orderBy){
-    
-    case 'timeInvert':
-      orderOption = {
-        '_id':1
-      };
-      break;
-    case 'hot':
-      orderOption = {
-        'like':-1
-        
-      };
-      break;
-    case 'hotInvert':
-      orderOption = {
-        'like':1
-      }
-      break;
-    default:
-      orderOption = {
-        '_id':-1
-      }
-  }
+function translateComment(){
 
-  Comment.count({uniquekey})
-    .then(count=>{
-      data.total = count;
-      Comment.find({uniquekey})
-        .sort(orderOption)
-        .skip(skip)
-        .limit(10)
-        .then(comments=>{           
-            data.comments = comments;
-            util.responseClient(res,200,0,'ok',data);             
-        })
-    })
+}
+
+function getComments(res, uniquekey, pageNum=1, orderBy='time'){
+    var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
+    var data = {
+        total:0,
+        comments:[]
+    };
+    var orderOption;
+    switch(orderBy){     
+      case 'timeInvert':
+        orderOption = {
+          '_id':1
+        };
+        break;
+      case 'hot':
+        orderOption = {
+          'like':-1
+          
+        };
+        break;
+      case 'hotInvert':
+        orderOption = {
+          'like':1
+        }
+        break;
+      default:
+        orderOption = {
+          '_id':-1
+        }
+    };
+    Comment.count({uniquekey})
+      .then(count=>{
+        data.total = count;
+        Comment.find({uniquekey})
+          .populate('fromUser','userImage')
+          .sort(orderOption)
+          .skip(skip)
+          .limit(10)
+          .then(comments=>{           
+              data.comments = comments;
+              util.responseClient(res,200,0,'ok',data);             
+          })
+      })
+}
+
+router.get('/getcomments',(req,res)=>{
+  var { uniquekey, pageNum, orderBy } = req.query;
+  getComments( res, uniquekey, pageNum, orderBy );
 })
 
 router.get('/getOneComment',(req,res)=>{

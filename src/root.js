@@ -17,7 +17,6 @@ export default class Root extends React.Component {
           user:{},
           msg:{},
           socket:{},
-          isLoading:true,
           visible:false
       }
   }
@@ -35,19 +34,17 @@ export default class Root extends React.Component {
           var avatar = localStorage.getItem('avatar'); 
           var user = {userid, username, avatar }; 
       }
-       
+      
       if ( userid  ){
           var socket = io.connect(`${config.socket}`);
           socket.on('connect',()=>{
-             socket.emit('user-login',secret.decrypt(userid));
+             socket.emit('user-login',userid);
              socket.on('receive-message',(msg)=>{
-                //console.log(msg);
-                this.setState({msg,socket,user,isLoading:false,visible:false});
+                console.log(msg);
+                this.setState({msg,socket,user,visible:false});
              });          
           })     
-      } else {
-          this.setState({isLoading:false});
-      }
+      } 
   }
 
   handleLoginOut(){
@@ -72,24 +69,15 @@ export default class Root extends React.Component {
   }
    
   render(){
-      var { visible, isLoading } = this.state;
+      var { visible } = this.state;
       return (
-          <div style={{textAlign:'center'}}> 
-              {
-                  isLoading
-                  ?
-                  null
-                  :
-                  <div>
-                      <MediaQuery query='(min-device-width:640px)'>
-                          <PCRouter {...this.state} onLoginVisible={this._setLoginVisible.bind(this)} onLoginOut={this.handleLoginOut.bind(this)}/>
-                      </MediaQuery>
-                      <MediaQuery query='(max-device-width:640px)'>
-                          <MobileRouter {...this.state}/>
-                      </MediaQuery> 
-                  </div>
-              }           
-              
+          <div style={{textAlign:'center'}}>            
+              <MediaQuery query='(min-device-width:640px)'>
+                  <PCRouter {...this.state} onLoginVisible={this._setLoginVisible.bind(this)} onLoginOut={this.handleLoginOut.bind(this)}/>
+              </MediaQuery>
+              <MediaQuery query='(max-device-width:640px)'>
+                  <MobileRouter {...this.state}/>
+              </MediaQuery>               
               {
                   visible
                   ?
@@ -102,7 +90,6 @@ export default class Root extends React.Component {
       
   }
 }
-
 
 ReactDOM.render(
     <Root/>,

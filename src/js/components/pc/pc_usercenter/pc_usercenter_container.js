@@ -97,9 +97,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="history" />浏览记录</span>} key="history">
-
-                                    <NewsList text="没有任何浏览记录" data={userHistory} history={history} hastime={true} hasImg={true} forUser={true} />
-                                
+                                    <NewsList text="没有任何浏览记录" data={userHistory} history={history} hastime={true} hasImg={true} forUser={true} />                               
                                 </TabPane>
                                 :
                                 null
