@@ -46,18 +46,6 @@ function sortList(arr){
   return arr;
 }
 
-function operateComment(commentid, action, isCancel, userid, res){
-    var date = new Date().toString();
-    var pullOrPush = isCancel ? '$pull' : '$push'; 
-    var option = isCancel ? { userid } : { userid,date};
-    Comment.updateOne({_id:commentid},{[pullOrPush]:{[action+'Users']:option}},(err,result)=>{       
-        Comment.findOne({_id:commentid},(err,comment)=>{
-            var data = action == 'like' ? comment.likeUsers : comment.dislikeUsers;
-            util.responseClient(res,200,0,'ok',data);
-        })
-        
-    })
-}
 
 router.post('/addcomment',upload.array('images'),(req,res)=>{
   var { userid, uniquekey, content, commentType } = req.body;
@@ -68,75 +56,85 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
             images.push(imgUrl);
         });
   }
+  var comment = new Comment({
+      fromUser:userid,
+      uniquekey:uniquekey,
+      content:content,
+      commentType,
+      images,
+      isSub:false,
+      date:new Date().toString()
+  });
 
-  User.findOne({_id:userid},(err,userInfo)=>{
-      var comment = new Comment({
-          fromUser:userInfo._id,
-          uniquekey:uniquekey,
-          content:content,
-          commentType,
-          images,
-          date:new Date().toString()
-      });
-      comment.save(function(err){
-          getComments(res, uniquekey);
-          User.findOne({_id:userid},(err,user)=>{
-              var prevLevel = user.level;
-              prevLevel += 5;
-              User.updateOne({_id:userid},{$set:{level:prevLevel}},(err,result)=>{});
-          })
+  comment.save(function(err){
+      getComments(comment._id, res, uniquekey);
+      User.findOne({_id:userid},(err,user)=>{
+          var prevLevel = user.level;
+          prevLevel += 5;
+          User.updateOne({_id:userid},{$set:{level:prevLevel}},(err,result)=>{});
       })
   })
+
   
   
 })
 
 router.post('/addreplycomment',upload.array('images'),(req,res)=>{
-  let { commentid, fromUser, toUser, content, parentcommentid, isSub } = req.body;
-  //console.log(commentid,fromUser,toUser, content);
-  var images = [];
-  if(req.files){
-        req.files.forEach(item=>{
-            var imgUrl = 'http://localhost:8080/comment/'+item.filename;
-            images.push(imgUrl);
-        });
-  }
-  // 判断是父评论还是子评论
-  commentid = Boolean(parentcommentid) ? parentcommentid : commentid;
-  //console.log(commentid);
-  fromSubTextarea = Boolean(isSub) ? true : false;
-  //console.log(parentcommentid,commentid);
-  User.findOne({'username':fromUser},(err,user)=>{
+    let { commentid, parentcommentid, fromUser, toUser, uniquekey, commentType, content, isSub } = req.body;
+    var images = [];
+    var date = new Date().toString();
+    if(req.files){
+          req.files.forEach(item=>{
+              var imgUrl = config.uploadPath + '/comment/'+item.filename;
+              images.push(imgUrl);
+          });
+    }
+    // 判断是父评论还是子评论
+    commentid = Boolean(parentcommentid) ? parentcommentid : commentid;
+    //console.log(commentid);
+    var fromSubTextarea = Boolean(isSub) ? true : false; 
+    var comment = new Comment({
+        fromUser:fromUser,
+        toUser:toUser,
+        content,
+        isSub:true,
+        commentType,
+        images,
+        date,
+        uniquekey,
+        fromSubTextarea
+    });
+    comment.save(function(err){
+        Comment.updateOne({_id:commentid},{$push:{replies:comment._id}},(err,result)=>{
+            Comment.findOne({_id:commentid},{replies:1})
+                .populate({
+                    path:'replies',
+                    populate:[
+                        {path:'fromUser', select:'userImage username'},
+                        {path:'toUser', select:'userImage username'},
+                        {path:'likeUsers.user', select:'userImage username'},
+                        {path:'dislikeUsers.user', select:'userImage username'},
+                        {
+                            path:'shareBy',
+                            populate:{path:'user',select:'userImage username'},
+                            select:'value date user'
+                        }
+                    ]
+                }) 
+                .then(data=>{
+                    util.responseClient(res, 200, 0, 'ok', data);
+                })
+        })
+    })
 
-      Comment.updateOne({_id:commentid},{$push:{replies:{
-          fromUser,
-          toUser,
-          avatar:user.userImage,
-          images,
-          date:new Date().toString(),
-          content,
-          fromSubTextarea
   
-      }}},(err,result)=>{ 
-        if (result) {  
-          Comment.findOne({_id:commentid},(err,comment)=>{            
-              util.responseClient(res,200,1,'ok',sortList(comment.replies));
-          })
-            
-        }
-  
-      })
-  })
 })
 
-function translateComment(){
-
-}
-
-function getComments(res, uniquekey, pageNum=1, orderBy='time'){
+function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
     var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
     var data = {
         total:0,
+        commentid,
         comments:[]
     };
     var orderOption;
@@ -162,11 +160,38 @@ function getComments(res, uniquekey, pageNum=1, orderBy='time'){
           '_id':-1
         }
     };
-    Comment.count({uniquekey})
+    var filter = {
+        $and:[
+          {uniquekey:uniquekey},
+          {isSub:false}
+        ]
+    }
+    Comment.count(filter)
       .then(count=>{
         data.total = count;
-        Comment.find({uniquekey})
-          .populate('fromUser','userImage')
+        Comment.find(filter)
+          .populate('fromUser','userImage username')
+          .populate({path:'likeUsers.user',select:'userImage username'})
+          .populate({path:'dislikeUsers.user',select:'userImage username'})
+          .populate({
+              path:'shareBy',
+              populate:{path:'user',select:'userImage username'},
+              select:'value user date'
+          })
+          .populate({
+              path:'replies',
+              populate:[
+                  {path:'fromUser', select:'userImage username'},
+                  {path:'toUser', select:'userImage username'},
+                  {path:'likeUsers.user', select:'userImage username'},
+                  {path:'dislikeUsers.user', select:'userImage username'},
+                  {
+                      path:'shareBy',
+                      populate:{path:'user',select:'userImage username'},
+                      select:'value date user'
+                  }
+              ]
+          })   
           .sort(orderOption)
           .skip(skip)
           .limit(10)
@@ -179,7 +204,7 @@ function getComments(res, uniquekey, pageNum=1, orderBy='time'){
 
 router.get('/getcomments',(req,res)=>{
   var { uniquekey, pageNum, orderBy } = req.query;
-  getComments( res, uniquekey, pageNum, orderBy );
+  getComments( null, res, uniquekey, pageNum, orderBy );
 })
 
 router.get('/getOneComment',(req,res)=>{
@@ -221,56 +246,56 @@ router.get('/getCommentInfo',(req,res)=>{
     var { commentid, parentcommentid } = req.query;
     var data = '';
     if(!parentcommentid){
-        Comment.findOne({_id:commentid},(errr,comment)=>{
-          data = `@${comment.username}:${comment.content}`;
-          util.responseClient(res,200,0,'ok',data);
-        })
+        Comment.findOne({_id:commentid})
+            .populate({path:'fromUser',select:'username'})
+            .then(comment=>{
+                data = `@${comment.fromUser.username}:${comment.content}`;
+                util.responseClient(res, 200, 0, 'ok', data);
+            })
     } else {
-      Comment.findOne({_id:parentcommentid},(err,comment)=>{
-        var replies = comment.replies;
-        for(var i=0,len=replies.length;i<len;i++){
-          var reply = replies[i];
-          if (reply._id == commentid) {     
-              data = `@${reply.fromUser}:回复@${reply.toUser}:${reply.content}//@${comment.username}:${comment.content}`;            
-              break;
-          }
-        }
-        
-        util.responseClient(res,200,0,'ok',data);
-      })
+        Comment.findOne({_id:parentcommentid})
+            .populate({path:'fromUser',select:'username'})
+            .then(parentcomment=>{
+                Comment.findOne({_id:commentid})
+                  .populate({path:'fromUser',select:'username'})
+                  .populate({path:'toUser',select:'username'})
+                  .then(comment=>{
+                      data = `@${comment.fromUser.username}:回复@${comment.toUser.username}:${comment.content}//@${parentcomment.fromUser.username}:${parentcomment.content}`;
+                      util.responseClient(res, 200, 0, 'ok', data);
+                  })
+        })
     }
 })
 
 router.get('/operatecomment',(req,res)=>{
-  var { action, commentid, isCancel, parentcommentid, userid } = req.query;
-  var date = new Date().toString();
-  if (Boolean(parentcommentid)) {
-    
-    var action = `replies.$.${action}`;
-    //console.log(action);
-    Comment.updateOne({'_id':parentcommentid,'replies._id':commentid},{$inc:{[action]:operate}},(err,result)=>{
-      if (err) throw err;
-      if (result){
-        
-        Comment.findOne({'_id':parentcommentid},(err,comment)=>{
-          
-          comment.replies.map(reply=>{
-
-            if (reply._id == commentid) {
-              var data = {};
-              data.like = reply.like;
-              data.dislike = reply.dislike;
-             
-              util.responseClient(res,200,1,'',data); 
-            }
-          }) ;                
+    var { action, commentid, isCancel, userid } = req.query;
+    var date = new Date().toString();
+    var operation = action == 'like' ? 'likeUsers' : 'dislikeUsers'
+    if(isCancel){
+        Comment.updateOne({_id:commentid},{$pull:{[operation]:{user:userid}}},(err,result)=>{
+            Comment.findOne({_id:commentid},{[operation]:1})
+              .populate({
+                  path:`${operation}.user`,
+                  select:'userImage username'
+              })
+              .then(data=>{
+                  util.responseClient(res, 200, 0, 'ok', data);
+              })
         })
-      }      
-    })
-
-  } else {
-      operateComment(commentid, action, isCancel, userid, res)
-  }    
+    } else {
+        Comment.updateOne({_id:commentid},{$push:{[operation]:{user:userid,date}}},(err,result)=>{
+            Comment.findOne({_id:commentid},{[operation]:1})
+                .populate({
+                    path:`${operation}.user`,
+                    select:'userImage username'
+                })
+                .then(data=>{
+                    util.responseClient(res, 200, 0, 'ok', data);
+                })
+        })
+    }
+    
+  
 })
 
 

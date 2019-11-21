@@ -9,9 +9,11 @@ const { TextArea } = Input;
 function sendActionMsg(content, commentid, socket){
     var data = formatContent(content);
     if (data.length){
-        var users = data.map(item=>item.user);              
-        socket.emit('send@Msg',users, localStorage.getItem('username'), commentid);
-    }           
+        //  去除user为null值的情况
+        data = data.filter(item=>item.user);     
+        var users = data.map(item=>item.user);       
+        socket.emit('send@Msg', localStorage.getItem('userid'), users, commentid);
+    }          
 }
 
 class CommentsInput extends React.Component{
@@ -29,12 +31,12 @@ class CommentsInput extends React.Component{
 
     handleSubmit(e){
         e.preventDefault();
-        var { validateFields, setFieldsValue } = this.props.form;
-        var { socket, uniquekey, commentType, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
+        var { form } = this.props;
+        var { validateFields, setFieldsValue } = form;    
         var { fileList } = this.state;
-        
         validateFields(['comments'],(errs,values)=>{
             var userid = localStorage.getItem('userid');
+            var { socket, commentType, uniquekey, isAddComment, onAddComment, onShowReply, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
             if(!errs){
                 var  { comments } = values;
                 //  生成一条新评论逻辑
@@ -55,21 +57,13 @@ class CommentsInput extends React.Component{
                     .then(json=>{
                         var data = json.data;
                         var { comments, commentid } = data;                       
-                        comments = comments.map(item=>{
-                            item['owncomment'] = username === item.username ? true : false;
-                            item.replies = item.replies.map(reply=>{
-                              reply['owncomment'] = reply.fromUser === username ? true : false;
-                              return reply;
-                            })
-                            return item;
-                        })
                         if(onAddComment) onAddComment(comments);
                         if(onShowReply) onShowReply();
                         sendActionMsg(values['comments'], commentid, socket);                                         
                     })
                 } else {
                     //  回复评论逻辑
-                    var { fromUser, toUser, isSub, parentcommentid, commentid } = this.props;
+                    var { fromUser, toUser, isSub, uniquekey, parentcommentid, commentid } = this.props;
                     var formData = new FormData();
                     for(var i=0,len=fileList.length;i<len;i++){
                         formData.append('images',fileList[i].originFileObj);
@@ -77,7 +71,7 @@ class CommentsInput extends React.Component{
                     formData.append('fromUser',fromUser);
                     formData.append('content',comments);
                     formData.append('toUser',toUser);
-                    formData.append('parentcommentid',parentcommentid?parentcommentid:'');
+                    formData.append('parentcommentid',parentcommentid);
                     formData.append('commentid',commentid);
                     formData.append('isSub',isSub?true:'');
                     formData.append('uniquekey',uniquekey)        
@@ -88,15 +82,11 @@ class CommentsInput extends React.Component{
                     .then(response=>response.json())
                     .then(json=>{
                         var data = json.data;
-                        data = data.map(item=>{
-                            var username = localStorage.getItem('username');
-                            item['owncomment'] = item.fromUser === username ? true : false;
-                            return item;                    
-                        })               
-                        if(isSub){
-                            if(onUpdateFromSub) onUpdateFromSub(data);
+                        var { replies } = data;  
+                        if (isSub){
+                            if (onUpdateFromSub) onUpdateFromSub(replies);
                         } else {
-                            if(onUpdateReplies) onUpdateReplies(data);
+                            if (onUpdateReplies) onUpdateReplies(replies);
                         }
                         if (onCloseReply) onCloseReply();
                     })        
@@ -124,9 +114,11 @@ class CommentsInput extends React.Component{
         if(e.keyCode === 50 && e.shiftKey){
             if(this.textArea && this.textArea.textAreaRef){
                 var textarea = this.textArea.textAreaRef;
-                var start = textarea.selectionStart;               
-                var leftPosition = start * 10 + 'px';            
-                this.setState({showSelect:true,leftPosition});
+                var start = textarea.selectionStart;  
+                var leftPosition = start * 8 + 'px';   
+                setTimeout(()=>{
+                    this.setState({showSelect:true,leftPosition});
+                },100)                      
                               
             }
             

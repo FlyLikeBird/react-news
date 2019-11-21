@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Button ,Select } from 'antd';
+import { Form, Input, Button ,Select, Spin } from 'antd';
 
 
 const FormItem = Form.Item;
@@ -10,77 +10,37 @@ class  CommentUserSelect extends React.Component{
     constructor(){
         super();
         this.state= {
+            isLoading:true,
             userList:[]
             
         }
     }
-
-    
+ 
     componentDidMount(){
-        fetch(`/usr/getUserFollows?userid=${localStorage.getItem('userid')}`)
+        fetch(`/api/usr/getUserFollows?userid=${localStorage.getItem('userid')}`)
             .then(response=>response.json())
             .then(json=>{
                 var userList = json.data;
-                this.setState({userList});
+                this.setState({userList,isLoading:false});
         })
     }
 
-    handleInputKeyUp(){
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(()=>{
-            fetch(`/article/search?words=${this.state.value}&type=user`)
+    handleInputKeyDown(e){
+        clearTimeout(this.timer);
+        e.persist();
+        this.timer = setTimeout(()=>{
+            var words = e.target.value;
+            this.setState({isLoading:true}) 
+            fetch(`/api/article/search?words=${words}&type=user`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;
-                    //console.log(data);
-                    data = data.map(item=>item.username);
-                    this.setState({listContent:data});
+                    this.setState({userList:data,isLoading:false});
                 })
-        },1000)
+        },500)
         
     }
     
-    handleSelect(e){
-        
-        var { getFieldValue, setFieldsValue } = this.props.form;
-        var value = getFieldValue('comments');
-        if (!selectItem) {
-            this.setState({value:'',showSelect:false});
-            return ;
-        }
-        value = value.substring(0,value.length-1);
-        selectItem = selectItem.substring(0,selectItem.length-1);
-        var selectArr = selectItem.split(' ')
-        selectArr = selectArr.map(item=>'@'+item)
-        var newValue = value + selectArr.join(' ');
-        setFieldsValue({comments:newValue})
-     
-        selectItem = '';
-        this.setState({value:'',showSelect:false,listContent:this.listContent})
-        
-    }
-
-    handleCancel(){
-        selectItem = '';
-        this.setState({value:'',showSelect:false,listContent:this.listContent})
-    }
-
-    
-
-    handleItemClick(item,e){      
-        var li = e.target;
-        
-        if (li.classList.contains('selected')){
-            
-            var pattern = new RegExp(item+'\\s+');           
-            selectItem = selectItem.replace(pattern,'');
-            li.classList.remove('selected');
-        } else {
-            selectItem += item + ' ';           
-            li.classList.add('selected');
-        }
-        
-    }
 
     handleBlur(){
         var { onClose, onSelect, form } = this.props;
@@ -105,7 +65,7 @@ class  CommentUserSelect extends React.Component{
     render(){
         
         var {getFieldDecorator} = this.props.form;
-        var { userList } = this.state;
+        var { userList, isLoading } = this.state;
         var { leftPosition } = this.props;
         
         const selectStyle = {
@@ -115,11 +75,6 @@ class  CommentUserSelect extends React.Component{
             width:'200px'
         }
         
-        var userContent = userList.map((item,index)=>(
-                            <Option className="hello" key={index} value={item.username}>{item.username}</Option>
-                        ))
-
-        
         return(
             <div style={selectStyle}>
                 {
@@ -127,13 +82,28 @@ class  CommentUserSelect extends React.Component{
 
                     })(
                         <Select 
-                            mode="tags"
-                            className="forUser" 
+                            mode="multiple"
+                            className="user-select" 
+                            onInputKeyDown={this.handleInputKeyDown.bind(this)}
                             onBlur={this.handleBlur.bind(this)} 
                             open={true}
-                            
+                            notFoundContent=""
+                            dropdownRender={menu=>(
+                                <div>
+                                    <span style={{display:'inline-block',padding:'4px 12px',fontSize:'12px'}}>请选择要@的用户:</span>
+                                    <div>{menu}</div>
+                                </div>
+                            )}
                         >
-                            { userContent }
+                            {
+                                isLoading
+                                ?
+                                null
+                                :
+                                userList.map((item,index)=>(
+                                    <Option key={index} value={item.username}>{item.username}</Option>
+                                ))
+                            }
                         </Select>
                     )
                 }

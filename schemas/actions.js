@@ -3,6 +3,7 @@
  */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 module.exports = new mongoose.Schema({    
     // content 需要解析 @username:hello world 
@@ -14,16 +15,17 @@ module.exports = new mongoose.Schema({
     contentType:String,
     contentId:String,
     images:[String],
-    innerAction:String,
+    innerAction:{type:Schema.Types.ObjectId,ref:'Action'},
     //  composeAction字段标识转发动态之间的数据关系
     composeAction:{type:Boolean,default:false},
-    likeUsers:[{userid:String,date:String}],
-    dislikeUsers:[{userid:String,date:String}],
+    likeUsers:[{user:{type:Schema.Types.ObjectId,ref:'User'},date:String}],
+    dislikeUsers:[{user:{type:Schema.Types.ObjectId,ref:'User'},date:String}],
     //  String指分享某条动态的动态ID
-    shareBy:[String],
-    userid:String,
+    shareBy:[{type:Schema.Types.ObjectId,ref:'Action'}],
+    user:{type:Schema.Types.ObjectId,ref:'User'},
     // 标识是创建还是转发生成的动态
-    isCreated:{type:Boolean,default:false}
+    isCreated:{type:Boolean,default:false},
+    replies:[{type:Schema.Types.ObjectId ,ref:'Comment'}]
 });
 
 

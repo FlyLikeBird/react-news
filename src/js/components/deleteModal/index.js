@@ -60,9 +60,9 @@ export default class DeleteModal extends React.Component{
               if (onDelete) onDelete();
               if (onVisible) onVisible(false);
           })
-    } else if ( deleteType === 'msg' && socket ){
-        socket.emit('deleteMsg',userid, deleteId);
-        if ( onVisible ) onVisible(false);
+    } else if ( deleteType === 'msg' && socket){
+        socket.emit('deleteMsg', userid, deleteId );
+        if ( onVisible ) onVisible(false);     
     }
     
   }

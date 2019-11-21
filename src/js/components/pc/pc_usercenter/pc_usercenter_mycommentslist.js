@@ -83,6 +83,7 @@ export default class MyCommentsList extends React.Component{
         super();
         this.state={
            comments:[],
+           isLoading:true,
            visible:false,
            listVisible:false,
            commentid:'',
@@ -91,8 +92,13 @@ export default class MyCommentsList extends React.Component{
     }
 
     componentDidMount(){
-        var { data } = this.props;
-        this.setState({comments:data})       
+        var userid = localStorage.getItem('userid');
+        fetch(`/api/usr/getUserComments?userid=${userid}`)
+            .then(response=>response.json())
+            .then(json=>{
+                var data = json.data;
+                this.setState({comments:data,isLoading:false});
+            })       
     }
 
     handleDelete(){
@@ -119,11 +125,15 @@ export default class MyCommentsList extends React.Component{
 
     render(){
         var { text, history } = this.props;
-        var  { comments, visible, commentid, parentcommentid, listVisible } = this.state;
+        var  { comments, visible, commentid, parentcommentid, listVisible, isLoading } = this.state;
         
         return(
             <div>
                 {
+                    isLoading
+                    ?
+                    <Spin/>
+                    :
                     comments.length
                     ?
                     <CommentsList 
@@ -138,7 +148,7 @@ export default class MyCommentsList extends React.Component{
                     <div>{text}</div>
                 }
                 {
-                    comments.length
+                    visible
                     ?
                     <DeleteModal 
                         visible={visible} 
@@ -152,7 +162,7 @@ export default class MyCommentsList extends React.Component{
                     null
                 }
                 {
-                    comments.length
+                    listVisible
                     ?
                     <Modal visible={listVisible} footer={null} onCancel={()=>this.handleListVisible(false)} destroyOnClose={true}>
                       <ListContent commentid={ parentcommentid ? parentcommentid :commentid }/>

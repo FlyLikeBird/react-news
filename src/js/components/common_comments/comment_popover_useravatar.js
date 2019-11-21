@@ -14,67 +14,71 @@ export default class CommentPopoverUserAvatar extends React.Component{
     super();
     this.state = {
       user:{},
-      isFollowed:false,
-      isSelf:false     
+      followStatus:0   
     }
   }
 
+  _loadUserInfo(props){
+      var { user } = props;
+      fetch(`/api/usr/getUserInfo?user=${user}`)
+        .then(response=>response.json())
+        .then(json=>{
+          var data = json.data; 
+          var { userFollow, userFans } = data;
+          var followStatus = 0;
+          //  0-未关注 1-已关注 2-互相关注
+          var userid = localStorage.getItem('userid');
+          if (userFans.includes(userid)){
+              if (userFollow.includes(userid)){
+                  followStatus = 2;
+              } else {
+                  followStatus = 1;
+              }
+          } 
+          this.setState({user:data, followStatus})       
+          
+        })
+  }
+
   componentDidMount(){
-    var { user } = this.props;
-    fetch(`/api/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
-      .then(response=>response.json())
-      .then(json=>{
-        var data = json.data; 
-        var isSelf = localStorage.getItem('username')=== user ? true : false;
-        this.setState({user:data,isSelf})       
-        
-      })
+      this._loadUserInfo(this.props);
   }
 
   componentWillReceiveProps(newProps){
-    var { user } = newProps;
-    if (this.props.user != user ) {
-        fetch(`/api/usr/getUserInfo?user=${user}&localUser=${localStorage.getItem('username')}`)
-          .then(response=>response.json())
-          .then(json=>{
-            var data = json.data; 
-            var isSelf = localStorage.getItem('username')=== user ? true : false;
-            this.setState({user:data,isSelf})       
-            
-           }) 
+    if (this.props.user != newProps.user ) {
+        this._loadUserInfo(newProps);
     }
   }
 
   handleAddFollow(id){
-    fetch(`/api/usr/addFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+    fetch(`/api/usr/addFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
       .then(response=>response.json())
       .then(data=>{
-        this.setState({isFollowed:1});
+        this.setState({followStatus:1});
       })
   }
 
   handleRemoveFollow(id){
-    fetch(`/api/usr/removeFollow?username=${localStorage.getItem('username')}&follow=${id}`)
+    fetch(`/api/usr/removeFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
       .then(response=>response.json())
       .then(data=>{
-        this.setState({isFollowed:0})
+        this.setState({followStatus:0})
       })
   }
 
   render(){
-    
-    var { username, userImage, userFollow, userFans, description, level, id, status } = this.state.user;
-    var { isSelf } = this.state;
+    var { user, followStatus } = this.state;
+    var { username, userImage, userFollow, userFans, description, level, _id } = user;
     var totalLevel = formatLevel(level);
     
+    var isSelf = localStorage.getItem('userid') == _id ? true : false;
     const levelStyle = {
       display:'flex',
       justifyContent:'space-between',
       alignItems:'center',
-      width:'100px',
-      height:'20px',
       backgroundColor:'rgba(24,144,255,.2)',
-      borderRadius:'10px'
+      borderRadius:'10px',
+      transform:'scale(0.8)'
     };
 
     const content = (
@@ -92,20 +96,20 @@ export default class CommentPopoverUserAvatar extends React.Component{
             </div>
           );
     
-    const followContent = status === 0 
+    const followContent = followStatus === 0 
                           ?
-                          <div onClick={this.handleAddFollow.bind(this,id)}><Icon type="plus" />关注</div>
+                          <div onClick={this.handleAddFollow.bind(this,_id)}><Icon type="plus" />关注</div>
                           :
-                          status === 1
+                          followStatus === 1
                           ?
-                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleRemoveFollow.bind(this,id)}><Icon type="check" />已关注</div>          
+                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleRemoveFollow.bind(this,_id)}><Icon type="check" />已关注</div>          
                           :
-                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleAddFollow.bind(this,id)}><Icon type="plus" />互相关注</div>
+                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleAddFollow.bind(this,_id)}><Icon type="plus" />互相关注</div>
     return (
       
       <Card className="popover-card" bordered={false}>
           {
-              username && id
+              _id
               ?
               <div>
                   <div className="popover-card-imgContainer">
@@ -120,7 +124,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
                         <span className="ant-text">签名: {description}</span>
                       </div>
         
-                      <div className="user-follow-container" style={{marginTop:'10px',marginLeft:'0'}}>
+                      <div className="user-follow-container">
                         <div className="user-follow">
                           <p><span style={{color:'#000'}} className="ant-text">关注者</span></p>
                           <p><span> {userFollow?userFollow.length:0} </span></p>
@@ -136,7 +140,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
                           <div className="user-bottom-container">
                           
                             <div>
-                              <Link to={`/usercenter/${id}`}><Icon type="idcard"/>我的空间</Link>
+                              <Link to={`/usercenter/${_id}`}><Icon type="idcard"/>我的空间</Link>
                             </div>
             
                           </div>
@@ -144,7 +148,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
                           <div className="user-bottom-container">
                             { followContent }
                             <div>
-                              <Link to={`/usercenter/${id}`}><Icon type="idcard"/>TA的空间</Link>
+                              <Link to={`/usercenter/${_id}`}><Icon type="idcard"/>TA的空间</Link>
                             </div>
             
                           </div>

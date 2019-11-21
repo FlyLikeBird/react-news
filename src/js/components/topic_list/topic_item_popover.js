@@ -6,71 +6,8 @@ import { parseDate, formatDate, sortByDate, checkArrIsEqual } from '../../../uti
 const desc = ['肺都气炸了', '一肚子槽要吐', '一般无感', '心情愉悦', '开心的飞起来'];
 
 export default class TopicItemPopover extends React.Component{  
-    constructor(){
-        super();
-        this.state = {
-            data:[]
-        }
-    }
-
-    _loadUsersAvatar(props){
-        var { data, forShare, forRate } = props;
-        var params;
-        if ( forShare ){
-            params = data.map(item=>{
-                return `actionId[]=${item}`;
-            })
-        } else {
-             params = data.map(item=>item.userid).map(item=>{
-                return `userid[]=${item}`;
-            })
-        }
-        if (params.length){
-            params = params.join('&');
-            fetch(`/api/action/getUsersInfo?${params}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var responseData = json.data;                    
-                    if (forShare){
-                        this.setState({data:responseData});
-                    } else if ( forRate){
-                        
-                        data = data.map(item=>{
-                            for(var i=0,len=responseData.length;i<len;i++){
-                                if (item.userid == responseData[i].userid){
-                                    item.username = responseData[i].username;
-                                    item.avatar = responseData[i].avatar;
-                                    return item;
-                                }
-                            }
-                        })
-                        this.setState({data:sortByDate(data)})
-                    } else {
-                        data = data.map(item=>{
-                            for(var i=0,len=responseData.length;i<len;i++){
-                                if (item.userid == responseData[i].userid){
-                                    item.username = responseData[i].username;
-                                    item.avatar = responseData[i].avatar;
-                                    return item;
-                                }
-                            }
-                        })
-                        
-                        this.setState({data:sortByDate(data)})
-                    }
-                    
-                })  
-        } else {
-            this.setState({data:[]})
-        }
-            
-        
-    }
-
-    componentDidMount(){       
-        this._loadUsersAvatar(this.props);        
-    }
-
+    
+    /*
     componentWillReceiveProps(newProps){
         if ( this.props.data.length != newProps.data.length ){
             this._loadUsersAvatar(newProps);
@@ -79,15 +16,16 @@ export default class TopicItemPopover extends React.Component{
             this._loadUsersAvatar(newProps);
         }
     }
-
+    */
     handleClick(id){
         var { history } = this.props;
         history.push(`/usercenter/${id}`);
     }
 
     render(){
-        var { data } = this.state;
+        var { data } = this.props;
         var { text, forRate } = this.props; 
+        //console.log(data);
         return(
             <div>
                 {
@@ -97,11 +35,11 @@ export default class TopicItemPopover extends React.Component{
                         {
                             data.map((item,index)=>(
                                 
-                                <li className="topic-shareBy" key={index} onClick={this.handleClick.bind(this,item.userid)}>
+                                <li className="topic-shareBy" key={index} onClick={this.handleClick.bind(this,item._id)}>
                                     
-                                    <span className="topic-shareBy-avatar"><img src={item.avatar} /></span>
+                                    <span className="topic-shareBy-avatar"><img src={item.user.userImage?item.user.userImage:''} /></span>
                                     <div>
-                                        <div style={{color:'#000',fontWeight:'500'}}>{item.username}</div>
+                                        <div style={{color:'#000',fontWeight:'500'}}>{item.user.username?item.user.username:''}</div>
                                         {
                                             forRate
                                             ?

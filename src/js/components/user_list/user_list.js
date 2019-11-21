@@ -16,8 +16,8 @@ export default class UserList extends React.Component{
     }
   }
   
-  _checkUserLoginedAndFollowd(props){
-      var { data, socket } = props;
+  _checkUserLoginedAndFollowd(){
+      var { data, socket } = this.props;
       var userids = data.map(item=>item._id);
       if (socket){
           socket.emit('checkLogined',userids,localStorage.getItem('userid'));
@@ -34,7 +34,7 @@ export default class UserList extends React.Component{
   }
 
   componentDidMount(){ 
-      this._checkUserLoginedAndFollowd(this.props);
+      this._checkUserLoginedAndFollowd();
   }
   
   handleModalVisible(bool){
@@ -44,10 +44,9 @@ export default class UserList extends React.Component{
 
   }
 
-  handleShowChatList(bool,toUser,id){
-    this.setState({visible:bool,toUser,toId:id});
+  handleShowChatList(bool, toId, toUser){
+    this.setState({visible:bool, toId, toUser});
   }
-
 
   render(){
     var { list, visible, toUser, toId }  = this.state;

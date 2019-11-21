@@ -55,11 +55,14 @@ function _createUser(r_userName, r_password, managerUser, res){
 		.then(()=>{
 			//  初始化生成一条系统消息
 			var message = new Message({
-				fromUser:managerUser._id,
-				toUser:user._id,
+				toUser:managerUser._id,
 				msgtype:'system',
-				content:'欢迎使用React-News新闻平台',
-				msgtime:date
+				msgs:[{
+					fromUser:managerUser._id,
+					msgtime:date,
+					content:'欢迎使用React-News新闻平台'
+				}]
+			
 			});
 			message.save(function(err){
 				if (err) throw err;
@@ -78,13 +81,12 @@ function _createUser(r_userName, r_password, managerUser, res){
 			var collect = new Collect({
 				tag:'默认收藏夹',
 				createtime:date,
-				userid:user._id,
+				user:user._id,
 				defaultCollect:true
 			});
-			collect.save();
-			
+			collect.save();			
 			//  默认关注react-news这个管理用户
-			User.updateOne({_id:user._id},{$push:{userFollow:managerUser._id}},(err,result)=>{});
+			User.updateOne({_id:user._id},{$push:{userFollows:managerUser._id}},(err,result)=>{});
 			User.updateOne({_id:managerUser._id},{$push:{userFans:user._id}},(err,result)=>{});
 		})
 }
@@ -135,30 +137,31 @@ router.get('/login',(req,res)=>{
 
 router.get('/getChatList',(req,res)=>{
 	let { userid, other } = req.query;	
-	User.findOne({_id:userid},(err,user)=>{
-		User.findOne({_id:other},(err,otherUser)=>{
-			var data = {};
-            var messageIds = user.message;
-            Message.find({_id:{$in:messageIds}},(err,messages)=>{
-                var userMsg = messages.filter(item=>{
-                    return item.fromUser == userid && item.toUser == other || item.fromUser == other && item.toUser == userid;
-                });
-                data.messages = userMsg;
-                data.selfAvatar = user.userImage;
-                data.otherAvatar = otherUser.userImage;
-               	util.responseClient(res,200,0,'ok',data);
-
-            })
-
-		})	
-	})	
+	User.findOne({_id:userid},{message:1})
+		.populate({
+            path:'message',
+            populate:[
+                {path:'toUser',select:'username userImage'},
+                {path:'msgs.fromUser', select:'username userImage'}
+            ],
+            match:{'toUser':other},
+            options:{limit:1}
+        })
+		.then(doc=>{
+			var { message } = doc;
+			if ( message && message.length ) {
+				util.responseClient(res, 200, 0, 'ok', message[0]);
+			} else {
+				util.responseClient(res,200,0,'ok');
+			}
+			
+		})
+	
 })
 
-router.get('/usercenter',(req,res)=>{
-	let { userid, isSelf } = req.query;
-	User.findOne({_id:userid},{password:0})
-		.then(user=>{
+/*
 
+.then(user=>{
 			var data = {};
 			data.description = user.description;
 			data.level = user.level;
@@ -196,39 +199,31 @@ router.get('/usercenter',(req,res)=>{
 
 				})			
 		})
-	
+*/
+
+router.get('/usercenter',(req,res)=>{
+	let { userid, isSelf } = req.query;
+	Article.updateMany({},{$unset:{articleId:''}},(err,result)=>{
+		console.log(result);
+	})
+				util.responseClient(res, 200, 0, 'ok', data);
+	/*
+	User.findOne({_id:userid},{password:0,message:0})
+		.populate({path:'userFollows', select:'username level userImage userFans userFollow description'})
+		.populate({path:'userFans', select:'username level userImage userFans userFollow description'})
+		.populate({path:'userActions'})
+		.populate({path:'userCollects'})
+		.then(data=>{
+			util.responseClient(res, 200, 0, 'ok', data);
+		})
+	*/
 })
 
 router.get('/getUserInfo',(req,res)=>{
-	var { user, localUser } = req.query;
+	var { user } = req.query;
 	//  0-未关注 1-已关注 2-互相关注
-	User.findOne({'username':localUser},(err,localUser)=>{
-		var follows = localUser.userFollow.map(item=>item.id);
-		var fans = localUser.userFans.map(item=>item.id);
-		User.findOne({'username':user},(err,user)=>{
-			var obj = {};
-			if(user){
-				var userid = user._id;				
-				var status = 0;
-				if (follows.includes(userid)) {
-					if ( fans.includes(userid)){
-						status = 2;
-					} else {
-						status = 1;
-					}
-				}
-				obj.userFollow = user.userFollow;
-				obj.userFans = user.userFans;
-				obj.description = user.description;
-				obj.level = user.level;
-				obj.username = user.username;
-				obj.userImage = user.userImage;
-				obj.id = user._id;
-				obj.status = status;					
-			}
-			util.responseClient(res,200,0,'ok',obj);
-
-		})
+	User.findOne({'username':user},{username:1, userImage:1, userFollow:1, userFans:1, description:1, level:1},(err, userInfo)=>{		
+		util.responseClient(res,200,0,'ok',userInfo);	
 	})
 
 })
@@ -304,7 +299,7 @@ router.get('/pushHistory',(req,res)=>{
 	let { uniquekey, userid } = req.query;
 	User.findOne({_id:userid},(err,user)=>{
 		if(user){
-			var historys = user.userHistory;
+			var historys = user.userHistorys;
 			var isExist = false;
 			var date  = new Date().toString();
 			historys.map(item=>{
@@ -314,33 +309,25 @@ router.get('/pushHistory',(req,res)=>{
 			})
 			
 			if(!isExist){
-				User.updateOne({_id:userid},{$push:{userHistory:{articleId:uniquekey,viewtime:date}}},(err,result)=>{
-					//console.log(result);
-				})
+				User.updateOne({_id:userid},{$push:{userHistorys:{articleId:uniquekey,viewtime:date}}},(err,result)=>{})
 			} else {
-				User.updateOne({_id:userid,'userHistory.articleId':uniquekey},{$set:{'userHistory.$.viewtime':date}},(err,result)=>{
-					
-				})
+				User.updateOne({_id:userid,'userHistorys.articleId':uniquekey},{$set:{'userHistory.$.viewtime':date}},(err,result)=>{})
 			}
-	
 			util.responseClient(res,200,0,'ok');
-		}
-				
-	})
-			
+		}				
+	})			
 })
-
 
 router.get('/removeHistory',(req,res)=>{
 	let { userid , uniquekey } = req.query;
-	User.updateOne({_id:userid},{$pull:{userHistory:{'articleId':uniquekey}}},(err,result)=>{
+	User.updateOne({_id:userid},{$pull:{userHistorys:{'articleId':uniquekey}}},(err,result)=>{
 		util.responseClient(res,200,0,'ok');
 	})
 })
 
 router.get('/cleanHistory',(req,res)=>{
 	var { userid } = req.query;
-	User.updateOne({_id:userid},{$pull:{userHistory:{}}},(err,result)=>{
+	User.updateOne({_id:userid},{$pull:{userHistorys:{}}},(err,result)=>{
 		util.responseClient(res,200,0,'ok')
 	})
 })
@@ -354,19 +341,15 @@ router.get('/operatecomment',(req,res)=>{
 
 router.get('/getUserFollows',(req,res)=>{
 	var { userid } = req.query;
-	User.findOne({_id:userid},(err,user)=>{
-		var follows = user.userFollow;
-		User.find({'_id':{$in:follows}},(err,users)=>{
-			var users = users.map(item=>{
-				var obj = {};
-				obj.id = item._id;
-				obj.username = item.username;
-				return obj;
-			})
-			
-			util.responseClient(res,200,0,'ok',users);
+	User.findOne({_id:userid},{userFollows:1})
+		.populate({
+			path:'userFollows',
+			select:'username userImage'
 		})
-	})
+		.then(doc=>{
+			var { userFollows } = doc;
+			util.responseClient(res, 200, 0, 'ok', userFollows);
+		})
 })
 
 router.get('/getCommonUsers',(req,res)=>{
@@ -375,8 +358,8 @@ router.get('/getCommonUsers',(req,res)=>{
 		User.findOne({_id:currentUserId},(err,currentUser)=>{
 			var data1,data2,result = [];
 			if (follow){
-				data1 = localUser.userFollow;
-				data2 = currentUser.userFollow;
+				data1 = localUser.userFollows;
+				data2 = currentUser.userFollows;
 			} else {
 				data1 = localUser.userFans;
 				data2 = currentUser.userFans;
@@ -396,11 +379,12 @@ router.get('/getCommonUsers',(req,res)=>{
 	})
 })
 
-router.get('/removeActionMsg',(req,res)=>{
-	var { userid, msgId } = req.query;
-	User.updateOne({'_id':userid},{$pull:{message:{'_id':msgId}}},(err,result)=>{
-		console.log(result);
-		util.responseClient(res,200,0,'ok');
-	})
+router.get('/getUserComments',(req, res)=>{
+	var { userid } = req.query;
+	Comment.find({fromUser:userid})
+		.populate({path:'fromUser',select:'username userImage'})
+		.then(comments=>{
+			util.responseClient(res, 200, 0, 'ok', comments);
+		})
 })
 module.exports = router

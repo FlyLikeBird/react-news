@@ -4,19 +4,6 @@ var userPromise = require('../userPromise');
 
 var onlineUsers = {};
 
-function _checkIsFollowd(userid,checkFollow, checkFans, isFollowed){
-    //  0 表示未关注  1 表示已关注  2 表示互相关注
-    if (checkFollow.includes(userid)){
-        if (checkFans.includes(userid)){
-            isFollowed[userid] = 2;
-        } else {
-            isFollowed[userid] = 1;
-        }
-    } else {
-        isFollowed[userid] = 0 ;
-    }
-}
-
 function sort(arr){
   arr.sort((a,b)=>{
     var time1 = Date.parse(a.date);
@@ -32,221 +19,137 @@ function filterMsgType(type){
     }
 }
 
-function showNotReadMsg(type,msg,userid,obj){
+function showNotReadMsg(type, typeMsgs, obj){
     obj[type] = {};
-    var users = Object.keys(msg);
-    
-    for(var i=0,len=users.length;i<len;i++){
-
-        var tempArr = msg[users[i]]['message'].filter(item=>{
-            return item.toUser == userid && item.isRead == false
+    for(var i=0,len=typeMsgs.length;i<len;i++){
+        var typeMsg = typeMsgs[i];
+        var tempArr = typeMsg.msgs.filter(item=>{
+            return item.isRead == false && String(item.fromUser._id) == String(typeMsg.toUser._id);
         })
-        //console.log(tempArr);
-        obj[type][users[i]] = tempArr.length;
+        obj[type][typeMsg['toUser']['username']] = tempArr.length;
         obj['total'] += tempArr.length;
     }
-
 }
-
-function translateMsgUsers(userMsgs, resolve){
-    var userIds = Object.keys(userMsgs);
-    User.find({_id:{$in:userIds}},(err,multiUsers)=>{
-        for(var i=0,len=userIds.length;i<len;i++){
-            var userid = userIds[i];
-            userMsgs[userid]['username'] = multiUsers[i].username;
-            userMsgs[userid]['avatar'] = multiUsers[i].userImage;
-        }
-        resolve(userMsgs);
-    })
-}
-
+/*
 function deepFilter(arr,userid){
     var msgList = {};
     arr.map(item=>{
         // 先判断此条消息是发送方还是接收方
-         if(item.fromUser == userid){
-             if(!msgList[item.toUser]) {
+         if(item.fromUser._id == userid){
+             if(!msgList[item.toUser._id]) {
                  var userArr = [];
                  userArr.push(item);
-                 msgList[item.toUser] = {};
-                 msgList[item.toUser]['message'] = userArr;
+                 msgList[item.toUser._id] = userArr;
              } else {
-                 msgList[item.toUser]['message'].push(item);
+                 msgList[item.toUser._id].push(item);
              }             
          } else {
-             if(!msgList[item.fromUser]){
+             if(!msgList[item.fromUser._id]){
                  var userArr = [];
                  userArr.push(item);
-                 msgList[item.fromUser] = {};
-                 msgList[item.fromUser]['message'] = userArr;
+                 msgList[item.fromUser._id] = userArr;
              } else {
-                 msgList[item.fromUser]['message'].push(item);
+                 msgList[item.fromUser._id].push(item);
              }
          }    
     });
-    
-    return new Promise((resolve, reject)=>{
-        translateMsgUsers(msgList, resolve);
-    })
+    return msgList;
 }
 
-
-function storeMsg( fromUser,toUser, targetUser, content,resolve){
+*/
+function storeMsg( targetUser, toUser, fromUser, content,resolve){
         var date = new Date().toString();
-        var message = new Message({
-            fromUser:fromUser,
-            content:content,
-            toUser:toUser,
-            msgtype:'user',
-            msgtime:date,
-        }); 
-        message.save(function(err){
-            User.updateOne({_id:targetUser},{$push:{message:message._id}},(err,result)=>{
-                resolve();
+        User.findOne({_id:targetUser},{message:1})
+            .populate({
+                path:'message',
+                match:{toUser:toUser}
             })
-        })       
+            .then(doc=>{
+                var { message } = doc;
+                if( message&& message.length){
+                    var toUserId = message[0]._id;
+                    Message.updateOne({_id:toUserId},{$push:{msgs:{
+                        content,
+                        msgtime:date,
+                        fromUser:fromUser
+                    }}},(err,result)=>{
+                        resolve();
+                    })
+                } else {
+                    var msg = new Message({
+                        toUser,
+                        msgtype:'user',
+                        msgs:[{
+                            content,
+                            fromUser,
+                            msgtime:date
+                        }]
+                    });
+                    msg.save((err)=>{
+                        User.updateOne({_id:targetUser},{$push:{message:msg._id}},(err,result)=>{
+                            resolve();
+                        })
+                    })
+                }
+            })
 }
 
 function sendActionMsg( user, sender, commentid, io ){
     var date = new Date().toString();
-    User.updateOne({'username':user},{$push:{message:{
-        fromUser:sender,
-        toUser:user,
+    var msg = new Message({
+        commentid,
+        toUser:sender,
         msgtype:'action',
-        msgtime:date,
-        commentid
-    }}},(err,result)=>{
-        if ( onlineUsers[user] && onlineUsers[user].id){
-            var toSocket = io.to(onlineUsers[user].id);
-            getMsg(toSocket, user);            
-        }       
+        date
+    });
+    msg.save((err)=>{
+        User.findOne({'username':user},(err,userInfo)=>{
+            var userid = userInfo._id;
+            User.updateOne({_id:userid},{$push:{message:msg._id}},(err,result)=>{
+                if ( onlineUsers[userid] && onlineUsers[userid].id){
+                    var toSocket = io.to(onlineUsers[userid].id);
+                    getMsg(toSocket, userid);            
+                }
+            })
+        })  
     })
 }
 
-function getMsg(socket, userid){  
-    User.findOne({_id:userid},(err,userInfo)=>{
-        var messageIds = userInfo.message;
-        Message.find({_id:{$in:messageIds}},(err,messages)=>{
+function getMsg(socket, userid){   
+    User.findOne({_id:userid},{message:1})
+        .populate({
+            path:'message',
+            populate:[
+                {path:'toUser',select:'username userImage'},
+                {path:'msgs.fromUser', select:'username userImage'},
+                {
+                    path:'commentid'
+                }
+            ]
+        })
+        .then(doc=>{
+            var messages = doc.message;
             var msg = {};
             msg['total'] = 0;
 
-            var allSystemMsg = messages.filter(filterMsgType('system'));
-            var allUserMsg =messages.filter(filterMsgType('user'));
-            var allActionMsg = messages.filter(filterMsgType('action'));
+            var systemMsg = messages.filter(filterMsgType('system'));
+            var userMsg =messages.filter(filterMsgType('user'));
+            var actionMsg = messages.filter(filterMsgType('action'));
 
-            var userMsg = deepFilter(allUserMsg,userid);
-            var systemMsg = deepFilter(allSystemMsg,userid);
-            
-            var actionNotRead = 0;
-            Promise.all([userMsg, systemMsg])
-                .then(([userMsg, systemMsg])=>{
+            msg['userMsg'] = userMsg;
+            msg['systemMsg'] = systemMsg;
+            msg['actionMsg'] = actionMsg;
 
-                    msg['systemMsg'] = systemMsg;
-                    msg['userMsg'] = userMsg;
-                    showNotReadMsg('userNotRead', userMsg, userid, msg);
-                    showNotReadMsg('systemNotRead', systemMsg, userid, msg);
-                    msg['actionNotRead'] = actionNotRead; 
-                    msg['total'] += actionNotRead;
-                    socket.emit('receive-message',msg);
-                })
-        })
-    })
+            showNotReadMsg('userNotRead', userMsg, msg);
+            showNotReadMsg('systemNotRead', systemMsg, msg);
+            msg['actionNotRead'] = actionMsg.filter(item=>!item.isRead).length;
+            msg['total'] += msg['actionNotRead'];
+            socket.emit('receive-message',msg);
+
+        }) 
     
 }
-/*
-function getMsg(socket,userid){  
-    var promise = new Promise((resolve,reject)=>{
-        User.findOne({_id:userid},(err,userInfo)=>{            
-            if (userInfo) {                   
-                    /*
-                        消息数据格式
-                        msg = {                           
-                                systemMsg:{
-                                    'system1':{
-                                        message:[],
-                                        username:String,
-                                        avatar:String
-                                    },
-                        
-                                    ...
-                                },
-                                actionMsg:[],
-                                userMsg:{
-                                    '001':[],
-                                    '002':[],
-                                    ...
-                                }                                               
-                                systemNotRead:{
-                                    'system1':0,
-                                    'system2':10
-                                },
-                                actionNotRead:[],
-                                userNotRead:{
-                                    'user1':0,
-                                    'user2':10
-                                },
-                                total:                            
-                        }                    
-                    
 
-                    var msg = {};                    
-                    var result = userInfo.message;
-                    var allSystemMsg = result.filter(filterMsgType('system'));
-                    var allUserMsg =result.filter(filterMsgType('user'));
-                    var allActionMsg = result.filter(filterMsgType('action'));
-                    msg['total'] = 0;
-                    //  deepFilter 是异步任务
-                    var userMsg = deepFilter(allUserMsg,userid);
-                    var systemMsg = deepFilter(allSystemMsg,userid);
-                    //   筛选未读的动态消息
-                    var actionNotRead = 0;
-
-                    /*
-                    var actionNotRead = allActionMsg.filter(item=>{
-                        return item.toUser == username && item.isRead == false
-                    })
-                    
-                    Promise.all([userMsg, systemMsg])
-                        .then(([userMsg, systemMsg])=>{
-                            msg['systemMsg'] = systemMsg;
-                            msg['userMsg'] = userMsg;
-                            showNotReadMsg('userNotRead', userMsg, userid, msg);
-                            showNotReadMsg('systemNotRead', systemMsg, userid, msg);
-                            msg['actionNotRead'] = actionNotRead; 
-                            msg['total'] += actionNotRead;
-                            resolve(msg);
-                        })
-                    
-                    
-                    
-                    //  构建动态消息需要的数据结构      
-                               
-                    var allPromises = [];
-                    for(var i=0,len=allActionMsg.length;i<len;i++){
-                        (function(i){
-                            var actionMsg = allActionMsg[i];
-                            var promise = new Promise((resolve,reject)=>{
-                                userPromise.getUserActionMsg(actionMsg,resolve);
-                            })
-                            allPromises.push(promise);
-                        })(i)
-                    }
-                    Promise.all(allPromises)
-                        .then(data=>{                            
-                            msg['actionMsg'] = sort(data);
-                            resolve(msg);
-                        })
-                    
-        
-            } 
-        })
-    });
-
-    promise.then((msg)=>{        
-        socket.emit('receive-message',msg);
-    })
-}
-*/
 function socketIndex(socket,io){
     
     socket.on('user-login',(userid)=>{       
@@ -287,43 +190,38 @@ function socketIndex(socket,io){
             }  
         }
         User.findOne({_id:checkUserId},(err,userInfo)=>{
-            var follows = userInfo.userFollow;
+            var follows = userInfo.userFollows;
             var fans = userInfo.userFans;
             for(var i=0,len=users.length;i<len;i++){
-                _checkIsFollowd(users[i],follows,fans,isFollowed);
+            //  0 表示未关注  1 表示已关注  2 表示互相关注
+                var userid = users[i];
+                if (follows.includes(userid)){
+                    if (fans.includes(userid)){
+                        isFollowed[userid] = 2;
+                    } else {
+                        isFollowed[userid] = 1;
+                    }
+                } else {
+                    isFollowed[userid] = 0 ;
+                }   
             };
             socket.emit('checkLoginedResult',logined,isFollowed);
         })
         
     })
 
-    socket.on('markMsgIsRead',( selfUser, otherUser )=>{
-        User.findOne({_id:selfUser},(err,userInfo)=>{
-            var messageIds = userInfo.message;
-            Message.find({_id:{$in:messageIds}},(err,messages)=>{
-                var userMsg = messages.filter(item=>{
-                    return item.fromUser == selfUser && item.toUser == otherUser || item.fromUser == otherUser && item.toUser == selfUser;
-                });
-                var filterIds = userMsg.map(item=>item._id);
-                Message.updateMany({_id:{$in:filterIds}},{$set:{isRead:true}},(err,result)=>{
-                    getMsg(socket, selfUser);
-                })
-            })
-        })          
+    socket.on('markMsgIsRead',( userid, msgId )=>{
+        Message.updateOne({_id:msgId},{$set:{'msgs.$[].isRead':true}},(err,result)=>{
+            if (err) throw err;
+            getMsg(socket, userid);
+        })      
     })   
     
     socket.on('deleteMsg',(userid, deleteId)=>{
-        User.findOne({_id:userid},(err,userInfo)=>{
-            var messageIds = userInfo.message;
-            Message.find({_id:{$in:messageIds}},(err,messages)=>{
-                var userMsg = messages.filter(item=>{
-                    return item.fromUser == userid && item.toUser == deleteId || item.fromUser == deleteId && item.toUser == userid;
-                });
-                var filterIds = userMsg.map(item=>item._id);               
-                Message.deleteMany({_id:{$in:filterIds}},(err,result)=>{
-                    getMsg(socket, userid);
-                })
-            })
+        Message.deleteOne({_id:deleteId},(err,result)=>{
+            User.updateOne({_id:userid},{$pull:{message:deleteId}},(err,result)=>{
+                getMsg(socket, userid);
+            })          
         }) 
     })
 
@@ -351,43 +249,44 @@ function socketIndex(socket,io){
         var { fromUser, toUser, value } = msg;       
         var promise1 = new Promise((resolve,reject)=>{
             storeMsg(fromUser, toUser, fromUser, value, resolve);
-        });
+        });      
         var promise2 = new Promise((resolve, reject)=>{
-            storeMsg(fromUser, toUser, toUser, value, resolve);
+            storeMsg(toUser, fromUser, fromUser, value, resolve);
         });
+        
         Promise.all([promise1, promise2])
             .then(()=>{
-                User.findOne({_id:fromUser},(err,from_user)=>{
-                    User.findOne({_id:toUser},(err,to_user)=>{
-                        var messageIds = from_user.message;
-                        Message.find({_id:{$in:messageIds}},(err,messages)=>{
-                            var data = {};
-                            var userMsg = messages.filter(item=>{
-                                return item.fromUser == fromUser && item.toUser == toUser || item.fromUser == toUser && item.toUser == fromUser;
-                            });
-                            data.messages = userMsg;
-                            data.selfAvatar = from_user.userImage;
-                            data.otherAvatar = to_user.userImage;
-                            socket.emit('send-chatList',data);
-                        })
-                                             
-                         if(!onlineUsers[toUser]){
-                             return ;
-                         }
-        
-                         if (onlineUsers[toUser].isChatting && onlineUsers[toUser].isChatting.toUser === fromUser ) {             
-                             io.to(onlineUsers[toUser].id).emit('send-chatList',data);
-                         } else {                         
-                             // 通知聊天的另一端客户端接收消息
-                             var toSocket = io.to(onlineUsers[toUser].id);
-                             getMsg(toSocket,toUser);
-                         }
+                User.findOne({_id:fromUser},{message:1})
+                    .populate({
+                        path:'message',
+                        populate:[
+                            {path:'toUser',select:'username userImage'},
+                            {path:'msgs.fromUser', select:'username userImage'}
+                        ],
+                        match:{'toUser':toUser},
+                        options:{limit:1}
                     })
-                })
-            })          
+                    .then(doc=>{
+                        var { message } = doc;
+                        if (message&&message.length){
+                            socket.emit('send-chatList',message[0]);
+                        }
+                        
+                        if(!onlineUsers[toUser]){
+                             return ;
+                        }        
+                        if (onlineUsers[toUser].isChatting && onlineUsers[toUser].isChatting.toUser == fromUser ) {             
+                            io.to(onlineUsers[toUser].id).emit('send-chatList',message[0]);
+                        } else {                         
+                            // 通知聊天的另一端客户端接收消息
+                            var toSocket = io.to(onlineUsers[toUser].id);
+                            getMsg(toSocket,toUser);
+                        }
+                    })
+            })                 
     })                        
     
-    socket.on('send@Msg',( users, sender, commentid)=>{
+    socket.on('send@Msg',( sender, users, commentid)=>{
         for(var i=0,len=users.length;i<len;i++){
             sendActionMsg( users[i], sender, commentid, io);
         }       

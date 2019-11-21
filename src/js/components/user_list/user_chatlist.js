@@ -7,23 +7,18 @@ class ChatList extends React.Component{
   constructor(){
     super();
     this.state={
-      list:[],
-      selfAvatar:'',
-      otherAvatar:''
+      msg:{}
     }
   }
-
   
   componentDidMount(){
     var { socket, toId } = this.props;
     var userid = localStorage.getItem('userid');
-    
     fetch(`/api/usr/getChatList?userid=${userid}&other=${toId}`)
         .then(response=>response.json())
         .then(json=>{
            var data = json.data;
-           var { messages, selfAvatar, otherAvatar } = data;
-           this.setState({list:messages, selfAvatar, otherAvatar});
+           this.setState({msg:data});
            if (this.ulDom){
              this.ulDom.scrollTop = this.ulDom.scrollHeight;
            }
@@ -32,8 +27,7 @@ class ChatList extends React.Component{
     if (socket){
         socket.emit('isChatting', userid, toId );
         socket.on('send-chatList',(msg)=>{
-          var { messages } = msg;
-          this.setState({list:messages});
+          this.setState({msg})
           if (this.ulDom){
             this.ulDom.scrollTop = this.ulDom.scrollHeight;
           }
@@ -43,9 +37,11 @@ class ChatList extends React.Component{
   
   handleSendMessage(e){
     e.preventDefault();
-    var { socket, toUser, toId, form } = this.props;
+    var { socket, toId, form } = this.props;
+    var { validateFields, setFieldsValue } = form;
     var userid = localStorage.getItem('userid');
-    form.validateFields(['chat'],(errs,values)=>{
+
+    validateFields(['chat'],(errs,values)=>{
         if(!errs){
             var { chat } = values;
             var data = {
@@ -54,6 +50,7 @@ class ChatList extends React.Component{
               value:chat
             }
             socket.emit('send-message',data); 
+            setFieldsValue({'chat':''});
         }
     })  
       
@@ -68,11 +65,12 @@ class ChatList extends React.Component{
   }
 
   render(){
-    var { list, selfAvatar, otherAvatar } = this.state;
-    var { visible, toUser, onModalVisible, form } = this.props;
+    var { msg } = this.state;
+    var { msgs } = msg;
+    var { visible, onModalVisible, toUser, form } = this.props;
     var { getFieldDecorator } = form;
     var userid = localStorage.getItem('userid');
-
+    
     return(
 
       <Modal className="chatRecord-container" visible={visible} title={`与${toUser}聊天中`} onCancel={()=>onModalVisible(false)}  destroyOnClose={true} footer={             
@@ -100,11 +98,11 @@ class ChatList extends React.Component{
                 <div>
                     <ul style={{height:'400px',overflow:'scroll',listStyle:'none',padding:'30px 0'}} ref={dom=>this.ulDom = dom}>
                         {
-                            list.length
+                            msgs && msgs.length
                             ?
-                            list.map((item,index)=>(
-                                <li key={index} className={item.fromUser==userid?'self':'other'}>
-                                    <div className="img-container"><img src={item.fromUser==userid? selfAvatar : otherAvatar} /></div>
+                            msgs.map((item,index)=>(
+                                <li key={index} className={item.fromUser._id==userid?'self':'other'}>
+                                    <div className="img-container"><img src={item.fromUser.userImage} /></div>
                                     <div className="text-container">                                     
                                         <span>{item.content}</span>                                        
                                         <span className='ant-text'>{formatDate(parseDate(item.msgtime))}</span>

@@ -795,8 +795,12 @@ section .leftContainer {
     transform: scale(0.8);
 }
 
-.user-follow-container .user-follow, .user-follow-container .user-fans{
-    text-align:center;
+.user-follow-container {
+    display:flex;
+    margin:10px 0;
+}
+
+.user-follow-container>div{
     flex:1;
 }
 
@@ -810,8 +814,6 @@ section .leftContainer {
 
 .user-level-rightTop {
     display:inline-block;
-    transform: scale(0.8);
-    transform-origin: center;
 }
 
 .user-level span.num, .user-level-rightTop span.num{
@@ -1458,6 +1460,7 @@ section .leftContainer {
 
 .popover-card {
     width:240px;
+    font-size:12px;
 }
 
 .popover-card .ant-card-body{
@@ -2182,7 +2185,7 @@ section .leftContainer {
 
 .msg-container .button{
     position:absolute;
-    right:0;
+    right:10px;
     top:50%;
     margin-top:-12px;
     display:inline-block;
@@ -2195,6 +2198,15 @@ section .leftContainer {
 
 .ant-dropdown li.ant-dropdown-menu-item i {
     margin-right:4px;
+}
+
+/*
+
+    @选择框样式
+*/
+
+.ant-select.user-select {
+    width:300px;
 }
 
 /*

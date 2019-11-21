@@ -39,7 +39,65 @@ var storage = multer.diskStorage({
 });
 var upload = multer({storage});
 
-router.get('/share',(req,res)=>{
+router.get('/shareContent',(req,res)=>{
+    //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
+    var { userid, text, value, contentId, contentType, commentid  } = req.query;
+    var date = new Date().toString();
+    //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
+
+    if (!value){
+        value = `转发${util.translateType(contentType)}`
+    } 
+    //console.log(userid,text,value,contentId,contentType,actionId);
+    //util.responseClient(res,200,0,'ok');
+    /*
+    User.updateOne({_id:userid},{$set:{userAction:[]}},(err,result)=>{
+        util.responseClient(res,200,0,'ok');
+    });
+    */
+    
+    var action = new Action({
+        user:userid,
+        contentId,
+        contentType,
+        date,
+        text,
+        value   
+    });
+
+    action.save()
+        .then(()=>{
+            //  如是转发的评论则更新该条评论的shareBy字段
+            if (commentid){
+                Comment.updateOne({_id:commentid},{$push:{shareBy:action._id}},(err,result)=>{
+                    Comment.findOne({_id:commentid},{shareBy:1})
+                        .populate({
+                            path:'shareBy',
+                            populate:{
+                                path:'user',
+                                select:'userImage username'
+                            },
+                            select:'user date value'
+                        })
+                        .then(shareBy=>{
+                            util.responseClient(res, 200, 0, 'ok', shareBy);
+                        })
+                });
+                return ;
+                //  如转发话题更新该话题的shareBy
+            }  else if (contentType=='topic') {
+                Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
+                    Topic.findOne({_id:contentId},(err,topic)=>{
+                        util.responseClient(res,200,0,'ok',topic.shareBy);
+                    })
+                })
+                //  如转发新闻更新该新闻的shareBy
+            } 
+            
+        })    
+})
+
+router.get('/shareAction',(req,res)=>{
     //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
     var { userid, text, value, contentId, contentType, actionId, innerAction, commentid, parentcommentid ,isActionPage, composeAction } = req.query;
     var date = new Date().toString();
@@ -123,9 +181,7 @@ router.get('/share',(req,res)=>{
             }
             
             
-        })  
-    
-    
+        })    
 })
 
 router.post('/create',upload.array('images'),(req,res)=>{
@@ -175,36 +231,6 @@ router.get('/operate',(req,res)=>{
     
 })
 
-router.get('/getUsersInfo',(req,res)=>{
-    var { userid, actionId } = req.query;
-    if (userid){
-        User.find({_id:{$in:userid}},(err,users)=>{
-            var allUsers = userid;
-            var data = allUsers.map(item=>{
-                var obj = {};
-                for(var i=0,len=users.length;i<len;i++){
-                    if (item == users[i]._id){
-                        obj.username = users[i].username;
-                        obj.userid = users[i]._id;
-                        obj.avatar = users[i].userImage;
-                        return obj;
-                    }
-                }
-                
-            });
-            util.responseClient(res,200,0,'ok',data);
-        })
-    } else {
-        var promise = new Promise((resolve,reject)=>{
-            Action.find({_id:{$in:actionId}},(err,actions)=>{
-                userPromise.getActionsInfo(actions,resolve);
-            })           
-        });
-        promise.then(data=>{
-            util.responseClient(res,200,0,'ok',data);
-        })        
-    }   
-})
 
 router.get('/getActionContent',(req,res)=>{
     var { contentId } = req.query;

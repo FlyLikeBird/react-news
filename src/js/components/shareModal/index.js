@@ -7,15 +7,14 @@ import UpdateInnerItem from '../update_list/inner_update_item';
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
 import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 
-
 const { TextArea } = Input;
 
 export default class ShareModal extends React.Component{
    
     handleShare(){        
-        var { onVisible, forUserAction, actionInfo, isActionPage, onUpdate, commentid, parentcommentid, onUpdateShareBy, isSelf } = this.props;
+        var { onVisible, forUserAction, actionInfo, isActionPage, onUpdate, commentid, onUpdateShareBy, isSelf } = this.props;
         var userid = localStorage.getItem('userid'); 
-        var params = {},fetchParams = '/api/action/share?';       
+        var params = {},fetchParams = '/api/action/shareContent?';       
         if(this.textArea){
             var value = this.textArea.textAreaRef.value;
         }       
@@ -49,8 +48,7 @@ export default class ShareModal extends React.Component{
                 text:text?text:'',
                 composeAction:'',
                 isActionPage:'',
-                commentid:commentid?commentid:'',
-                parentcommentid:parentcommentid?parentcommentid:''
+                commentid:commentid
             }
         }
         var keys = Object.keys(params);
@@ -61,12 +59,12 @@ export default class ShareModal extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
+                var { shareBy } = data;
                 if ( forUserAction && isSelf){
                     onUpdate(data);
-                }
-                
+                }             
                 if (onVisible) onVisible(false);
-                if (onUpdateShareBy) onUpdateShareBy(data);
+                if (onUpdateShareBy) onUpdateShareBy(shareBy);
                 message.info(`转发${forUserAction?'动态':translateType(contentType)}成功!`)
             })
          
@@ -74,7 +72,7 @@ export default class ShareModal extends React.Component{
 
     render(){
         
-        var { actionInfo, uniquekey, data, visible, history, forUserAction, onVisible, topicItem } = this.props;
+        var { actionInfo, uniquekey, data, item, visible, history, forUserAction, onVisible, topicItem } = this.props;
         var { contentType, hasInnerAction, innerAction, contentId, username, composeAction, value, text } = actionInfo;
        
         return(
@@ -132,7 +130,7 @@ export default class ShareModal extends React.Component{
                                     {
                                         contentType === 'news' 
                                         ?
-                                        <NewsListItem uniquekey={uniquekey} forSimple={true} hasImg={true} noLink={true}/>
+                                        <NewsListItem item={item} forSimple={true} hasImg={true} noLink={true}/>
                                         :
                                         contentType === 'topic' 
                                         ?

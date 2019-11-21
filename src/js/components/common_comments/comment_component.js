@@ -16,17 +16,15 @@ export default class CommentComponent extends React.Component{
     super();
     this.state = {
       replies:[],
-      item:{},
       img:'',
+      translateData:[],
       previewVisible:false,
-      showReplies:true,
-      translateData:[]
+      showReplies:true
     }
   }
 
   handleUpdateReplies(replies){
     this.setState({replies});
-    
   }
 
   handlePreview(boolean,img){
@@ -45,11 +43,9 @@ export default class CommentComponent extends React.Component{
     this.setState({showReplies:!this.state.showReplies})
   }
 
-  componentDidMount(){
+  componentWillMount(){
     var { onSetScrollTop, comment, forTrack, forUser, forMsg } = this.props;
-    var { replies, selected, content, commentType, uniquekey } = comment;
-    var data = formatContent(content);
-
+    var { replies, selected, content, fromUser, toUser, fromSubTextarea, commentType, uniquekey } = comment;
     if (selected){       
         var selectedDom = document.getElementsByClassName('comment selected')[0];
         if (selectedDom){            
@@ -64,52 +60,53 @@ export default class CommentComponent extends React.Component{
             },3000)
         }   
     }
+
     if (forTrack) {
       this.setState({showReplies:selected});
     }
-    
-    this.setState({replies,translateData:data})
+    var str = fromSubTextarea ? `回复@${toUser.username}:${content}` : `${content}`;
+    var translateData = formatContent(str);
+    this.setState({replies, translateData})
   }
   
-
-  componentWillReceiveProps(newProps){
-      var { replies, content  } = newProps.comment;
-      var data = formatContent(content);
-      this.setState({replies,translateData:data});
+  componentWillReceiveProps(newProps){    
+      if (this.props.comment._id != newProps.comment._id){     
+          var { replies, toUser, fromSubTextarea, content } = newProps.comment;
+          var str = fromSubTextarea ? `回复@${toUser.username}:${content}` : `${content}`;
+          var translateData = formatContent(str);  
+          this.setState({replies, translateData});
+      }   
   }
 
   render(){
-    
-    let { username, content, date, _id,  replies, fromUser, toUser, likeUsers, dislikeUsers, commentType, shareBy, selected, isRead, fromSubTextarea, avatar, images, uniquekey, fathercommentid, owncomment} = this.props.comment;
-    let { parentcommentid, isSub, socket, history, index, forUser, forMsg, grayBg, onDelete, onVisible, hasDelete, onShowList }= this.props;
-    let { previewVisible, img, showReplies, translateData, item  } = this.state;
+    let { parentcommentid, comment, isSub, socket, history, forUser, forMsg, onDelete, onVisible, hasDelete, onShowList }= this.props;
+    let { fromUser, toUser, content, date, _id,  likeUsers, dislikeUsers, commentType, shareBy, selected, isRead, fromSubTextarea, images, uniquekey } = comment;
+    var userid = localStorage.getItem('userid');
+    let { previewVisible, img, showReplies, replies, translateData  } = this.state;
     let commentDate = formatDate(parseDate(date));
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
-    parentcommentid = parentcommentid ? parentcommentid : fathercommentid ? fathercommentid : '';
+    parentcommentid = parentcommentid ? parentcommentid : '';
+    var owncomment = userid == fromUser._id ? true : false;
     const buttonProps = {
       isSub,
-      username,
       forUser,
       forMsg,
       isRead,
-      shareBy,
       onDelete,
       onVisible,
       socket,
+      shareBy,
       likeUsers,
       dislikeUsers,
       uniquekey,
-      replies:this.state.replies,
+      replies,
       history,
+      fromUser,
+      toUser,
       hasDelete,
       commentType,
-      grayBg,
-      owncomment,
       commentid:_id,
       parentcommentid,
-      commentDate,
-      fromUser:localStorage.getItem('username'),
-      toUser:username?username:fromUser,
       showReplies, 
       onShowReplies:this.handleShowReplies.bind(this),   
       onUpdateReplies:this.handleUpdateReplies.bind(this),
@@ -121,11 +118,11 @@ export default class CommentComponent extends React.Component{
       <Card className={forUser?'comment user':selected ? 'comment selected' :'comment'}>
                 <div>
                     <div style={{display:'flex',alignItems:'center'}}>
-                      <Popover content={<CommentPopoverUserAvatar user={username?username:fromUser}/>}>
-                          <Badge count={forMsg?isRead?0:1:0}><div className="avatar-container"><img src={avatar} /></div></Badge>
+                      <Popover content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
+                          <Badge count={forMsg?isRead?0:1:0}><div className="avatar-container"><img src={fromUser.userImage} /></div></Badge>
                       </Popover>
                       <div style={{marginLeft:'10px'}}>
-                          <div><span style={{color:'#000',fontWeight:'500'}}>{username?username:fromUser}</span>{owncomment?<span className="label">用户</span>:null}</div>
+                          <div><span style={{color:'#000',fontWeight:'500'}}>{fromUser.username}</span>{ owncomment ?<span className="label">用户</span>:null}</div>
                           <span className="text">{`发布于 ${commentDate}`}</span>
                       </div>
                     </div>
@@ -147,7 +144,7 @@ export default class CommentComponent extends React.Component{
                                 </span>
                             ))
                             :
-                            <span>{content}</span>
+                            <span>{ content }</span>
                         }
                         {
                           forUser && !forMsg
@@ -180,7 +177,7 @@ export default class CommentComponent extends React.Component{
                         null
                       }
                     </div>
-                    
+                    {/*
                     {
                       forUser || forMsg ? commentType == 'news' ? 
                       <NewsListItem uniquekey={uniquekey} hasImg={true} forSimple={true}/> 
@@ -193,8 +190,10 @@ export default class CommentComponent extends React.Component{
                       :
                       null
                     }
+                  */}
                     
-                    <CommentComponentButton {...buttonProps}/>
+                    <CommentComponentButton {...buttonProps}/> 
+                    
                     {
                       forUser
                       ?
@@ -205,16 +204,16 @@ export default class CommentComponent extends React.Component{
                       null
                       :
                       <div style={{display:showReplies?'block':'none'}}>
-                        <CommentsList 
+                        <CommentsList
                             isSub={true} 
                             commentid={_id} 
-                            comments={this.state.replies}
+                            comments={replies}
                             commentType={commentType} 
                             hasDelete={hasDelete} 
                             onVisible={onVisible}
                             onDelete={onDelete}
                             onUpdateFromSub={this.handleUpdateReplies.bind(this)} 
-                            grayBg={grayBg}/>
+                          />
                       </div>                      
                     }
                     <Modal className="no-bg" visible={previewVisible} maskClosable={true} onCancel={()=>this.handlePreview(false)} footer={null}>

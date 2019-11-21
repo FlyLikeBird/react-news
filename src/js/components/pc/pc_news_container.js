@@ -17,11 +17,11 @@ export default class PCNewsContainer extends React.Component {
 				<Row>
 					<Col span={2}></Col>
 					<Col span={15} className="container">
-
+						{/*
 						<div style={{height:'300px'}} className="leftContainer">
 							<AutoCarousel history={history} count={4}/>
 						</div>
-						
+						*/}
 						<div>
 							<div style={{width:'64%',float:'left',display:'flex'}}>
 								
@@ -53,14 +53,14 @@ export default class PCNewsContainer extends React.Component {
 				<Row>
 					<Col span={2}></Col>
 					<Col span={20}>
-						
+						{/*
 						<PCNewsImageBlock iconType="home" count={16} type="guonei"  cardTitle="国内新闻"  columns={6}/>																	
 						<PCNewsImageBlock iconType="global" count={16} type="guoji"  cardTitle="国际新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="notification" count={16} type="shehui"  cardTitle="社会新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="mobile" count={16} type="keji"  cardTitle="科技新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="mobile" count={16} type="junshi"  cardTitle="军事新闻" columns={6}/>
 						<PCNewsImageBlock iconType="rocket" count={16} type="tiyu"  cardTitle="体育新闻"  columns={6}/>
-						
+						*/}
 					</Col>
 					<Col span={2}></Col>
 

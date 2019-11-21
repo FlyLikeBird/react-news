@@ -4,28 +4,10 @@ import CommentComponent from './comment_component';
 
 export default class CommentsList extends React.Component {
 
-  constructor(){
-    super();
-    this.state = {
-      comments:[]
-    }
-  }
-  
-  componentDidMount(){
-      var { comments } = this.props;
-      this.setState({comments});
-  }
-  
-  componentWillReceiveProps(newProps){
-      var { comments } = newProps;
-      this.setState({comments})
-  }
-
   render(){
-    var { comments, visible, commentid ,parentcommentid } = this.state;
-    //  shareType 字段表示分享的内容类型 ，toId 字段表示分享的内容标识
-    var {  isSub, socket, history, commentid, onUpdateFromSub, forUser, forMsg, forTrack, grayBg, onDelete, hasDelete, onVisible, onShowList, onSetScrollTop, warnMsg } = this.props;
-    let commentsClassName = isSub ? 'subcommentsContainer':'commentsContainer';
+    
+    var {  comments, isSub, socket, history, commentid, onUpdateFromSub, forUser, forMsg, forTrack, grayBg, onDelete, hasDelete, onVisible, onShowList, onSetScrollTop, warnMsg } = this.props;
+    var commentsClassName = isSub ? 'subcommentsContainer':'commentsContainer';
    
     return(
         <div>

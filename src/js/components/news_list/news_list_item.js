@@ -39,26 +39,6 @@ export default class NewsListItem extends React.Component {
     return formatArr[0]+'<br/>' + '<span style="color:black">'+formatArr[1]+'</span>';
   }
 
-  componentDidMount(){
-      var { uniquekey, noFetch, item } = this.props;
-      if (uniquekey && !noFetch){
-          fetch(`/api/article/getArticleContent?uniquekey=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data= json.data;
-                    this.setState({item:data});
-                })
-      } else {
-          this.setState({item})
-      }    
-  }
-
-  componentWillReceiveProps(newProps){
-      var { forSimple } = this.props;
-      if ( !forSimple && (this.props.item.articleId != newProps.item.articleId)) {
-          this.setState({item:newProps.item});
-      }
-  }
 
   markKeyWords(content){
     var { location } = this.props;
@@ -98,8 +78,7 @@ export default class NewsListItem extends React.Component {
   }
 
   render(){
-    var { item } = this.state;
-    var { hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
+    var { item, hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
     var { viewtime, articleId, auth, newstime, content, thumbnails, title, type } = item;
   
     return (

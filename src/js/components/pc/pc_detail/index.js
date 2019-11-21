@@ -84,7 +84,7 @@ export default class PCNewsDetails extends React.Component {
 										?
 										<div>
 											<ArticleAction uniquekey={uniquekey} item={newsItem} history={history}/> 
-											<CommonComments {...this.props} item={newsItem}/>
+											<CommonComments {...this.props} uniquekey={uniquekey} item={newsItem}/>
 										</div>
 										:
 										<p>您还未登录！请先完成<span style={styleObj} onClick={()=>onLoginVisible(true)}>注册</span>或<span style={styleObj} onClick={()=>onLoginVisible(true)}>登录</span>查看评论！</p>

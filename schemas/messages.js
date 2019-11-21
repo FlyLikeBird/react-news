@@ -3,20 +3,22 @@
  */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-module.exports = new mongoose.Schema({
-    
-    fromUser:String,
-    toUser:String,
+module.exports = new mongoose.Schema({  
+    toUser:{type:Schema.Types.ObjectId, ref:'User'},
     msgtype:String,
-    msgtime:String,
-    //  指@消息对应的评论id
-    commentid:String,
-    parentcommentid:String,
-    //  标识评论针对的内容类型，如新闻/话题/动态
+    commentid:{type:Schema.Types.ObjectId, ref:'Comment'},
+    parentcommentid:{type:Schema.Types.ObjectId, ref:'Comment'},
     isRead:{type:Boolean,default:false},
-    content:String
-       
+    date:String,
+    msgs:[{
+        content:String,
+        fromUser:{type:Schema.Types.ObjectId, ref:'User'},
+        msgtime:String,
+        isRead:{type:Boolean,default:false},
+    }]
+    
 });
 
 

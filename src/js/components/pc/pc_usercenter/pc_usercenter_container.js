@@ -52,17 +52,17 @@ export default class PCUserCenterContainer extends React.Component{
 
     render(){
         var { loadChart, loadUserComment, loadUserTopic, UserComment, UserTopic, UserChart } = this.state;
-        var { userFollow, userFans, userAction, userComments, userHistory, userCollect, followedCollect, socket, history, match, isSelf, msg } = this.props;
+        var { userFollows, userFans, userActions, userComments, userHistorys, userCollects, followedCollect, socket, history, match, isSelf, msg } = this.props;
         
         return(
 
                 <div>
                     <Tabs onChange={this.handleChangeTabs.bind(this)} className="usercenter-tabs" style={{paddingLeft:'10px'}} defaultActiveKey="action" tabPosition="left">
                             <TabPane tab={<span><Icon type="share-alt" />{isSelf?"我的动态":"TA的动态"}</span>} key="action" className="background-color">
-                                <UpdateContainer data={userAction} history={history} socket={socket} isSelf={isSelf}/>
+                                <UpdateContainer data={userActions} history={history} socket={socket} isSelf={isSelf}/>
                             </TabPane>
                             <TabPane tab={<span><Icon type="container" />{isSelf?"我的关注":"TA的关注"}</span>} key="follow"> 
-                                <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFollow} text="follow"/>
+                                <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFollows} text="follow"/>
                             </TabPane>
                             <TabPane tab={<span><Icon type="usergroup-add" />{isSelf?"我的粉丝":"TA的粉丝"}</span>} key="fans">
                                 <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFans} text="fans"/>
@@ -77,7 +77,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 null
                             }                            
                             <TabPane tab={<span><Icon type="book" />{isSelf?"我的收藏":"TA的收藏"}</span>} key="collect">
-                                <CollectContainer isSelf={isSelf} data={userCollect} match={match} forUser={true}/>
+                                <CollectContainer isSelf={isSelf} data={userCollects} match={match} forUser={true}/>
                             </TabPane>
                             
                             <TabPane tab={<span><Icon type="message" />{isSelf?"我的话题":"TA的话题"}</span>} key="topic">
@@ -97,7 +97,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="history" />浏览记录</span>} key="history">
-                                    <NewsList text="没有任何浏览记录" data={userHistory} history={history} hastime={true} hasImg={true} forUser={true} />                               
+                                    <NewsList text="没有任何浏览记录" data={userHistorys} history={history} hastime={true} hasImg={true} forUser={true} />                               
                                 </TabPane>
                                 :
                                 null

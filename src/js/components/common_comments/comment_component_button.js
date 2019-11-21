@@ -21,28 +21,28 @@ export default class CommentsComponentButton extends React.Component{
     }
   }
 
-  handleUserAction(commentid,action,isCancel,parentcommentid){ 
+  handleUserAction(commentid,action,isCancel){ 
     var userid = localStorage.getItem('userid');
-    var { onUpdateLikeUsers } = this.props;
     if (userid){
-        fetch('/api/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel +'&parentcommentid='+parentcommentid +'&userid='+userid)
+        fetch('/api/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel  +'&userid='+userid)
           .then(response=>response.json())
           .then(json=>{            
-            var data = json.data;           
+            var data = json.data;  
+            var { likeUsers, dislikeUsers } = data;         
             if (action == 'like' && !Boolean(isCancel)) {
-              this.setState({isLiked:true,likeUsers:data});
+              this.setState({isLiked:true,likeUsers});
             } else if (action == 'like' && Boolean(isCancel)){
-              this.setState({isLiked:false,likeUsers:data})
+              this.setState({isLiked:false,likeUsers})
             } else if (action == 'dislike' && !Boolean(isCancel)){
-              this.setState({isdisLiked:true,dislikeUsers:data})
+              this.setState({isdisLiked:true,dislikeUsers})
             } else if (action == 'dislike' && Boolean(isCancel)){
-              this.setState({isdisLiked:false,dislikeUsers:data})
+              this.setState({isdisLiked:false,dislikeUsers})
             }
           })
         //  用户评论后加积分逻辑     
         if ( isAllowed ) {
           if(action === 'like' && !isCancel )
-          fetch(`/api/usr/operatecomment?userid=${localStorage.getItem('userid')}`)
+          fetch(`/api/usr/operatecomment?userid=${userid}`)
           .then(()=>{
             isAllowed = false;
             setTimeout(()=>{
@@ -70,20 +70,19 @@ export default class CommentsComponentButton extends React.Component{
      
   }
 
-  componentWillReceiveProps(newProps){
+  _setPropsToState(props){
+      var { likeUsers, dislikeUsers, shareBy } = props;
+      var userid = localStorage.getItem('userid');
+      var isLiked = likeUsers.map(item=>item.user._id).includes(userid), isdisLiked = dislikeUsers.map(item=>item.user._id).includes(userid);
+      this.setState({likeUsers,dislikeUsers,shareBy, isLiked,isdisLiked});
+  }
 
-      var { likeUsers, dislikeUsers, shareBy } = newProps;
-      if (likeUsers && dislikeUsers && shareBy){
-          var userid = localStorage.getItem('userid');
-          var isLiked = likeUsers.map(item=>item.userid).includes(userid), isdisLiked = dislikeUsers.map(item=>item.userid).includes(userid);
-          this.setState({likeUsers,dislikeUsers,shareBy, isLiked,isdisLiked});
-      }
-      
+  componentWillReceiveProps(newProps){
+      this._setPropsToState(newProps);
   }
 
   componentDidMount(){
-      var { isRead } = this.props;
-      this.setState({isRead})
+      this._setPropsToState(this.props);
   }
 
   handleReply(){
@@ -98,9 +97,8 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   handleShare(commentid,parentcommentid){
-    if(this.props.onVisible){
-      this.props.onVisible(true,commentid,parentcommentid,this._updateShareByUsers.bind(this))
-    }
+    var { onVisible } = this.props;
+    if ( onVisible ) onVisible(true, commentid, parentcommentid, this._updateShareByUsers.bind(this))
   }
 
   _updateShareByUsers(data){
@@ -132,16 +130,15 @@ export default class CommentsComponentButton extends React.Component{
 
   render(){
     var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, iconType, visible } = this.state;
-    var { username, history, fromUser, toUser, isSub,  commentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, replies, commentid, parentcommentid, fathercommentid, owncomment, hasDelete, grayBg } = this.props;
-    var _id = this.props.commentid;
+    var { history, isSub,  uniquekey, fromUser, toUser, commentid, parentcommentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, replies, owncomment, hasDelete } = this.props;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
-      isParentReplyComment:isSub ? false : true,
       socket,
       isSub,
+      uniquekey,
       commentType,
-      fromUser,
-      toUser,
+      fromUser:localStorage.getItem('userid'),
+      toUser:fromUser._id,
       commentid,
       parentcommentid,
       onUpdateFromSub:this.props.onUpdateFromSub,
@@ -169,14 +166,18 @@ export default class CommentsComponentButton extends React.Component{
                   </div>
                   :
                   <div>
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}><span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'',parentcommentid)}><span className="text"><Icon type="like" className="motion" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></span></Popover>
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}><span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'',parentcommentid)}><span className="text"><Icon className="motion" type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}>
+                          <span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this, commentid,'like',isLiked?'true':'')}><span className="text"><Icon type="like" className="motion" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></span>
+                      </Popover> 
+                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}>
+                          <span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this, commentid ,'dislike',isdisLiked?'true':'')}><span className="text"><Icon className="motion" type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span>
+                      </Popover>
                       {
                           isSub && hasDelete
                           ?
                           null
                           :
-                          <span onClick={this.handleReply.bind(this)} ><span className="text"><Icon type="edit" />回复{replies?<span className="num">{ replies.length }</span>:null}</span></span>
+                          <span onClick={this.handleReply.bind(this)} ><span className="text"><Icon type="edit" />回复{isSub?null:<span className="num">{ replies.length }</span>}</span></span>
                       }
                                      
                       {
@@ -187,17 +188,16 @@ export default class CommentsComponentButton extends React.Component{
                           <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}><span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
                       }
                       
-                      {
-                          
-                          replies
+                      {                          
+                          isSub
                           ?
+                          null
+                          :
                           replies.length
                           ?
                           <span onClick={()=>onShowReplies()} ><span className="text"><Icon type="menu-fold" />{showReplies?'折叠评论':'展开评论'}</span></span>
                           :
-                          null
-                          :
-                          null                          
+                          null                                                 
                       }
                       {
                           (owncomment && hasDelete)

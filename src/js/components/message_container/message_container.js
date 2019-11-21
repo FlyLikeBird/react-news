@@ -3,7 +3,8 @@ import { Collapse, Button, Modal, Input, Badge } from 'antd';
 
 import MessageItem from './message_item';
 import ChatList from '../user_list/user_chatlist';
-import CommentsList  from '../common_comments/comments_list';
+import ActionMessageItem  from './action_message_item';
+import CommentComponent from '../common_comments/comment_component';
 import DeleteModal from '../deleteModal';
 import { parseDate, formatDate } from '../../../utils/translateDate';
 
@@ -53,7 +54,6 @@ export default class MessageContainer extends React.Component{
         var { visible, deleteVisible, deleteId, toId, toUser } = this.state;
         var { msg, socket, history } = this.props;
         var { systemMsg, actionMsg, userMsg, total, actionNotRead, systemNotRead, userNotRead } = msg;       
-        var systemKeys = Object.keys(systemMsg),userKeys = Object.keys(userMsg);
         
         return(
             
@@ -63,15 +63,19 @@ export default class MessageContainer extends React.Component{
                         {
                             actionMsg && actionMsg.length
                             ?
-                            <CommentsList 
-                            forMsg={true}
-                            forUser={true} 
-                            socket={socket} 
-                            history={history} 
-                            comments={actionMsg}
-                            onDelete={this.handleDeleteModalVisible.bind(this)}
-                         
-                            />
+                            actionMsg.map((item,index)=>(
+                                <CommentComponent
+                                    socket={socket} 
+                                    history={history}
+                                    key={index} 
+                                    
+                                    isSub={true}
+                                    comment={item.commentid}
+                                    
+                                    forMsg={true} 
+                                   
+                                />
+                            ))
                             :
                             <span>暂无@我的消息</span>
                         }
@@ -80,14 +84,13 @@ export default class MessageContainer extends React.Component{
                     </Panel>
                     <Panel header="系统消息" key="system">
                         {   
-                            systemKeys.length
+                            systemMsg.length
                             ?
-                            systemKeys.map((msgKey,index)=>(
+                            systemMsg.map((item,index)=>(
                                 <MessageItem 
                                     key={index} 
-                                    data={systemMsg[msgKey]} 
-                                    msgCount={systemNotRead[msgKey]} 
-                                    msgKey={msgKey} 
+                                    data={item} 
+                                    msgCount={systemNotRead[item['toUser']['username']]}                                     
                                     socket={socket} 
                                     onShowChatList={this.handleShowChatList.bind(this)}  
                                     onDelete={this.handleDeleteModalVisible.bind(this)}
@@ -102,14 +105,13 @@ export default class MessageContainer extends React.Component{
                     
                     <Panel header="用户消息" key="user">
                         {   
-                            userKeys.length
+                            userMsg.length
                             ?
-                            userKeys.map((msgKey,index)=>(
+                            userMsg.map((item,index)=>(
                                 <MessageItem 
                                     key={index} 
-                                    data={userMsg[msgKey]} 
-                                    msgCount={userNotRead[msgKey]} 
-                                    msgKey={msgKey} 
+                                    data={item} 
+                                    msgCount={userNotRead[item['toUser']['username']]} 
                                     socket={socket} 
                                     onShowChatList={this.handleShowChatList.bind(this)} 
                                     onDelete={this.handleDeleteModalVisible.bind(this)}

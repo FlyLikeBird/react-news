@@ -10,14 +10,13 @@ export default class PCUserCenter extends React.Component{
 		this.state={
 			user:{},
 			isSelf:false,
-			userFollow:[],
+			userFollows:[],
 			userFans:[],
-			userCollect:[],
-			
-			userAction:[],
+			userCollects:[],			
+			userActions:[],
 			userComments:[],
-			userHistory:[],
-			isLoad:true
+			userHistorys:[],
+			isLoading:true
 		}
 	}
 
@@ -31,8 +30,8 @@ export default class PCUserCenter extends React.Component{
 				//console.log(data);
 				var user = json.data;
 				//console.log(responseData);
-				var { userFollow, userFans, userAction, userHistory, userCollect,  username, comments } = user;				
-				this.setState({user, userFollow, userFans, userAction, userCollect,  userHistory,userComments:comments,isSelf,isLoad:false})
+				var { userFollows, userFans, userActions, userHistorys, userCollects, } = user;				
+				this.setState({user, userFollows, userFans, userActions, userCollects,  userHistorys, isSelf,isLoading:false})
 		})
 
 	}
@@ -40,7 +39,7 @@ export default class PCUserCenter extends React.Component{
 	componentWillReceiveProps(newProps){
 		var params = this.props.match.params.id;
 		if ( params != newProps.match.params.id){
-			this.setState({isLoad:true});
+			this.setState({isLoading:true});
 			this._loadUserInfo(newProps);
 		}	
 		
@@ -53,7 +52,7 @@ export default class PCUserCenter extends React.Component{
 	render(){
 		
 		var { socket, history, match, msg } = this.props;
-		var { user, userFollow, userFans, userAction, userComments, userHistory, userCollect,  isSelf, isLoad  } = this.state;
+		var { user, userFollows, userFans, userActions, userComments, userHistorys, userCollects,  isSelf, isLoading  } = this.state;
 
 		return(
 
@@ -62,7 +61,7 @@ export default class PCUserCenter extends React.Component{
 					<Col span={2}></Col>
 					<Col span={20} style={{textAlign:'center'}}>
 						{
-							isLoad
+							isLoading
 							?
 							<Spin size="large"/>
 							:
@@ -70,16 +69,14 @@ export default class PCUserCenter extends React.Component{
 								<Col span={8}>
 									<PCUserAvatar user={user}/>
 								</Col>
-								<Col span={16} style={{position:'relative',textAlign:'left'}}>
-									
+								<Col span={16} style={{position:'relative',textAlign:'left'}}>									
 									<PCUserCenterContainer 
-										userFollow={userFollow}
+										userFollows={userFollows}
 										userFans = {userFans}
-										userAction={userAction}
+										userActions={userActions}
 										userComments={userComments}
-										userHistory={userHistory}
-										userCollect={userCollect}
-			
+										userHistorys={userHistorys}
+										userCollects={userCollects}			
 										socket={socket}
 										history={history}
 										match={match}

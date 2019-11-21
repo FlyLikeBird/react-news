@@ -11,7 +11,6 @@ export default class FollowContainer extends React.Component{
     }
 
     componentDidMount(){
-
         var { isSelf, match, text } = this.props;
         if ( !isSelf && match){
             var currentUserId = match.params.id;

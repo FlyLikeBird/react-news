@@ -202,14 +202,8 @@ router.get('/search',(req,res)=>{
      })
 
   } else if (type == 'user'){
-    User.find({'username':{$regex:new RegExp(words,'g')}},{password:0,message:0},(err,users)=>{
-      var result = [];  
-      if (!users){
-          util.responseClient(res,200,0,'ok',result);
-      } else {
-          util.responseClient(res,200,0,'ok',users);
-      }
-      
+    User.find({'username':{$regex:new RegExp(words)}},{username:1},(err,users)=>{
+        util.responseClient(res, 200, 0, 'ok', users);
     })
   } else if (type =='topic'){
 
@@ -221,26 +215,11 @@ router.get('/search',(req,res)=>{
 router.get('/getArticleTitle',(req,res)=>{
   var { type, count } = req.query;
   type = util.translateTag(type);
-  //console.log(type);
-  //console.log(count);
   count = Number(count);
-  Article.find({'type':type})
+  Article.find({'type':type},{content:0,thumbnails:0})
           .limit(count)
           .exec((err,articles)=>{
-              
-              var data = articles.map(item=>{
-                var obj = {};
-                obj.uniquekey = item.articleId,
-                obj.type = item.type;
-                obj.newstime = item.newstime;
-                obj.auth = item.auth;
-                obj.title = item.title;
-                return obj;
-              })
-             
-              util.responseClient(res,200,0,'ok',data);
-
-          })
+              util.responseClient(res, 200, 0, 'ok', articles);
 })
 
 

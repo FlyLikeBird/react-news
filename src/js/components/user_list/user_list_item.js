@@ -13,8 +13,6 @@ export default class UserListItem extends React.Component{
     }
   }
 
-  
-  
   componentDidMount(){
     var { item } = this.props;
     var { isFollowed } = item;
@@ -40,7 +38,7 @@ export default class UserListItem extends React.Component{
   handleShowChatList(){
     var { item, onShowChatList } = this.props;
     var { username, _id } = item;
-    if ( onShowChatList ) onShowChatList(true, username, _id);
+    if ( onShowChatList ) onShowChatList(true, _id, username);
   }
 
   gotoUsercenter(id){
@@ -50,7 +48,7 @@ export default class UserListItem extends React.Component{
 
   render(){
     var { item, expand } = this.props;
-    var  { username, description, level, userImage, description, userFans, userFollow, isLogined, _id } = item;
+    var  { username, description, level, userImage, description, userFans, userFollows, isLogined, _id } = item;
     var { isFollowed } = this.state;
   
     const content = (
@@ -121,7 +119,7 @@ export default class UserListItem extends React.Component{
           <div className="user-follow-container">
               <div>
                 <span>关注者</span>
-                <div>{userFollow.length}</div>
+                <div>{userFollows.length}</div>
               </div>
               <div>
                 <span>追随者</span>

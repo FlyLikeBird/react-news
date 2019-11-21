@@ -20,9 +20,8 @@ export default class CommentsListContainer extends React.Component{
       text:'',
       translateData:[],
       commentid:'',
-      parentcommentid:'',
       currentPageNum:1,
-      isLoad:true,
+      isLoading:true,
       forTrack:false    
     }
   }
@@ -33,7 +32,7 @@ export default class CommentsListContainer extends React.Component{
 
   _loadComments(num=1,order='time'){
     var { uniquekey, location } = this.props;
-    var username = localStorage.getItem('username');
+    var userid = localStorage.getItem('userid');
     var finalPageNum = num;
     var commentid, parentcommentid, forTrack ;
     if ( location && location.search ){
@@ -51,36 +50,27 @@ export default class CommentsListContainer extends React.Component{
         forTrack = params.forTrack ? true : false;
     }
     //console.log(params);
-    if (uniquekey && username){      
+        
       fetch(`/api/comment/getcomments?uniquekey=${uniquekey}&pageNum=${finalPageNum}&orderBy=${order}`)
           .then(response=>response.json())
           .then(json=>{
             var data = json.data;
-            var { comments, total } = data; 
-            comments = comments.map(item=>{
-                item['owncomment'] = username === item.username ? true : false;
-                item['selected'] = item._id == commentid ? true : false;
-                item.replies = item.replies.map(reply=>{
-                  reply['owncomment'] = reply.fromUser === username ? true : false;
-                  return reply;
-                })
-                return item;
-            })
-            //console.log(comments);
-            this.setState({comments,total,isLoad:false,currentPageNum:finalPageNum,forTrack});
+            var { comments, total } = data;
+
+            this.setState({comments,total,isLoading:false,currentPageNum:finalPageNum,forTrack});
           })
-    }      
+         
  }
 
 handlePageChange(num){
-    this.setState({isLoad:true,currentPageNum:num});
+    this.setState({isLoading:true,currentPageNum:num});
     this._loadComments(num,this.state.order);
 }
 
 
 handleSelectChange(value){
   //console.log(value);
-  this.setState({order:value,isLoad:true});
+  this.setState({order:value,isLoading:true});
   this.setState((state)=>{
     this._loadComments(1,state.order);
   })
@@ -94,12 +84,12 @@ handleAddComment(list){
 handleShareVisible(boolean,commentid,parentcommentid,onUpdateShareBy){
     if (boolean === true){
       this.onUpdateShareBy = onUpdateShareBy;
-      fetch(`/api/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}`)
+      fetch(`/api/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid}`)
       .then(response=>response.json())
       .then(json=>{   
           var str = json.data;      
           var data = formatContent(str); 
-          this.setState({visible:boolean,text:str,translateData:data,commentid,parentcommentid})
+          this.setState({visible:boolean,text:str,translateData:data,commentid})
       })    
     } else {
       
@@ -113,8 +103,7 @@ componentWillUnmount(){
 
 render(){
   var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop } = this.props;
-  var { comments, total, value, visible, text, translateData, commentid, parentcommentid, isLoad, currentPageNum, forTrack } = this.state;
-  
+  var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum, forTrack } = this.state;
   const dropdownStyle = {
     width:'160px',
     fontSize:'12px'
@@ -145,7 +134,7 @@ render(){
         </div>        
         <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>          
         {
-           isLoad
+           isLoading
            ?
            <Spin/>
            :
@@ -181,11 +170,11 @@ render(){
               actionInfo={{
                 contentType:commentType
               }}
+              item={item}
               data={translateData}
               contentType={commentType}
               onUpdateShareBy={this.onUpdateShareBy}
               commentid={commentid}
-              parentcommentid={parentcommentid}
           />
           :
           null
