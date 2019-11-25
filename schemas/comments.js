@@ -7,13 +7,18 @@ var Schema = mongoose.Schema;
 
 module.exports = new Schema({
     fromUser:{type:Schema.Types.ObjectId, ref:'User'},
-    toUser:{type:Schema.Types.ObjectId, ref:'User'},
+    replyTo:{type:Schema.Types.ObjectId, ref:'Comment'},
+    parent:{type:Schema.Types.ObjectId, ref:'Comment'},
     date:String,
     //  评论针对的内容id ，如articleId/topicId/actionId
-    uniquekey:String,
+    related:{type:Schema.Types.ObjectId,required:true,refPath:'onModel'},
+    onModel:{
+        type:String,
+        required:true,
+        enum:['Article','Topic','Action']
+    },
+    isSub:Boolean,
     content:String,
-    commentType:String,
-    isSub:{type:Boolean},
     fromSubTextarea:{type:Boolean, default:false},
     likeUsers:[{user:{type:Schema.Types.ObjectId, ref:'User'},date:String}],
     images:[String],

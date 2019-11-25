@@ -3,7 +3,6 @@ import { Collapse, Button, Modal, Input, Badge } from 'antd';
 
 import MessageItem from './message_item';
 import ChatList from '../user_list/user_chatlist';
-import ActionMessageItem  from './action_message_item';
 import CommentComponent from '../common_comments/comment_component';
 import DeleteModal from '../deleteModal';
 import { parseDate, formatDate } from '../../../utils/translateDate';
@@ -67,13 +66,13 @@ export default class MessageContainer extends React.Component{
                                 <CommentComponent
                                     socket={socket} 
                                     history={history}
-                                    key={index} 
-                                    
+                                    key={index}                                    
                                     isSub={true}
                                     comment={item.commentid}
-                                    
-                                    forMsg={true} 
-                                   
+                                    msgId={item._id}
+                                    msgRead={item.isRead}
+                                    forUser={true}
+                                    forMsg={true}                                   
                                 />
                             ))
                             :

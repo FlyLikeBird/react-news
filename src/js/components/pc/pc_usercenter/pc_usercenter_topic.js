@@ -52,7 +52,7 @@ export default class PCUsercenterTopic extends React.Component{
     }
 
     handleEditVisible(boolean,item,_onEditTopicItem){
-        
+        console.log(item);
         this.setState({editVisible:boolean,editItem:item,onEditItem:_onEditTopicItem})
     }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Popover, Modal, Spin } from 'antd';
 
-import CommonComments from '../../common_comments';
+import CommentsListContainer from '../../common_comments/comments_list_container';
 import ArticleAction from './pc_detail_article_action';
 
 
@@ -56,10 +56,8 @@ export default class PCNewsDetails extends React.Component {
 	
 	render(){
 		var { isLoading, newsItem } = this.state;
-		var { socket, history, location, match, user, onLoginVisible } = this.props;
-		var uniquekey   = this.props.match.params.uniquekey;
-		var hasLogined = user && user.userid ? true : false;
-		
+		var { socket, history, location, match, user, onCheckLogin, onSetScrollTop } = this.props;
+		var uniquekey   = this.props.match.params.uniquekey;	
 		var  styleObj = {
 			padding:'0 4px',
 			color:'#1890ff',
@@ -79,17 +77,11 @@ export default class PCNewsDetails extends React.Component {
 							<Row>								
 								<Col span={18} style={{position:'relative',textAlign:'left'}}>
 									<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
-									{
-										hasLogined
-										?
-										<div>
-											<ArticleAction uniquekey={uniquekey} item={newsItem} history={history}/> 
-											<CommonComments {...this.props} uniquekey={uniquekey} item={newsItem}/>
-										</div>
-										:
-										<p>您还未登录！请先完成<span style={styleObj} onClick={()=>onLoginVisible(true)}>注册</span>或<span style={styleObj} onClick={()=>onLoginVisible(true)}>登录</span>查看评论！</p>
-									}
-						
+									<div>
+										<ArticleAction uniquekey={uniquekey} onCheckLogin={onCheckLogin} item={newsItem} history={history}/> 
+										<CommentsListContainer commentType="Article" onCheckLogin={onCheckLogin} history={history} onSetScrollTop={onSetScrollTop} socket={socket} location={location} uniquekey={uniquekey} item={newsItem} warnMsg="还没有用户评论呢!快来抢沙发吧～"/>
+									</div>
+									
 								</Col>	
 								<Col span={6} style={{marginLeft:'10px'}}>
 									{/*

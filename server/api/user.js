@@ -203,11 +203,6 @@ router.get('/getChatList',(req,res)=>{
 
 router.get('/usercenter',(req,res)=>{
 	let { userid, isSelf } = req.query;
-	Article.updateMany({},{$unset:{articleId:''}},(err,result)=>{
-		console.log(result);
-	})
-				util.responseClient(res, 200, 0, 'ok', data);
-	/*
 	User.findOne({_id:userid},{password:0,message:0})
 		.populate({path:'userFollows', select:'username level userImage userFans userFollow description'})
 		.populate({path:'userFans', select:'username level userImage userFans userFollow description'})
@@ -216,7 +211,7 @@ router.get('/usercenter',(req,res)=>{
 		.then(data=>{
 			util.responseClient(res, 200, 0, 'ok', data);
 		})
-	*/
+	
 })
 
 router.get('/getUserInfo',(req,res)=>{
@@ -379,12 +374,5 @@ router.get('/getCommonUsers',(req,res)=>{
 	})
 })
 
-router.get('/getUserComments',(req, res)=>{
-	var { userid } = req.query;
-	Comment.find({fromUser:userid})
-		.populate({path:'fromUser',select:'username userImage'})
-		.then(comments=>{
-			util.responseClient(res, 200, 0, 'ok', comments);
-		})
-})
+
 module.exports = router

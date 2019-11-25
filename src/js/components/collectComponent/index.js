@@ -16,7 +16,7 @@ export default class CollectContainer extends React.Component {
     constructor(props){
         super()
         this.state={
-            createCollect:[],
+            userCollect:[],
             followedCollect:[],
             text:'',
             value:'',
@@ -28,8 +28,12 @@ export default class CollectContainer extends React.Component {
     }
     
     componentDidMount(){
-        var { data } = this.props;
-        this.setState({createCollect:data})
+        fetch(`/api/collect/getUserCollect?userid=${localStorage.getItem('userid')}&uniquekey=${this.props.uniquekey}`)
+            .then(response=>response.json())
+            .then(json=>{
+                var data= json.data;
+                this.setState({userCollect:data})
+            });
     }
 
     handleCollectShow(){
@@ -137,7 +141,7 @@ export default class CollectContainer extends React.Component {
         }
     }
     render(){
-        var { show, text, createCollect, followedCollect, value, visible, deleteId } = this.state;
+        var { show, text, userCollect, followedCollect, value, visible, deleteId } = this.state;
         var { isSelf, uniquekey, forUser } = this.props;
        
         return(
@@ -176,9 +180,9 @@ export default class CollectContainer extends React.Component {
                 <Tabs defaultActiveKey="0" onChange={this.handleChange.bind(this)}>
                     <TabPane tab={isSelf ? "我创建的":"TA创建的"} key="0">
                         {
-                            createCollect.length
+                            userCollect.length
                             ?
-                            createCollect.map((item,index)=>(
+                            userCollect.map((item,index)=>(
                                 <CollectItem 
                                     data={item}
                                     key={index}

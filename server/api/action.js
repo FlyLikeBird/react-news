@@ -194,9 +194,7 @@ router.post('/create',upload.array('images'),(req,res)=>{
         date,
         value:description,
         images,
-        contentType:'action',
-        contentId:'',
-        userid,
+        user:userid,
         isCreated:true
     });
     action.save()

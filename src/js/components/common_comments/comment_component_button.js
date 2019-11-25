@@ -6,7 +6,7 @@ import { parseDate, formatDate } from '../../../utils/translateDate';
 
 var isAllowed = true ;
 
-export default class CommentsComponentButton extends React.Component{
+export default class CommentComponentButton extends React.Component{
   constructor(){
     super();   
     this.state={
@@ -16,14 +16,14 @@ export default class CommentsComponentButton extends React.Component{
       dislikeUsers:[],
       shareBy:[],
       visible:false,
-      isRead:false,
       iconType:'caret-left'     
     }
   }
 
   handleUserAction(commentid,action,isCancel){ 
-    var userid = localStorage.getItem('userid');
-    if (userid){
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if ( userid ){
         fetch('/api/comment/operatecomment?action='+action+'&commentid='+commentid +'&isCancel='+isCancel  +'&userid='+userid)
           .then(response=>response.json())
           .then(json=>{            
@@ -78,7 +78,9 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   componentWillReceiveProps(newProps){
-      this._setPropsToState(newProps);
+      if (this.props.commentid != newProps.commentid){
+          this._setPropsToState(newProps);
+      }    
   }
 
   componentDidMount(){
@@ -86,19 +88,28 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   handleReply(){
-    var { hasDelete } = this.props;
-    if ( hasDelete ) return;
-    this.setState({visible:!this.state.visible});
+    var { hasDelete, onCheckLogin } = this.props;
+    if ( onCheckLogin()){
+        this.setState({visible:!this.state.visible});
+    }   
   }
 
-  handleDelete(commentid,parentcommentid){
+  handleDelete(commentid, parentcommentid){
       var { onDelete } = this.props;
-      if( onDelete ) onDelete(true,commentid,parentcommentid);
+      if( onDelete ) onDelete(true, commentid, parentcommentid);
+  }
+
+  handleDeleteMsg(msgId){
+      var { socket } = this.props;
+      socket.emit('deleteMsg',userid, msgId);
   }
 
   handleShare(commentid,parentcommentid){
-    var { onVisible } = this.props;
-    if ( onVisible ) onVisible(true, commentid, parentcommentid, this._updateShareByUsers.bind(this))
+    var { onVisible, onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        if ( onVisible ) onVisible(true, commentid, parentcommentid, this._updateShareByUsers.bind(this))
+    } 
   }
 
   _updateShareByUsers(data){
@@ -106,22 +117,26 @@ export default class CommentsComponentButton extends React.Component{
   }
 
   handleMarkIsRead(id){
+    console.log(id);
     var { socket } = this.props;
     socket.emit('markActionMsg',localStorage.getItem('userid'),id);
-    this.setState({isRead:!this.state.isRead})
   }
 
   handleGotoDetail(commentid,parentcommentid){
-    var { history, uniquekey, commentType } = this.props;
-    fetch(`/api/comment/getCommentPagenum?commentid=${commentid}&parentcommentid=${parentcommentid?parentcommentid:''}&uniquekey=${uniquekey}`)
+
+    var { history, related, onModel } = this.props;
+    fetch(`/api/comment/getCommentPagenum?commentid=${commentid}&parentcommentid=${parentcommentid}&uniquekey=${related._id}`)
       .then(response=>response.json())
       .then(json=>{
           var pageNum = json.data;
-          if (history){
-              if (commentType == 'news') {
-                  history.push(`/details/${uniquekey}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)                 
-              } else if (commentType =='topic'){
-                  history.push(`/topic/${uniquekey}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)
+          console.log(history);
+          if (history){   
+              console.log('a');          
+              if (onModel == 'Article') {
+                  console.log('b');
+                  history.push(`/details/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)                 
+              } else if (onModel =='Topic'){
+                  history.push(`/topic/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)
               }
               
           }
@@ -130,17 +145,17 @@ export default class CommentsComponentButton extends React.Component{
 
   render(){
     var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, iconType, visible } = this.state;
-    var { history, isSub,  uniquekey, fromUser, toUser, commentid, parentcommentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, replies, owncomment, hasDelete } = this.props;
+    var { history, isSub,  uniquekey, fromUser, commentid, parentcommentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, msgId, msgRead, replies, owncomment, onCheckLogin, hasDelete } = this.props;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
       socket,
       isSub,
+      // 评论管理页没有uniquekey/commentType属性，兼容处理
       uniquekey,
       commentType,
-      fromUser:localStorage.getItem('userid'),
-      toUser:fromUser._id,
       commentid,
       parentcommentid,
+      onCheckLogin,
       onUpdateFromSub:this.props.onUpdateFromSub,
       onUpdateReplies:this.props.onUpdateReplies,
       onCloseReply:this.handleReply.bind(this)
@@ -153,16 +168,16 @@ export default class CommentsComponentButton extends React.Component{
                   forUser && !forMsg
                   ?
                   <div>
-                      <span onClick={this.handleGotoDetail.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="edit" />回复</span></span>
-                      <span onClick={this.handleDelete.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="close" />删除</span></span>
+                      <span onClick={this.handleGotoDetail.bind(this, commentid, parentcommentid)} ><span className="text"><Icon type="edit" />回复</span></span>
+                      <span onClick={this.handleDelete.bind(this,commentid, parentcommentid)} ><span className="text"><Icon type="close" />删除</span></span>
                   </div>
                   :
                   forMsg
                   ?
                   <div>
-                      <span onClick={this.handleGotoDetail.bind(this,commentid,parentcommentid)} ><Icon type="edit" />回复</span>
-                      <span onClick={this.handleMarkIsRead.bind(this,_id)} ><Icon type="edit" />{ isRead ? '标为未读':'标为已读'}</span>
-                      <span onClick={this.handleDelete.bind(this,_id)} ><Icon type="close" />删除</span>
+                      <span onClick={this.handleGotoDetail.bind(this, commentid, parentcommentid)} ><span className="text"><Icon type="edit" />回复</span></span>
+                      <span onClick={this.handleMarkIsRead.bind(this, msgId)} ><span className="text"><Icon type="edit" />{ msgRead ? '标为未读':'标为已读'}</span></span>
+                      <span onClick={this.handleDeleteMsg.bind(this, msgId)} ><span className="text"><Icon type="close" />删除</span></span>
                   </div>
                   :
                   <div>
@@ -172,13 +187,9 @@ export default class CommentsComponentButton extends React.Component{
                       <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}>
                           <span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this, commentid ,'dislike',isdisLiked?'true':'')}><span className="text"><Icon className="motion" type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span>
                       </Popover>
-                      {
-                          isSub && hasDelete
-                          ?
-                          null
-                          :
-                          <span onClick={this.handleReply.bind(this)} ><span className="text"><Icon type="edit" />回复{isSub?null:<span className="num">{ replies.length }</span>}</span></span>
-                      }
+                      
+                      <span onClick={this.handleReply.bind(this)} ><span className="text"><Icon type="edit" />回复{isSub?null:<span className="num">{ replies.length }</span>}</span></span>
+                      
                                      
                       {
                           hasDelete
@@ -193,27 +204,31 @@ export default class CommentsComponentButton extends React.Component{
                           ?
                           null
                           :
-                          replies.length
+                          replies && replies.length
                           ?
                           <span onClick={()=>onShowReplies()} ><span className="text"><Icon type="menu-fold" />{showReplies?'折叠评论':'展开评论'}</span></span>
                           :
-                          null                                                 
+                          null                                               
                       }
                       {
                           (owncomment && hasDelete)
                           ?
-                          <span onClick={this.handleDelete.bind(this,commentid,parentcommentid)}><span className="text"><Icon type="close" />删除</span></span>
+                          <span onClick={this.handleDelete.bind(this,commentid)}><span className="text"><Icon type="close" />删除</span></span>
                           :
                           null
                       }
                   </div>
                }              
           </div>
-
-          <div style={{display:visible?'block':'none'}}>
-            <CommentsInput {...commentsInputProps}/>
-          </div>
-                  
+          {
+              forUser
+              ?
+              null
+              :
+              <div style={{display:visible?'block':'none'}}>
+                  <CommentsInput {...commentsInputProps}/>
+              </div>
+          }                
       </div>
     )
     

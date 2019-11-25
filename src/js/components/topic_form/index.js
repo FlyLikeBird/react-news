@@ -32,7 +32,7 @@ class TopicForm extends React.Component{
     constructor(){
         super();
         this.state={
-            tags:[],
+            allTags:[],
             fileList:[],
             radioValue:0,
             previewVisible:false,
@@ -46,18 +46,11 @@ class TopicForm extends React.Component{
 
     _editTopic(props){
         var { item, form } = props;
-        var { tags } = this.state;
+        var { allTags } = this.state;
         var { setFieldsValue } = form;
-        var { description, title, images, privacy, tag ,title, _id } = item;
-        var selectedTags = [];
-        tag.map(item=>{
-            for(var i=0,len=tags.length;i<len;i++){
-                if (item == tags[i].tag){
-                    selectedTags.push(tags[i]._id);
-                    break;
-                }
-            }
-        })
+        var { description, title, images, privacy, tags ,title, _id } = item;
+        console.log(item);
+        var selectedTags = tags.map(item=>item._id);
         setFieldsValue({
                 'title':title,
                 'description':description,
@@ -74,7 +67,7 @@ class TopicForm extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var tags = json.data;
-                this.setState({tags});
+                this.setState({allTags:tags});
                 if (forEdit){
                     this._editTopic(this.props);
                 }
@@ -111,13 +104,12 @@ class TopicForm extends React.Component{
                 formData.append('description',description);
                 formData.append('privacy',radioValue);
                 formData.append('userid',userid);
-                formData.append('username',username);
                 if ( isEdit ){
                     fetch('/api/topic/edit',{method:'post',body:formData})
                     .then(response=>response.json())
                     .then(json=>{
                         var data = json.data;
-                        if (onEditTopicItem) onEditTopicItem(data);
+                        if (onEditTopicItem) onEditTopicItem(data[0]);
                     })
                 } else if ( forAction ) {
                     fetch(`/api/action/create`,{method:'post',body:formData})
@@ -371,7 +363,7 @@ class TopicForm extends React.Component{
 
     render(){
         var { visible, form, forEdit, onVisible, forAction, item, onCloseModal } = this.props;
-        var { tags, fileList, radioValue, previewVisible, previewImage, topicPreview, previewItem, prevImages } = this.state;
+        var { allTags, fileList, radioValue, previewVisible, previewImage, topicPreview, previewItem, prevImages } = this.state;
         var { getFieldDecorator } = form;
 
         const formItemLayout = {
@@ -405,9 +397,9 @@ class TopicForm extends React.Component{
             </div>
         );
 
-        const tagsContent = tags.length
+        const tagsContent = allTags.length
                             ?
-                            tags.map((item,index)=>(
+                            allTags.map((item,index)=>(
                                 <Option className="float" key={index} value={item._id}>
                                     <span>{item.tag}</span>
                                 </Option>
@@ -460,18 +452,15 @@ class TopicForm extends React.Component{
                             <Form.Item {...tailFormItemLayout}>                                
                                     <div>
                                         {
-                                            prevImages
-                                            ?
-                                            prevImages.length
+                                            prevImages && prevImages.length
                                             ?
                                             <div>
                                                 <span>之前的配图:</span>
                                                 <div>
                                                     {
                                                         prevImages.map((item,index)=>(
-                                                            <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)} key={index} className="topic-img-container">
+                                                            <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)} key={index} className="topic-img-container" style={{backgroundImage:`url(${item['filename']})`}}>
                                                                 <div className="topic-form-mask"><Icon type="delete" onClick={this.handleDeletePrevImages.bind(this,item._id)}/></div>
-                                                                <img src={item['filename']} />
                                                             </div>
                                                         ))
                                                     }
@@ -479,8 +468,7 @@ class TopicForm extends React.Component{
                                             </div>
                                             :
                                             null
-                                            :
-                                            null
+                                            
                                         }
                                     </div>                                
                             </Form.Item>

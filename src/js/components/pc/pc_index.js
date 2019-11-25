@@ -63,6 +63,7 @@ export default class PCRouter extends React.Component {
   
     _setScrollTop(top){
         var container = this.container;
+        console.log(top);
         if (container&&container.scrollTo){         
             container.scrollTo({top:top,behavior:'smooth'})
         }
@@ -74,7 +75,7 @@ export default class PCRouter extends React.Component {
     }
 
     render(){
-        var { msg, socket, user, onLoginVisible } = this.props;
+        var { msg, socket, user, onLoginVisible, onCheckLogin } = this.props;
         var { bodyHeight } = this.state;
         return (
 
@@ -86,13 +87,14 @@ export default class PCRouter extends React.Component {
                           <Route exact path="/" component={PCNewsContainer} />                          
                           <Route exact path="/usercenter/:id" render={(props)=>{
                               props.socket = socket;
+                              props.onCheckLogin = onCheckLogin;
                               props.msg = msg;
                               return <PCUserCenter {...props} />
                             }} 
                           /> 
                           <Route exact path="/details/:uniquekey" render={props=>{
                               props.user = user;
-                              props.onLoginVisible = onLoginVisible;
+                              props.onCheckLogin = onCheckLogin;
                               props.onSetScrollTop = this._setScrollTop.bind(this);
                               props.socket = socket;
                               return <PCNewsDetail {...props} />
@@ -102,6 +104,7 @@ export default class PCRouter extends React.Component {
                           <Route exact path="/topicIndex" component={PCTopicIndex} />
                           <Route exact path="/topic/:id" render={props=>{
                             props.onSetScrollTop = this._setScrollTop.bind(this);
+                            props.onCheckLogin = onCheckLogin;
                             props.socket = socket;
                             return <PCTopicDetail {...props} />
                           }}

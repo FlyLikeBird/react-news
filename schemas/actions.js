@@ -12,8 +12,11 @@ module.exports = new mongoose.Schema({
     value:String,
     date:String,
     // 标识动态嵌入的内容类别，如新闻／话题／收藏夹/动态自身
-    contentType:String,
-    contentId:String,
+    contentId:{type:Schema.Types.ObjectId,refPath:'onModel'},
+    onModel:{
+        type:String,
+        enum:['Article','Topic','Action','Collect']
+    },
     images:[String],
     innerAction:{type:Schema.Types.ObjectId,ref:'Action'},
     //  composeAction字段标识转发动态之间的数据关系

@@ -1,0 +1,229 @@
+/*
+    话题页面卡片容器样式
+*/
+
+.mode-button button.current {
+    color:#40a9ff;
+    border-color:#40a9ff;
+}
+
+.topic-card-container  {
+    padding:4px;
+    font-size:12px;
+    border-radius:4px;
+    position:relative;
+}
+
+.topic-card-container.simple {
+    padding:0;
+    padding-top:4px;
+    border-radius:4px;
+    background-color: #f7f7f7;
+}
+
+.action.forDetail .topic-card-container.simple {
+    background-color:#fff;
+}
+
+.topic-card-container.simple .topic-card-body {
+    border:none;
+    padding:0 20px 4px 20px
+}
+
+.topic-card-container  .topic-card-body{
+    padding:30px 20px 20px 20px;
+    border:1px solid #e8e8e8;
+    border-bottom:none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.topic-card-container .label {
+    transform: scale(0.6);
+    transform-origin: left;
+    background-color: #ebf5fd;
+    padding: 6px 20px;
+    border-top-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    font-size: 14px;
+    color: #2d2c2c;
+    position:absolute;
+    top:-2px;
+}
+
+.topic-card-container .title {
+    cursor: pointer;
+    color: rgba(0,0,0,.85);
+    font-weight: 500;
+    font-size:16px;
+    margin:10px 0;
+}
+
+.topic-card-container .text {
+    transform: scale(0.8);
+    display: inline-block;
+    transform-origin: left;
+}
+
+.topic-card-container .desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
+.topic-card-container .topic-img-container {
+    width:33%;
+    height:80px;
+    display:inline-block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius:4px;
+}
+
+.topic-card-container .user-container {
+    display:flex;
+    align-items:center;
+    color:#000;
+    transform:scale(0.8);
+    transform-origin: left;
+}
+
+.topic-card-container .avatar-container {
+    width:30px;
+    height:30px;
+    border-radius: 50%;
+    overflow: hidden;
+    display:inline-block;
+}
+
+.topic-card-container .avatar-container img{
+    width:100%;
+    height:100%;
+}
+
+.topic-card-container.inline {
+    position:absolute;
+}
+
+.topic-card-container.inline .topic-img-container{
+    width:100%;
+}
+
+.topic-card-container .topic-card-extra {
+    text-align: center;
+    background-color: #fafafa;
+    border: 1px solid #e8e8e8;
+    padding:6px;   
+    font-size:12px;
+    display:flex;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.topic-card-container .topic-card-extra>div {
+    flex:1;
+    border-right:1px solid #e8e8e8;
+}
+
+.topic-card-container .topic-card-extra>div:last-of-type{
+    border-right:none
+}
+
+.topic-card-container .topic-card-extra:hover {
+    cursor:pointer;
+}
+
+.topic-card-container .topic-card-extra i{
+    margin-right:4px;
+}
+
+.topic-shareBy {
+    border-bottom:1px solid #e8e8e8;
+    position:relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding:10px;
+    min-width:300px;
+
+}
+
+.topic-shareBy:last-of-type {
+    border-bottom:none;
+}
+
+.topic-shareBy-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    width:300px;
+}
+
+.topic-shareBy-avatar {
+    display:inline-block;
+    width:30px;
+    height:30px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-right:10px;
+}
+
+.topic-shareBy-avatar img {
+    width:100%;
+    height:100%;
+}
+
+.topic-tag-container {
+    margin:6px 0;
+}
+
+.topic-tag, .content-tag {
+    background-color:#ebf5fd;
+    color:#0c3f6d;
+    display: inline-block;    
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    transform-origin: left;
+    transform: scale(0.8);
+    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.content-tag.inline {
+    margin:0;
+    transform:scale(0.8);
+    transform-origin: left;
+}
+
+
+.comment-form .ant-form-item {
+    margin-bottom:4px;
+}
+
+.comment-form .ant-form-item-control {
+    line-height:0;
+}
+
+.ant-list.news-list .ant-list-item {
+    background-color: #fff;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 20px;
+    border:none;
+    position:relative;
+}
+
+.ant-list.news-list .news-img {
+    height: 50px;
+    overflow: hidden;
+    flex: 1 1 0%;
+}
+
+.ant-list.news-list .news-img img{
+    width:100%;
+    height:100%;
+    border-radius:4px;
+}

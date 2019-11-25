@@ -216,10 +216,11 @@ router.get('/getArticleTitle',(req,res)=>{
   var { type, count } = req.query;
   type = util.translateTag(type);
   count = Number(count);
-  Article.find({'type':type},{content:0,thumbnails:0})
+  Article.find({'type':type},{content:0,thumbnails:0,shareBy:0,viewUsers:0})
           .limit(count)
           .exec((err,articles)=>{
               util.responseClient(res, 200, 0, 'ok', articles);
+          })
 })
 
 
@@ -252,23 +253,10 @@ router.get('/getArticleList',(req,res)=>{
 
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
-  Article.findOne({'articleId':uniquekey},(err,article)=>{
-      if (article){             
-          var data = {};
-          data.content = article.content;
-          data.viewcount = article.viewcount;
-          data.articleId = article.articleId;
-          data.auth = article.auth;
-          data.title = article.title;             
-          data.thumbnails = article.thumbnails;
-          data.newstime = article.newstime;
-          data.type = article.type;
-          data.shareBy = article.shareBy;
-          data.viewUsers = article.viewUsers;
-          util.responseClient(res,200,0,'ok',data);
-      }
-  })
-          
+  Article.findOne({'_id':uniquekey})
+    .then(article=>{
+        util.responseClient(res, 200, 0, 'ok', article);
+    })       
 })
 
 router.get('/rateArticle',(req,res)=>{

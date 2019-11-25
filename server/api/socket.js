@@ -30,33 +30,7 @@ function showNotReadMsg(type, typeMsgs, obj){
         obj['total'] += tempArr.length;
     }
 }
-/*
-function deepFilter(arr,userid){
-    var msgList = {};
-    arr.map(item=>{
-        // 先判断此条消息是发送方还是接收方
-         if(item.fromUser._id == userid){
-             if(!msgList[item.toUser._id]) {
-                 var userArr = [];
-                 userArr.push(item);
-                 msgList[item.toUser._id] = userArr;
-             } else {
-                 msgList[item.toUser._id].push(item);
-             }             
-         } else {
-             if(!msgList[item.fromUser._id]){
-                 var userArr = [];
-                 userArr.push(item);
-                 msgList[item.fromUser._id] = userArr;
-             } else {
-                 msgList[item.fromUser._id].push(item);
-             }
-         }    
-    });
-    return msgList;
-}
 
-*/
 function storeMsg( targetUser, toUser, fromUser, content,resolve){
         var date = new Date().toString();
         User.findOne({_id:targetUser},{message:1})
@@ -96,6 +70,8 @@ function storeMsg( targetUser, toUser, fromUser, content,resolve){
 
 function sendActionMsg( user, sender, commentid, io ){
     var date = new Date().toString();
+    //console.log(user);console.log(sender);console.log(commentid);
+    
     var msg = new Message({
         commentid,
         toUser:sender,
@@ -113,6 +89,7 @@ function sendActionMsg( user, sender, commentid, io ){
             })
         })  
     })
+    
 }
 
 function getMsg(socket, userid){   
@@ -123,7 +100,20 @@ function getMsg(socket, userid){
                 {path:'toUser',select:'username userImage'},
                 {path:'msgs.fromUser', select:'username userImage'},
                 {
-                    path:'commentid'
+                    path:'commentid',
+                    populate:[
+                        { path:'fromUser', select:'username userImage'},
+                        { 
+                            path:'related',
+                            populate:[
+                                { path:'fromUser',select:'username userImage'},
+                                { path:'tags',select:'tag'},
+                                { path:'follows.user', select:'username userImage'},
+                                { path:'shareBy'}
+                            ],
+                            select:'auth newstime thumbnails title type fromUser tags follows shareBy'
+                        }
+                    ]
                 }
             ]
         })
@@ -226,23 +216,12 @@ function socketIndex(socket,io){
     })
 
     socket.on('markActionMsg',(userid,msgId)=>{
-        User.findOne({_id:userid,'message._id':msgId},(err,user)=>{
-            var username = user.username;
-            var msgs = user.message;
-            var prevIsRead;
-            for(var i=0,len=msgs.length;i<len;i++){
-                if (msgs[i]._id == msgId){
-                    prevIsRead = msgs[i].isRead;
-                    break;
-                }
-            }
-            User.updateOne({_id:userid,'message._id':msgId},{$set:{'message.$.isRead':!prevIsRead}},(err,result)=>{
-                if ( onlineUsers[username] && onlineUsers[username].id){
-                    var toSocket = io.to(onlineUsers[username].id);
-                    getMsg(toSocket, username);            
-                }
+        Message.findOne({_id:msgId},(err,doc)=>{
+            var isRead = doc.isRead;
+            Message.updateOne({_id:msgId},{$set:{isRead:!isRead}},(err,result)=>{
+                getMsg(socket, userid);
             })
-        })        
+        })  
     })
 
     socket.on('send-message',(msg)=>{

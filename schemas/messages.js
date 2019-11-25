@@ -9,7 +9,6 @@ module.exports = new mongoose.Schema({
     toUser:{type:Schema.Types.ObjectId, ref:'User'},
     msgtype:String,
     commentid:{type:Schema.Types.ObjectId, ref:'Comment'},
-    parentcommentid:{type:Schema.Types.ObjectId, ref:'Comment'},
     isRead:{type:Boolean,default:false},
     date:String,
     msgs:[{

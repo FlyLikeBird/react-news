@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pagination, Select, Spin } from 'antd';
-import CommentsList  from './comments_list';
+import CommentComponent  from './comment_component';
 import CommentsInput from './comments_input';
 import ShareModal from '../shareModal';
 
@@ -35,6 +35,7 @@ export default class CommentsListContainer extends React.Component{
     var userid = localStorage.getItem('userid');
     var finalPageNum = num;
     var commentid, parentcommentid, forTrack ;
+    var isSub = false;
     if ( location && location.search ){
         var pattern = /(\w+)=(.*?)&/g;
         var str = location.search;
@@ -44,6 +45,7 @@ export default class CommentsListContainer extends React.Component{
             params[result[1]] = result[2];
             result = pattern.exec(str);
         }
+        console.log(params);
         finalPageNum = Number(params.pageNum);
         commentid = params.commentid;
         parentcommentid = params.parentcommentid;
@@ -55,8 +57,25 @@ export default class CommentsListContainer extends React.Component{
           .then(response=>response.json())
           .then(json=>{
             var data = json.data;
-            var { comments, total } = data;
-
+            var { comments, total } = data; 
+            //  从子评论追踪而来
+            if (parentcommentid){
+                comments = comments.map(comment=>{
+                    if (comment._id == parentcommentid){
+                        comment.replies = comment.replies.map(item=>{
+                            item['selected'] = item._id == commentid ? true : false;
+                            return item;
+                        })
+                    }
+                    return comment;
+                })
+            }  else {
+                    comments = comments.map(item=>{
+                    item['selected'] = item._id == commentid ? true : false;
+                    return item;
+                })
+            }    
+            console.log(comments);
             this.setState({comments,total,isLoading:false,currentPageNum:finalPageNum,forTrack});
           })
          
@@ -102,7 +121,7 @@ componentWillUnmount(){
 }
 
 render(){
-  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop } = this.props;
+  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop, onCheckLogin } = this.props;
   var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum, forTrack } = this.state;
   const dropdownStyle = {
     width:'160px',
@@ -132,25 +151,35 @@ render(){
                 null
             }     
         </div>        
-        <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)}/>          
+        <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/>          
         {
            isLoading
            ?
            <Spin/>
            :
-           <CommentsList 
-              isSub={false}  
-              socket={socket} 
-              history={history} 
-              comments={comments}
-              commentType={commentType} 
-              onVisible={this.handleShareVisible.bind(this)}
-              forTrack={forTrack}
-              onSetScrollTop={onSetScrollTop} 
-              warnMsg={warnMsg} />
-        }  
-        
-         
+           <div className="commentsContainer" >
+              {
+                  comments.map((item,key)=>(
+                     <CommentComponent 
+                         socket={socket} 
+                         history={history}
+                         
+                         onCheckLogin={onCheckLogin}
+                         
+                         onSetScrollTop={onSetScrollTop} 
+                         isSub={false}
+                         uniquekey={uniquekey}
+                         comment={item}
+                         
+                      
+                         key={key}
+                         commentType={commentType}
+                         
+                     />
+                  ))
+              }
+          </div>
+        }
         {
           comments.length
           ?

@@ -58,16 +58,16 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
   }
   var comment = new Comment({
       fromUser:userid,
-      uniquekey:uniquekey,
+      related:uniquekey,
       content:content,
-      commentType,
-      images,
       isSub:false,
+      onModel:commentType,
+      images,
       date:new Date().toString()
   });
 
   comment.save(function(err){
-      getComments(comment._id, res, uniquekey);
+      getComments(null, comment._id, res, uniquekey);
       User.findOne({_id:userid},(err,user)=>{
           var prevLevel = user.level;
           prevLevel += 5;
@@ -80,7 +80,7 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
 })
 
 router.post('/addreplycomment',upload.array('images'),(req,res)=>{
-    let { commentid, parentcommentid, fromUser, toUser, uniquekey, commentType, content, isSub } = req.body;
+    let { parentcommentid, fromUser, replyTo, uniquekey, commentType, content, isSub } = req.body;
     var images = [];
     var date = new Date().toString();
     if(req.files){
@@ -91,46 +91,53 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
     }
     // 判断是父评论还是子评论
     commentid = Boolean(parentcommentid) ? parentcommentid : commentid;
-    //console.log(commentid);
     var fromSubTextarea = Boolean(isSub) ? true : false; 
     var comment = new Comment({
         fromUser:fromUser,
-        toUser:toUser,
-        content,
-        isSub:true,
-        commentType,
+        replyTo,
+        content,        
+        onModel:commentType,
+        parent:parentcommentid,
         images,
+        isSub:true,
         date,
-        uniquekey,
+        related:uniquekey,
         fromSubTextarea
     });
-    comment.save(function(err){
-        Comment.updateOne({_id:commentid},{$push:{replies:comment._id}},(err,result)=>{
-            Comment.findOne({_id:commentid},{replies:1})
-                .populate({
-                    path:'replies',
-                    populate:[
-                        {path:'fromUser', select:'userImage username'},
-                        {path:'toUser', select:'userImage username'},
-                        {path:'likeUsers.user', select:'userImage username'},
-                        {path:'dislikeUsers.user', select:'userImage username'},
-                        {
-                            path:'shareBy',
-                            populate:{path:'user',select:'userImage username'},
-                            select:'value date user'
-                        }
-                    ]
-                }) 
-                .then(data=>{
-                    util.responseClient(res, 200, 0, 'ok', data);
-                })
-        })
-    })
 
+    comment.save()
+        .then(()=>{
+            Comment.updateOne({_id:parentcommentid},{$push:{replies:comment._id}},(err,result)=>{
+                Comment.findOne({_id:parentcommentid},{replies:1})
+                    .populate({
+                        path:'replies',
+                        populate:[
+                            {path:'fromUser', select:'userImage username'},
+                            {
+                                path:'replyTo',
+                                select:'fromUser',
+                                populate:{ path:'fromUser', select:'username'},
+
+                            },
+                            {path:'likeUsers.user', select:'userImage username'},
+                            {path:'dislikeUsers.user', select:'userImage username'},
+                            {
+                                path:'shareBy',
+                                populate:{path:'user',select:'userImage username'},
+                                select:'value date user'
+                            }
+                        ]
+                    }) 
+                    .then(data=>{
+                        util.responseClient(res, 200, 0, 'ok', data);
+                    })
+            })
+        })
+    
   
 })
 
-function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
+function getComments( forOneComment, commentid, res, related, pageNum=1, orderBy='time'){
     var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
     var data = {
         total:0,
@@ -141,7 +148,7 @@ function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
     switch(orderBy){     
       case 'timeInvert':
         orderOption = {
-          '_id':1
+          'date':1
         };
         break;
       case 'hot':
@@ -157,16 +164,24 @@ function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
         break;
       default:
         orderOption = {
-          '_id':-1
+          'date':-1
         }
     };
-    var filter = {
-        $and:[
-          {uniquekey:uniquekey},
-          {isSub:false}
-        ]
-    }
-    Comment.count(filter)
+    var filter = forOneComment
+                  ?
+                  {
+                    _id:commentid
+                  }
+                  :
+                  {
+                    $and:[
+                      {related:related},
+                      {isSub:false}
+                    ]
+                  }
+                  
+
+    Comment.count({related})
       .then(count=>{
         data.total = count;
         Comment.find(filter)
@@ -182,7 +197,11 @@ function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
               path:'replies',
               populate:[
                   {path:'fromUser', select:'userImage username'},
-                  {path:'toUser', select:'userImage username'},
+                  {
+                      path:'replyTo',
+                      select:'fromUser',
+                      populate:{ path:'fromUser', select:'username'}
+                  },
                   {path:'likeUsers.user', select:'userImage username'},
                   {path:'dislikeUsers.user', select:'userImage username'},
                   {
@@ -204,41 +223,34 @@ function getComments( commentid, res, uniquekey, pageNum=1, orderBy='time'){
 
 router.get('/getcomments',(req,res)=>{
   var { uniquekey, pageNum, orderBy } = req.query;
-  getComments( null, res, uniquekey, pageNum, orderBy );
+  getComments( null, null, res, uniquekey, pageNum, orderBy );
 })
 
 router.get('/getOneComment',(req,res)=>{
     var { commentid } = req.query;
-    Comment.findOne({_id:commentid},(err,comment)=>{
-      comment.replies = sortList(comment.replies);
-      util.responseClient(res,200,0,'ok',[comment]);
-    })
+    getComments(true, commentid, res);
 })
 
 router.get('/getCommentPagenum',(req,res)=>{
   var { commentid, parentcommentid, uniquekey } = req.query;
-  var index = 0,pageNum = 0;
-  if (parentcommentid){
-
-  } else {
-      Comment.find({uniquekey},(err,comments)=>{
-          sortList(comments);
-          for(var i=0,len=comments.length;i<len;i++){
-              if (comments[i]._id == commentid){
-                  index = i;
-                  break;
-              }
-          }
-          // 判断该评论的页码数
-          index += 1;
-          if (index>10) {
+  var position = 0,pageNum = 0;
+  commentid = parentcommentid ? parentcommentid : commentid ; 
+  Comment.find({'related':uniquekey})
+      .sort({date:-1})
+      .then(comments=>{
+          comments.map((item, index)=>{
+            if (item._id == commentid){
+                position=index;
+            }
+          });
+          position += 1;
+          if (position>10) {
             pageNum = Math.floor(index / 10) + 1;
           } else {
             pageNum = 1;
           }
           util.responseClient(res,200,0,'ok',pageNum);
       })
-  }
   
 })
 
@@ -294,22 +306,64 @@ router.get('/operatecomment',(req,res)=>{
                 })
         })
     }
-    
-  
 })
 
 
+function getUserComments(userid, res){
+  var data = {};
+  Comment.count({fromUser:userid})
+      .then(count=>{
+          data.count = count;
+          Comment.find({fromUser:userid})
+              .populate({path:'fromUser',select:'username userImage'})
+              .populate({
+                  path:'replyTo',
+                  select:'fromUser',
+                  populate:{ path:'fromUser', select:'username'}
+              })
+              .populate({
+                path:'related',
+                populate:[
+                    { path:'fromUser',select:'username userImage'},
+                    { path:'tags',select:'tag'},
+                    { path:'follows.user', select:'username userImage'},
+                    { path:'shareBy'}
+                ],
+                select:'auth newstime thumbnails title type fromUser tags follows shareBy'
+          
+              })
+              .sort({date:-1})
+              .then(comments=>{
+                data.comments = comments;
+                util.responseClient(res, 200, 0, 'ok', data);
+              })
+      })  
+}
+
+router.get('/getUserComments',(req,res)=>{
+    var { userid } = req.query;
+    getUserComments(userid, res);
+})
+
 router.get('/delete',(req,res)=>{
-  let { commentid, parentcommentid } = req.query;
-  if (parentcommentid){
-      Comment.updateOne({_id:parentcommentid},{$pull:{replies:{_id:commentid}}},(err)=>{
-          util.responseClient(res,200,1,'ok');
-      });
-  } else {
-      Comment.deleteOne({_id:commentid},(err)=>{
-          util.responseClient(res,200,1,'ok');
-      })
-  }   
+    let { commentid, userid } = req.query;
+    Comment.findOne({_id:commentid},(err,comment)=>{
+        var parentcommentid = comment.parent;
+        var replies = comment.replies;
+        if (parentcommentid){
+            Comment.deleteOne({_id:commentid},(err,result)=>{
+                Comment.updateOne({_id:parentcommentid},{$pull:{replies:commentid}},(err)=>{
+                    getUserComments(userid, res);
+                })
+            })
+        } else {
+            Comment.deleteMany({_id:{$in:replies}},(err,result)=>{
+                Comment.deleteOne({_id:commentid},(err,result)=>{
+                    getUserComments(userid, res);
+                })
+            })
+        }
+    }) 
 })
 
 module.exports = router;

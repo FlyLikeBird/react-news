@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Button } from 'antd';
-import CommentsList from '../../common_comments/comments_list';
+import CommentComponent from '../../common_comments/comment_component';
 import DeleteModal from '../../deleteModal';
 import { parseDate, formatDate } from '../../../../utils/translateDate';
-const { Meta } = Card;
 
 class ListContent extends React.Component {
   constructor(){
@@ -12,8 +11,7 @@ class ListContent extends React.Component {
     this.state = {
       comments:[],
       visible:false,
-      commentid:'',
-      parentcommentid:''
+      commentid:''
     }
   }
 
@@ -22,23 +20,14 @@ class ListContent extends React.Component {
     fetch(`/api/comment/getOneComment?commentid=${commentid}`)
       .then(response=>response.json())
       .then(json=>{
-          var comments = json.data;
-          comments = comments.map(item=>{
-
-              var username = localStorage.getItem('username');
-              item.replies = item.replies.map(reply=>{
-                reply['owncomment'] = reply.fromUser === username ? true : false;
-                return reply;
-              })
-              return item
-                    
-          })
+          var data = json.data;
+          var { comments } = data;
           this.setState({comments});
       })
   }
 
-  handleModalVisible(boolean, commentid, parentcommentid){
-      this.setState({visible:boolean,commentid,parentcommentid})
+  handleModalVisible(boolean, commentid){
+      this.setState({visible:boolean,commentid})
   }
 
   handleDelete(){
@@ -59,10 +48,32 @@ class ListContent extends React.Component {
   }
 
   render(){
+    var { onCheckLogin, socket } = this.props;
     var { comments, visible, commentid, parentcommentid } = this.state;
     return (
         <div>
-            <CommentsList comments={comments} isSub={false} hasDelete={true} onDelete={this.handleModalVisible.bind(this)}/>
+            {
+                <div className="commentsContainer">
+                    {
+                        comments.length
+                        ?
+                        comments.map((item,index)=>(
+                            <CommentComponent 
+                                socket={socket} 
+                                history={history}
+                                key={index} 
+                                isSub={false}
+                                comment={item}
+                                hasDelete={true}
+                                onDelete={this.handleModalVisible.bind(this)}
+                                onCheckLogin={onCheckLogin}
+                            />
+                        ))
+                        :
+                        null
+                    }
+                </div>
+            }
             <DeleteModal 
                 visible={visible} 
                 onVisible={this.handleModalVisible.bind(this)} 
@@ -87,44 +98,36 @@ export default class MyCommentsList extends React.Component{
            visible:false,
            listVisible:false,
            commentid:'',
-           parentcommentid:''
+           parentcommentid:'',
         }
     }
 
     componentDidMount(){
         var userid = localStorage.getItem('userid');
-        fetch(`/api/usr/getUserComments?userid=${userid}`)
+        fetch(`/api/comment/getUserComments?userid=${userid}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                this.setState({comments:data,isLoading:false});
+                var { comments } = data;
+                this.setState({comments,isLoading:false});
             })       
     }
 
-    handleDelete(){
-        var { commentid, comments } = this.state;
-        var data = [...comments];
-        var deleteIndex = 0;
-        for(var i=0,len=comments.length;i<len;i++){
-            if(comments[i]._id === commentid){
-                deleteIndex = i;
-                break;
-            }
-        }
-        data.splice(deleteIndex,1)
-        this.setState({comments:data})
+    handleDelete(data){
+        var { comments } = data;
+        this.setState({comments});
     }
 
-    handleListVisible(boolean,commentid,parentcommentid){
-        this.setState({listVisible:boolean,commentid,parentcommentid})
+    handleListVisible(boolean,commentid){
+        this.setState({listVisible:boolean,commentid})
     }
 
     handleModalVisible(boolean, commentid, parentcommentid){
-        this.setState({visible:boolean,commentid,parentcommentid})
+        this.setState({visible:boolean,commentid, parentcommentid})
     }
 
     render(){
-        var { text, history } = this.props;
+        var { text, history, socket, onCheckLogin } = this.props;
         var  { comments, visible, commentid, parentcommentid, listVisible, isLoading } = this.state;
         
         return(
@@ -136,14 +139,26 @@ export default class MyCommentsList extends React.Component{
                     :
                     comments.length
                     ?
-                    <CommentsList 
-                        comments={comments} 
-                        isSub={false} 
-                        forUser={true}
-                        history={history}
-                        onDelete={this.handleModalVisible.bind(this)}
-                        onShowList={this.handleListVisible.bind(this)}
-                    />
+                    <div  style={{padding:'10px 20px 20px 20px',borderRadius:'4px',backgroundColor:'#f7f7f7'}}>
+                        <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共发布${comments.length}条评论`}</span>
+                        <div className="commentsContainer">
+                            {
+                                 comments.map((item,index)=>(
+                                    <CommentComponent 
+                                        socket={socket} 
+                                        history={history}
+                                        key={index} 
+                                        isSub={true}
+                                        comment={item}
+                                        onShowList={this.handleListVisible.bind(this)}
+                                        onDelete={this.handleModalVisible.bind(this)}
+                                        onCheckLogin={onCheckLogin}
+                                        forUser={true}
+                                    />
+                                ))
+                            }
+                        </div>
+                    </div>
                     :
                     <div>{text}</div>
                 }
@@ -153,10 +168,10 @@ export default class MyCommentsList extends React.Component{
                     <DeleteModal 
                         visible={visible} 
                         onVisible={this.handleModalVisible.bind(this)} 
-                        deleteId={commentid}
-                        parentcommentid={parentcommentid} 
+                        deleteId={commentid} 
                         onDelete={this.handleDelete.bind(this)}
                         deleteType="comment"
+                        parentcommentid={parentcommentid}
                     />
                     :
                     null
@@ -165,7 +180,7 @@ export default class MyCommentsList extends React.Component{
                     listVisible
                     ?
                     <Modal visible={listVisible} footer={null} onCancel={()=>this.handleListVisible(false)} destroyOnClose={true}>
-                      <ListContent commentid={ parentcommentid ? parentcommentid :commentid }/>
+                        <ListContent commentid={commentid} onCheckLogin={onCheckLogin} socket={socket}/>
                     </Modal>
                     :
                     null                   

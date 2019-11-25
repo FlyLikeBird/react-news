@@ -51,7 +51,7 @@ export default class PCUserCenter extends React.Component{
 	
 	render(){
 		
-		var { socket, history, match, msg } = this.props;
+		var { socket, history, match, msg, onCheckLogin } = this.props;
 		var { user, userFollows, userFans, userActions, userComments, userHistorys, userCollects,  isSelf, isLoading  } = this.state;
 
 		return(
@@ -78,6 +78,7 @@ export default class PCUserCenter extends React.Component{
 										userHistorys={userHistorys}
 										userCollects={userCollects}			
 										socket={socket}
+										onCheckLogin={onCheckLogin}
 										history={history}
 										match={match}
 										msg={msg}

@@ -70,25 +70,25 @@ export default class NewsListItem extends React.Component {
     //console.log(result);
   }
 
-  handleGotoDetail(articleId){
+  handleGotoDetail(id){
       var { noLink, history } = this.props;
-      if ((!noLink) && history) {
-          history.push(`/details/${articleId}`)
+      if (!noLink && history) {
+          history.push(`/details/${id}`)
       }
   }
 
   render(){
-    var { item, hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
-    var { viewtime, articleId, auth, newstime, content, thumbnails, title, type } = item;
+    var { data, hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
+    var { viewtime, _id, auth, newstime, content, thumbnails, title, type } = data;
   
     return (
 
         
-              <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,articleId)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
+              <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
                   { 
                       hastime 
                       ? 
-                      <div style={{color:'#1890ff',margin:'0 10px'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime)}}></div> 
+                      <div style={{color:'#1890ff',margin:'0 10px'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime?viewtime:'')}}></div> 
                       : 
                       null 
                   }
@@ -124,7 +124,7 @@ export default class NewsListItem extends React.Component {
                     {
                           hastime
                           ?
-                          <Button size="small" className="button" onClick={this.handleRemoveHistory.bind(this, articleId)} shape="circle" icon="close"/>
+                          <Button size="small" className="button" onClick={this.handleRemoveHistory.bind(this, _id)} shape="circle" icon="close"/>
                           :
                           null
                     } 

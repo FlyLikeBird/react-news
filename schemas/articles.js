@@ -3,10 +3,10 @@
  */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 module.exports = new mongoose.Schema({
     type:String,
-    articleId:String,
     realType:String,
     newstime:String,
     auth:String,
@@ -16,10 +16,10 @@ module.exports = new mongoose.Schema({
     viewcount:{type:Number,default:100},
     articleFever:{type:Number,default:0},
     // shareBy 存储的是actionId
-    shareBy:[String],
+    shareBy:[{type:Schema.Types.ObjectId, ref:'Action'}],
     tags:[String],
     viewUsers:[{
-        userid:String,
+        user:{type:Schema.Types.ObjectId, ref:'User'},
         date:String,
         score:Number
     }]

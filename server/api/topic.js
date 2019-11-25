@@ -26,23 +26,21 @@ function createNewTag(tag,resolve){
         tag,
         date:new Date().toString()
     })
-    document.save()
-        .then(()=>{
-            resolve(document._id)
-        })
+    document.save(function(err){
+        resolve(document._id);
+    })
 }
 
 function checkIsNewTags(tags,resolve){
-    var newTags = [],existTags=[],allPromise = [];
+    var newTags = [],existTags=[], allPromise = [];
     Tag.find({},(err,allTags)=>{
-        tags.map(item=>{                    
-            for(var i=0,len=allTags.length;i<len;i++){
-                if (item == allTags[i]._id){
-                    existTags.push(item);
-                    return ;
-                } 
+        var allTags = allTags.map(item=>item._id.toString());      
+        tags.map(item=>{  
+            if(!allTags.includes(item)){
+                newTags.push(item);
+            } else {
+                existTags.push(item);
             }
-            newTags.push(item);
         });
 
         for(var i=0,len=newTags.length;i<len;i++){
@@ -54,10 +52,11 @@ function checkIsNewTags(tags,resolve){
             })(i)
         }
         Promise.all(allPromise)
-            .then(([...data])=>{
-                var allTagsId = existTags.concat(data);
-                resolve(allTagsId);
+            .then(([...data])=>{              
+                var finalTags = existTags.concat(data);
+                resolve(finalTags);
             })
+        
     })
 }
 
@@ -118,89 +117,6 @@ function handleFollowTopic( userid, topicId, isCancel, res){
     
 }
 
-function changeIdsToTags(ids,resolve){   
-    Tag.find({_id:{$in:ids}},(err,tags)=>{
-        resolve(tags); 
-    })
-}
-
-function getTopic(topic,resolve){   
-    var promise1 = new Promise((resolve,reject)=>{
-        changeIdsToTags(topic.tag,resolve)
-    });
-    var promise2 = new Promise((resolve,reject)=>{
-        Comment.count({uniquekey:topic._id},(err,count)=>{
-            resolve(count)
-        })
-    })
-    Promise.all([promise1,promise2])
-        .then(([tags,replies])=>{
-            var obj = {};                
-            obj.tag = tags.map(item=>item.tag);
-            obj.follows = topic.follows;
-            obj.shareBy = topic.shareBy;
-            obj.title = topic.title;
-            obj.replies = replies;
-            obj.username = topic.username;
-            obj.date = topic.date;
-            obj.description = topic.description;
-            obj.isHot = topic.isHot;
-            obj.view = topic.view;
-            obj.privacy = topic.privacy;
-            obj.images = topic.images;
-            obj._id = topic._id;
-            resolve(obj);
-        })
-    
-}
-
-function getUserTopic(userid,res){
-    Topic.find({userid:userid},(err,topics)=>{
-        var allPromises = [];
-        if (topics.length){
-            for(var i=0,len=topics.length;i<len;i++){
-                (function(i){                    
-                    var topic = topics[i];
-                    var promise = new Promise((resolve,reject)=>{
-                        getTopic(topic,resolve);
-                    });
-                    allPromises.push(promise)
-                })(i)
-            }
-
-            Promise.all(allPromises)
-            .then(data=>{
-
-                util.responseClient(res,200,0,'ok',sort(data));
-            })
-        } else {
-            util.responseClient(res,200,0,'ok',[])
-        }        
-    })
-}
-
-
-function getAllTopics(topics,res){
-    var promises = [];
-    for(var i=0,len=topics.length;i<len;i++){
-        (function(i){
-            var topic = topics[i];
-            var tagIds = topic.tag;
-            var promise = new Promise((resolve,reject)=>{
-                Tag.find({_id:{$in:tagIds}},(err,tags)=>{
-                    topic.tag = tags.map(item=>item.tag)
-                    resolve(topic)
-                })
-            });
-            promises.push(promise);
-        })(i)
-    }
-
-    Promise.all(promises)
-        .then(data=>{
-            util.responseClient(res,200,0,'ok',data);
-        })
-}
 
 /*
 
@@ -215,17 +131,9 @@ function getAllTopics(topics,res){
 
 */
 router.post('/upload',upload.array('images'),(req,res)=>{
-    var { title, description, tags, privacy, userid, username } = req.body; 
+    var { title, description, tags, privacy, userid } = req.body;     
     var date = new Date().toString(), images = [];  
-    if (!tags) {
-        tags = [];
-    } else {
-        if (!tags.map){
-            tags = [tags]
-        } 
-    }
     if(req.files){
-        
         req.files.forEach(item=>{
             var obj = {};
             obj.filename  = config.uploadPath + '/topic/'+item.filename;
@@ -239,38 +147,67 @@ router.post('/upload',upload.array('images'),(req,res)=>{
         checkIsNewTags(tags,resolve);
     });
     
-    promise.then(tagIds=>{
-        
+    promise.then(tags=>{  
         var topic = new Topic({
             title,
             description,
             date,
-            userid,
-            username,
+            fromUser:userid,
             privacy,
-            images,
-            tag:tagIds    
+            images, 
+            tags  
             });
 
-        topic.save()
-            .then(()=>{
-                Tag.updateMany({_id:{$in:tagIds}},{$push:{content:topic._id}},(err,result)=>{});
-                getUserTopic(userid,res);
-            })
-        
-        
-    })
+        topic.save(function(err){
+            Tag.updateMany({_id:{$in:tags}},{$push:{content:topic._id}},(err,result)=>{});
+            getAllOrUserTopics(res, userid);
+        })
+            
+    })  
 })
+
+function getTopicComments(topic, resolve){
+    Comment.find({'uniquekey':topic._id},(err,comments)=>{
+        topic.replies = comments.length;
+        resolve(topic);
+    })
+}
+
+function getAllOrUserTopics(res, userid, topicId){
+    var option = topicId ? {_id:topicId} : userid ? { fromUser:userid} :{};
+    Topic.find(option)
+        .populate({path:'fromUser', select:'username userImage'})
+        .populate({path:'tags',select:'tag'})
+        .populate({
+            path:'follows'
+        })
+        .populate({
+            path:'shareBy'
+        })
+        // 话题按生成时间排序
+        .sort({date:-1})
+        .then(topics=>{
+            var allPromises = [];
+            topics.map(item=>{
+                var promise = new Promise((resolve,reject)=>{
+                    getTopicComments(item,resolve);
+                });
+                allPromises.push(promise);
+            });
+            Promise.all(allPromises)
+                .then(topics=>{
+                    util.responseClient(res, 200, 0, 'ok', topics);
+                })
+        })
+}
 
 router.get('/getUserTopic',(req,res)=>{
     var { userid } = req.query;
-    getUserTopic(userid,res);
+    getAllOrUserTopics(res, userid);
 })
 
 router.get('/getAllTopics',(req,res)=>{
-    Topic.find({privacy:0},(err,topics)=>{
-        getAllTopics(topics,res)
-    })
+    getAllOrUserTopics(res);
 })
 
 
@@ -288,7 +225,7 @@ router.get('/checkTopicIsFollowed',(req,res)=>{
     var { userid, topicId } = req.query;
     User.findOne({_id:userid},(err,user)=>{
         if (user){
-            var topicIds = user.userTopic;
+            var topicIds = user.userTopics;
             if(topicIds.includes(topicId)){
                 util.responseClient(res,200,0,'ok');
             } else {
@@ -303,18 +240,7 @@ router.get('/checkTopicIsFollowed',(req,res)=>{
 
 router.get('/getTopicDetail',(req,res)=>{
     var { topicId } = req.query;
-    Topic.findOne({_id:topicId},(err,topic)=>{
-        if ( topic ){
-            var promise = new Promise((resolve,reject)=>{
-                getTopic(topic,resolve);
-            });
-            promise.then(data=>{
-                util.responseClient(res,200,0,'ok',data)
-            })
-        } else {
-            util.responseClient(res,200,0,'ok')
-        }        
-    })
+    getAllOrUserTopics(res, null, topicId);
 })
 
 router.get('/followTopic',(req,res)=>{
@@ -332,11 +258,6 @@ router.get('/removeTopic',(req,res)=>{
 router.post('/edit',upload.array('images'),(req,res)=>{
     var { title, description, tags, privacy, deleteImage, userid, topicId } = req.body;
     var images = [];
-    if (!tags){
-        tags = [];
-    } else if (!tags.map){
-        tags = [tags]
-    }
     if (!deleteImage){
         deleteImage = [];
     } 
@@ -365,19 +286,11 @@ router.post('/edit',upload.array('images'),(req,res)=>{
                 title,
                 description,
                 privacy,
-                tag:tags,
+                tags,
                 images:finalImages       
             };
             Topic.updateOne({_id:topicId},{$set:updateObj},(err,result)=>{
-                Topic.findOne({_id:topicId},(err,topic)=>{
-                    var promise = new Promise((resolve,reject)=>{
-                        getTopic(topic,resolve)
-                    });
-                    promise.then(obj=>{
-                        util.responseClient(res,200,0,'ok',obj);
-                    })
-                })
-                
+                getAllOrUserTopics(res, null, topicId);
             })
         })
 })

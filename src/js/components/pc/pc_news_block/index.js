@@ -52,7 +52,7 @@ export default class PCNewsBlock extends React.Component {
 				var data = json.data;
 				const newsList = data.length
 								?
-								data.map((newsItem,index)=>(
+								data.map((item,index)=>(
 									<li key={index} className="news-item">
 										
 											{
@@ -60,10 +60,10 @@ export default class PCNewsBlock extends React.Component {
 													
 													switch (index) {
 		
-														case 0:return <div><span className="order-num">1</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														case 1:return <div><span className="order-num">2</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														case 2:return <div><span className="order-num">3</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														default:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
+														case 0:return <div><span className="order-num">1</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+														case 1:return <div><span className="order-num">2</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+														case 2:return <div><span className="order-num">3</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+														default:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
 													}
 												})(index)
 											}

@@ -1,5 +1,9 @@
 import React from 'react';
-import { message, Popover } from 'antd';
+import { message, Popover, Icon, Button } from 'antd';
+import TopicItemPopover from './topic_item_popover';
+import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+
+import style from './style.css';
 
 export default class TopicListItem extends React.Component {
     constructor(){
@@ -16,21 +20,19 @@ export default class TopicListItem extends React.Component {
 
     handleFollow(_id,e){
         e.stopPropagation();
-        var { isFollowed } = this.state;
-        var userid=localStorage.getItem('userid');
-        if(userid){
-            fetch(`/api/topic/followTopic?topicId=${_id}&userid=${userid}&isCancel=${isFollowed?'true':''}`)
+        var { onCheckLogin } = this.props;
+        var { isFollowed } = this.state; 
+        if( onCheckLogin()){
+            fetch(`/api/topic/followTopic?topicId=${_id}&userid=${user}&isCancel=${isFollowed?'true':''}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;                
                     this.setState({follows:data,isFollowed:!isFollowed});                    
                 })
-        } else {
-            message.error('请先完成登录后再操作!')
-        }
+        } 
     }
 
-    handleRemove(id){
+    handleRemove(id, e){
         var { onVisible } = this.props;
         if ( onVisible ) {
             onVisible(true,id);
@@ -41,10 +43,11 @@ export default class TopicListItem extends React.Component {
         this.setState({item:data});
     }
 
-    handleEdit(){
-        var { onEditVisible, item } = this.props;
+    handleEdit(id, e){
+        var { item } = this.state;
+        var { onEditVisible } = this.props;
         if ( onEditVisible ){
-            onEditVisible(true,item,this._onEditTopicItem.bind(this))
+            onEditVisible(true, item, this._onEditTopicItem.bind(this))
         }
     }
 
@@ -53,60 +56,53 @@ export default class TopicListItem extends React.Component {
     }
 
     handleClick(id){
-        var { forSimple, forDetail, history } = this.props;
+        var { forSimple, forDetail, data, history } = this.props;
         if ( !forDetail ) {
             history.push(`/topic/${id}`);
         }
     }
 
     handleShare(){
-        var { onVisible } = this.props;
-        if( onVisible ){
-            onVisible(true,this._updateShareByUsers.bind(this))
-        }
+        var { onVisible, onCheckLogin } = this.props;
+        if (onCheckLogin()){
+            if( onVisible )  onVisible(true,this._updateShareByUsers.bind(this))
+        }    
     }
 
     componentWillReceiveProps(newProps){
         //  如果是嵌入动态内的话题内容，则不更新
-        var { forSimple } = this.props;
-        if (!forSimple){
-            var newItem = newProps.data;
-            if (this.props.data._id != newProps.data._id){
-                this.setState({item:newItem})
-            }
-        }        
+        var { forSimple, forDetail } = this.props;
+        if (forSimple || forDetail) return ;
+        var newItem = newProps.data;
+        if (this.props.data._id != newProps.data._id){
+            this.setState({item:newItem})
+        }
+              
     }
 
-    componentDidMount(){
-        
+    componentDidMount(){     
         var { forDetail, forSimple, uniquekey, data } = this.props;
         var userid = localStorage.getItem('userid');
-        if (data && !uniquekey) {
-            var { follows, shareBy } = data;
-            this.setState({item:data,follows,shareBy});
-
-        } else if( uniquekey ){
+        if (forDetail){
             fetch(`/api/topic/getTopicDetail?topicId=${uniquekey}`)
                 .then(response=>response.json())
                 .then(json=>{
-                    var item = json.data;
-                    var { follows, shareBy } = item;
-                    this.setState({item,follows,shareBy});
-                });
-            if (forDetail){
-                fetch(`/api/topic/checkTopicIsFollowed?userid=${userid}&topicId=${uniquekey}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var code = json.code;                  
-                    if(code ===0){
-                        this.setState({isFollowed:true})
-                    } else {
-                        this.setState({isFollowed:false})
-                    }
-                
-                })
-            
-            }
+                    var data = json.data;
+                    fetch(`/api/topic/checkTopicIsFollowed?userid=${userid}&topicId=${uniquekey}`)
+                        .then(response=>response.json())
+                        .then(json=>{
+                            var code = json.code;                  
+                            if(code ===0){
+                                this.setState({item:data[0],isFollowed:true})
+                            } else {
+                                this.setState({item:data[0],isFollowed:false})
+                            }
+                        
+                        })               
+                })          
+
+        } else {
+            this.setState({item:data});
         }
          
     }
@@ -129,30 +125,50 @@ export default class TopicListItem extends React.Component {
 
     render(){
         var {  inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
-        var {  item, isFollowed, followIcon, shareIcon, follows, shareBy } = this.state;
-        var {  privacy, username, _id, tag, images,  replies, title, description, view } = item;
+        var {   isFollowed, item, followIcon, shareIcon, follows, shareBy } = this.state;
+        var {  privacy, fromUser, _id, tags, images,  replies, title, description, view } = item;
         
 
         return (
             <div 
-                onClick={this.handleClick.bind(this,_id)}
+                
                 style={{width:100/columns + '%'}} 
-                className={inline?"topic-card-container inline":forSimple?"topic-card-container simple":"topic-card-container"}>
+                className={inline?style['topic-card-container']+' '+style['inline']:forSimple?style['topic-card-container']+' '+style['simple'] : style['topic-card-container']}>
                     
-                    <div className="label"><span>{privacy===0?'公开':privacy===1?'有权限':'私密'}</span></div>                    
-                    <div className="topic-card-body" style={{borderBottom:forPreview?'1px solid #e8e8e8':'none'}}>
-                        <h3>{title}</h3>                        
-                        <div><span className="text" style={{fontSize:'14px',color:'#000'}}>发起人：{username}</span></div>                       
-                        <div style={{width:'500px'}}>
-                            <span className="text">{view}人浏览</span>
-                            <span className="text">{replies?replies:0}人回复</span>
+                    {
+                        forSimple
+                        ?
+                        null
+                        :
+                        <div className={style.label}><span>{privacy===0?'公开':privacy===1?'有权限':'私密'}</span></div>  
+                    }                  
+                    <div className={style['topic-card-body']} style={{borderBottom:forPreview?'1px solid #e8e8e8':'none'}}>
+                        <div className={style.title} onClick={this.handleClick.bind(this,_id)}>{title}</div>                        
+                        {
+                            forSimple
+                            ?
+                            null
+                            :
+                            <div className={style['user-container']}>
+                                发起人：                          
+                                <Popover content={<CommentPopoverUserAvatar user={fromUser?fromUser.username:''}/>}>
+                                    <span className={style['avatar-container']}>
+                                        <img src={fromUser?fromUser.userImage:''} />
+                                    </span>
+                                </Popover>
+                            </div>
+                        }
+                                               
+                        <div>
+                            <span className={style.text}>{view}人浏览</span>
+                            <span className={style.text}>{replies?replies:0}人回复</span>
                             {
                                 forIndex
                                 ?
                                 null
                                 :
                                 <Popover onVisibleChange={this.handleChangeIcon.bind(this,'follow')} content={<TopicItemPopover data={follows} text="关注" />} placement="bottom">
-                                    <span className="text">{`${follows.length} 人关注`}<Icon type={followIcon}/></span>
+                                    <span className={style.text}>{`${follows.length} 人关注`}<Icon type={followIcon}/></span>
                                 </Popover>
                                 
                             }
@@ -162,7 +178,7 @@ export default class TopicListItem extends React.Component {
                                 null
                                 :
                                 <Popover onVisibleChange={this.handleChangeIcon.bind(this,'shareBy')} content={<TopicItemPopover data={shareBy} text="转发" forShare={true}/>} placement="bottom">
-                                    <span className="text">{`${shareBy.length} 人转发`} <Icon type={shareIcon} /></span>
+                                    <span className={style.text}>{`${shareBy.length} 人转发`} <Icon type={shareIcon} /></span>
                                 </Popover>
                                  
                             }                                                    
@@ -170,37 +186,32 @@ export default class TopicListItem extends React.Component {
 
                         </div>
                         
-                        <div className="topic-tag-container">
+                        <div className={style['topic-tag-container']}>
                             {   
-                                tag
+                                tags && tags.length
                                 ?
-                                tag.length
-                                ?
-                                tag.map((item,index)=>(
-                                    <span className={inline?'content-tag inline':forSimple?'content-tag inline':forUser?'content-tag inline':'content-tag'} key={index}>{item}</span>
+                                tags.map((item,index)=>(
+                                    <span className={style['content-tag']} key={index}>{item.tag}</span>
                                 ))
                                 :
                                 null
-                                :
-                                null
+                                
                             }
                         </div>
                     
-                        <p className="desc">{description}</p>
+                        <div className={style['desc']}>{description}</div>
                         <div>
                             {    
                                 images && images.length
                                 ?                             
                                 inline  //  内联模式下只显示一张缩略图
                                 ?
-                                <div className="topic-img-container" style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33%'}}>
-                                    <img src={images[0]['filename']} />
+                                <div className={style['topic-img-container']}  style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33.3%', backgroundImage:`url(${images[0]['filename']})`}}>
+                                    
                                 </div>
                                 :
                                 images.map((item,index)=>(
-                                    <div key={index} className="topic-img-container">
-                                        <img src={item['filename']} />
-                                    </div>
+                                    <div key={index} className={style['topic-img-container']} style={{backgroundImage:`url(${item.filename})`}}></div>
                                 ))                                                      
                                 :
                                 null
@@ -212,27 +223,27 @@ export default class TopicListItem extends React.Component {
                     {                       
                         forIndex
                         ?
-                        <div className="topic-card-extra">                           
+                        <div className={style['topic-card-extra']}>                           
                             <div>
-                                <span className="text"><Icon type="arrow-right" />前往话题</span>
+                                <span className={style.text}><Icon type="arrow-right" />前往话题</span>
                             </div>                   
                         </div>
                         :
                         forUser
                         ?
-                        <div className="topic-card-extra">                            
-                            <div onClick={this.handleEdit.bind(this)}>
-                                <span className="text"><Icon type="edit" />编辑话题</span>
+                        <div className={style['topic-card-extra']}>                            
+                            <div onClick={this.handleEdit.bind(this,_id)}>
+                                <span className={style.text}><Icon type="edit" />编辑话题</span>
                             </div>
                             
                             <div onClick={this.handleRemove.bind(this,_id)}>
-                                <span className="text"><Icon type="close" />删除话题</span>
+                                <span className={style.text}><Icon type="close" />删除话题</span>
                             </div>                           
                         </div>
                         :
                         forDetail
                         ?
-                        <div className="topic-card-extra">
+                        <div className={style['topic-card-extra']}>
                             <div>
                                 {
                                     
@@ -240,16 +251,16 @@ export default class TopicListItem extends React.Component {
                                         {
                                             isFollowed
                                             ?
-                                            <span className="text"><Icon type="check" />已关注</span>
+                                            <span className={style.text}><Icon type="check" />已关注</span>
                                             :
-                                            <span className="text" style={{color:'#1890ff'}}><Icon type="plus" />关注话题</span>
+                                            <span className={style.text} style={{color:'#1890ff'}}><Icon type="plus" />关注话题</span>
                                         }
                                     </div>
                                     
                                 }
                             </div>
                             <div onClick={this.handleShare.bind(this,_id)}>
-                                <span className="text"><Icon type="export" />转发话题</span>
+                                <span className={style.text}><Icon type="export" />转发话题</span>
                             </div>
                         </div>
                         :
@@ -258,9 +269,9 @@ export default class TopicListItem extends React.Component {
                         null
                         //  关注话题页面
                         :
-                        <div className="topic-card-extra">                           
+                        <div className={style['topic-card-extra']}>                           
                             <div>
-                                <span className="text"><Icon type="arrow-right" />前往话题</span>
+                                <span className={style.text}><Icon type="arrow-right" />前往话题</span>
                             </div>                   
                         </div>
                     }

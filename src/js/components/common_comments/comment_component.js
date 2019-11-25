@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Row,Col, Avatar, List, Card, Popover, Modal, Icon, Badge } from 'antd';
 
-import  CommentsList  from './comments_list';
 import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
 import NewsListItem from '../news_list/news_list_item';
@@ -16,9 +15,7 @@ export default class CommentComponent extends React.Component{
     super();
     this.state = {
       replies:[],
-      img:'',
       translateData:[],
-      previewVisible:false,
       showReplies:true
     }
   }
@@ -43,83 +40,95 @@ export default class CommentComponent extends React.Component{
     this.setState({showReplies:!this.state.showReplies})
   }
 
-  componentWillMount(){
-    var { onSetScrollTop, comment, forTrack, forUser, forMsg } = this.props;
-    var { replies, selected, content, fromUser, toUser, fromSubTextarea, commentType, uniquekey } = comment;
-    if (selected){       
-        var selectedDom = document.getElementsByClassName('comment selected')[0];
-        if (selectedDom){            
-            var scrollTop = getElementTop(selectedDom);
-            if (onSetScrollTop) {
-                setTimeout(()=>{
-                  onSetScrollTop(scrollTop);
-                },0)
-            }
-            setTimeout(()=>{
-                selectedDom.classList.remove('selected');
-            },3000)
-        }   
+  componentDidMount(){
+    var { onSetScrollTop, comment, forUser, forMsg } = this.props;
+    var { replies, selected, content, fromUser, replyTo, fromSubTextarea } = comment;
+    if (selected &&this.commentDom){        
+        var scrollTop = getElementTop(this.commentDom);
+        if (onSetScrollTop) {
+            setTimeout(()=>{             
+              onSetScrollTop(scrollTop);
+            },0)
+        }
+        setTimeout(()=>{
+            this.commentDom.classList.remove('selected');
+        },3000)
+          
     }
-
-    if (forTrack) {
-      this.setState({showReplies:selected});
-    }
-    var str = fromSubTextarea ? `回复@${toUser.username}:${content}` : `${content}`;
+    var str = fromSubTextarea ? replyTo ? `回复@${replyTo.fromUser.username}:${content}` : `${content}` : `${content}` ;
     var translateData = formatContent(str);
     this.setState({replies, translateData})
   }
   
-  componentWillReceiveProps(newProps){    
-      if (this.props.comment._id != newProps.comment._id){     
-          var { replies, toUser, fromSubTextarea, content } = newProps.comment;
-          var str = fromSubTextarea ? `回复@${toUser.username}:${content}` : `${content}`;
+  componentWillReceiveProps(newProps){
+      var { forMsg, msgId } = this.props;
+      if ( forMsg ) {
+          if (this.props.msgId != newProps.msgId){
+              var { replies, replyTo, fromSubTextarea, content } = newProps.comment;
+              var str = fromSubTextarea ? `回复@${replyTo.fromUser.username}:${content}` : `${content}`;
+              var translateData = formatContent(str);  
+              this.setState({replies, translateData});
+          }
+      } else if( this.props.comment._id != newProps.comment._id ){
+          var { replies, replyTo, fromSubTextarea, content } = newProps.comment;
+          var str = fromSubTextarea ? `回复@${replyTo.fromUser.username}:${content}` : `${content}`;
           var translateData = formatContent(str);  
           this.setState({replies, translateData});
-      }   
+      }  
+        
+  }
+
+  componentWillUnmount(){
+      this.commentDom = null;
   }
 
   render(){
-    let { parentcommentid, comment, isSub, socket, history, forUser, forMsg, onDelete, onVisible, hasDelete, onShowList }= this.props;
-    let { fromUser, toUser, content, date, _id,  likeUsers, dislikeUsers, commentType, shareBy, selected, isRead, fromSubTextarea, images, uniquekey } = comment;
+    let { parentcommentid, comment, commentType, isSub, socket, uniquekey, history, forUser, forMsg, msgId, msgRead, onDelete, onVisible, hasDelete, onShowList, onCheckLogin, onUpdateReplies, onSetScrollTop, onUpdateFromSub }= this.props;
+    let { fromUser, toUser, content, date, _id,  likeUsers, dislikeUsers, related, onModel, shareBy, selected, isRead, parent, fromSubTextarea, images } = comment;
     var userid = localStorage.getItem('userid');
     let { previewVisible, img, showReplies, replies, translateData  } = this.state;
     let commentDate = formatDate(parseDate(date));
     //  有值的情况传值，如果parentcommentid不存在，一定要设置为空字符串
-    parentcommentid = parentcommentid ? parentcommentid : '';
+    parentcommentid = parentcommentid ? parentcommentid : parent ? parent : '';
     var owncomment = userid == fromUser._id ? true : false;
     const buttonProps = {
       isSub,
       forUser,
       forMsg,
-      isRead,
+      msgId,
+      msgRead,
       onDelete,
       onVisible,
       socket,
       shareBy,
       likeUsers,
       dislikeUsers,
-      uniquekey,
+      uniquekey:uniquekey ? uniquekey : related,
       replies,
       history,
       fromUser,
       toUser,
       hasDelete,
-      commentType,
-      commentid:_id,
+      commentType:commentType ? commentType : onModel,
+      onModel,
+      related,
+      commentid: _id,
       parentcommentid,
-      showReplies, 
+      showReplies,
+      owncomment,
+      onCheckLogin,
       onShowReplies:this.handleShowReplies.bind(this),   
       onUpdateReplies:this.handleUpdateReplies.bind(this),
-      onUpdateFromSub:this.props.onUpdateFromSub
+      onUpdateFromSub:onUpdateFromSub
     };
     
     return (
 
-      <Card className={forUser?'comment user':selected ? 'comment selected' :'comment'}>
-                <div>
+      <div>
+          <div ref={comment=>this.commentDom = comment} className={forUser?'comment user':selected ? 'comment selected' :'comment'}>      
                     <div style={{display:'flex',alignItems:'center'}}>
                       <Popover content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
-                          <Badge count={forMsg?isRead?0:1:0}><div className="avatar-container"><img src={fromUser.userImage} /></div></Badge>
+                          <Badge count={ forMsg ? msgRead ? 0 : 1 : 0}><div className="avatar-container"><img src={fromUser.userImage} /></div></Badge>
                       </Popover>
                       <div style={{marginLeft:'10px'}}>
                           <div><span style={{color:'#000',fontWeight:'500'}}>{fromUser.username}</span>{ owncomment ?<span className="label">用户</span>:null}</div>
@@ -149,10 +158,10 @@ export default class CommentComponent extends React.Component{
                         {
                           forUser && !forMsg
                           ?               
-                          <span className="comment-button" onClick={()=>onShowList(true,_id,parentcommentid)}>管理评论列表<Icon type="caret-right" /></span>
+                          <span className="comment-button" onClick={()=>onShowList(true, parent?parent:_id)}>管理评论列表<Icon type="caret-right" /></span>
                           :
                           null
-                          
+                        
                         }
                     </div>
                     <div>
@@ -176,54 +185,55 @@ export default class CommentComponent extends React.Component{
                         :
                         null
                       }
-                    </div>
-                    {/*
+                    </div>                   
                     {
-                      forUser || forMsg ? commentType == 'news' ? 
-                      <NewsListItem uniquekey={uniquekey} hasImg={true} forSimple={true}/> 
+                      forUser && onModel =='Article'
+                      ?
+                      <NewsListItem data={related} hasImg={true} forSimple={true} history={history}/> 
                       : 
-                      commentType == 'topic'
+                      forUser && onModel == 'Topic'
                       ?
-                      <TopicListItem uniquekey={uniquekey} history={history} hasLink={true} forSimple={true}/>
+                      <TopicListItem data={related} forSimple={true} history={history}/>
                       :
                       null
-                      :
-                      null
-                    }
-                  */}
-                    
+                    }                
                     <CommentComponentButton {...buttonProps}/> 
-                    
-                    {
-                      forUser
-                      ?
-                      null
-                      :
-                      isSub 
-                      ?
-                      null
-                      :
-                      <div style={{display:showReplies?'block':'none'}}>
-                        <CommentsList
-                            isSub={true} 
-                            commentid={_id} 
-                            comments={replies}
-                            commentType={commentType} 
-                            hasDelete={hasDelete} 
-                            onVisible={onVisible}
-                            onDelete={onDelete}
-                            onUpdateFromSub={this.handleUpdateReplies.bind(this)} 
+          </div>
+                   
+          {
+              isSub
+              ?
+              null
+              :
+              replies && replies.length
+              ?
+              <div className="subcommentsContainer" style={{display:showReplies ? 'block':'none'}}>
+                  {
+                      replies.map((item,index)=>(
+                          <CommentComponent 
+                              socket={socket} 
+                              history={history}                              
+                              onCheckLogin={onCheckLogin}
+                              onDelete={onDelete}
+                              onUpdateFromSub={this.handleUpdateReplies.bind(this)}
+                              onSetScrollTop={onSetScrollTop} 
+                              isSub={true}
+                              hasDelete={hasDelete}
+                              uniquekey={uniquekey}
+                              parentcommentid={_id}
+                              comment={item}
+                              key={index}
+                              commentType={commentType}                         
                           />
-                      </div>                      
-                    }
-                    <Modal className="no-bg" visible={previewVisible} maskClosable={true} onCancel={()=>this.handlePreview(false)} footer={null}>
-                      <img src={img} />
-                    </Modal>
-                    
-                    
-                </div>
+                      ))
+                  }
+              </div>
+              :
+              null
+          }
+          
             
-      </Card>
+      </div>
   
     )
     

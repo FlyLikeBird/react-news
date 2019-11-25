@@ -54,10 +54,11 @@ export default class DeleteModal extends React.Component{
                 
         })
     } else if ( deleteType === 'comment') {
-        fetch(`/api/comment/delete?commentid=${deleteId}&parentcommentid=${parentcommentid?parentcommentid:''}`)
+        fetch(`/api/comment/delete?commentid=${deleteId}&userid=${userid}`)
           .then(response=>response.json())
           .then(json=>{
-              if (onDelete) onDelete();
+              var data = json.data;
+              if (onDelete) onDelete(data);
               if (onVisible) onVisible(false);
           })
     } else if ( deleteType === 'msg' && socket){

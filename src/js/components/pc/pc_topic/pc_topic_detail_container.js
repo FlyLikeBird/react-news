@@ -34,7 +34,7 @@ export default class TopicDetailContainer extends React.Component{
     }
 
     render(){
-        var { history, socket, location, onSetScrollTop, match } = this.props;
+        var { history, socket, location, onSetScrollTop, onCheckLogin, match } = this.props;
         var { item, isLoad, shareVisible } = this.state;
         var  uniquekey  = match.params.id;
         
@@ -50,6 +50,7 @@ export default class TopicDetailContainer extends React.Component{
                         <TopicListItem
                             uniquekey={uniquekey}
                             forDetail={true}
+                            onCheckLogin={onCheckLogin}
                             onVisible={this.handleShareVisible.bind(this)} 
                             onUpdateItem={this.handleUpdateTopicItem.bind(this)}
                         />
@@ -57,10 +58,11 @@ export default class TopicDetailContainer extends React.Component{
                         <CommentsListContainer 
                             history={history}
                             location={location}
-                            socket={socket} 
+                            socket={socket}
+                            onCheckLogin={onCheckLogin} 
                             uniquekey={uniquekey} 
                             onSetScrollTop={onSetScrollTop} 
-                            commentType="topic" 
+                            commentType="Topic" 
                             warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
                         />
                 
