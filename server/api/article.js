@@ -216,7 +216,7 @@ router.get('/getArticleTitle',(req,res)=>{
   var { type, count } = req.query;
   type = util.translateTag(type);
   count = Number(count);
-  Article.find({'type':type},{content:0,thumbnails:0,shareBy:0,viewUsers:0})
+  Article.find({'type':type},{content:0,shareBy:0,viewUsers:0})
           .limit(count)
           .exec((err,articles)=>{
               util.responseClient(res, 200, 0, 'ok', articles);
@@ -254,31 +254,42 @@ router.get('/getArticleList',(req,res)=>{
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
   Article.findOne({'_id':uniquekey})
-    .then(article=>{
-        util.responseClient(res, 200, 0, 'ok', article);
-    })       
+      .populate({
+          path:'shareBy',
+          populate:{ path:'user', select:'username userImage'},
+          select:'value date user'
+      })
+      .populate({ path:'viewUsers.user', select:'username userImage'})
+      .then(doc=>{
+          util.responseClient(res, 200, 0, 'ok', doc);
+      })
 })
 
 router.get('/rateArticle',(req,res)=>{
   let { userid, uniquekey, rate } = req.query;
   var date = new Date().toString();
-  Article.findOne({'articleId':uniquekey},(err,article)=>{
+  Article.findOne({_id:uniquekey},(err,article)=>{
     var fever = article.articleFever + Number(rate);
     var viewUsers = article.viewUsers.concat();
     viewUsers.push({
       date,
-      userid,
+      user:userid,
       score:rate
     })
     var $setObj = {
       'articleFever':fever,
       'viewUsers':viewUsers
     }
-    Article.updateOne({'articleId':uniquekey},{$set:$setObj},(err,result)=>{
-        console.log(result);
-        Article.findOne({'articleId':uniquekey},(err,article)=>{
-            util.responseClient(res,200,0,'ok',article.viewUsers);
-        })
+    Article.updateOne({'_id':uniquekey},{$set:$setObj},(err,result)=>{
+        Article.findOne({_id:uniquekey})
+          .populate({
+              path:'viewUsers.user',
+              select:'username userImage'
+          })
+          .then(doc=>{
+              var { viewUsers } = doc;
+              util.responseClient(res, 200, 0, 'ok', viewUsers);
+          })
     })
 
   })

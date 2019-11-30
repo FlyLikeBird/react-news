@@ -49,7 +49,6 @@ class TopicForm extends React.Component{
         var { allTags } = this.state;
         var { setFieldsValue } = form;
         var { description, title, images, privacy, tags ,title, _id } = item;
-        console.log(item);
         var selectedTags = tags.map(item=>item._id);
         setFieldsValue({
                 'title':title,

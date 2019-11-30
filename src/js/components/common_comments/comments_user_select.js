@@ -90,7 +90,7 @@ class  CommentUserSelect extends React.Component{
                             notFoundContent=""
                             dropdownRender={menu=>(
                                 <div>
-                                    <span style={{display:'inline-block',padding:'4px 12px',fontSize:'12px'}}>请选择要@的用户:</span>
+                                    <span style={{display:'inline-block',padding:'4px 12px',fontSize:'12px'}}>请搜索并选择要@的用户:</span>
                                     <div>{menu}</div>
                                 </div>
                             )}

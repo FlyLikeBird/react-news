@@ -41,24 +41,31 @@ module.exports = {
     translateType:function(type){
         var text='';
         switch(type){
-            case 'topic':
+            case 'Topic':
                 text = '话题';
                 break;
-            case 'news':
+            case 'Article':
                 text = '新闻';
                 break;
-            case 'collect' :
+            case 'Collect' :
                 text = '收藏夹';
                 break;
-            case 'comment' :
+            case 'Comment' :
                 text = '评论';
                 break;
-            case 'action':
+            case 'Action':
                 text='动态';
                 break;
     
         }
         return text;
+    },
+    sortArr:function(date){
+        return function(a, b){
+            var time1 = Date.parse(a.date);
+            var time2 = Date.parse(b.date);
+            return time2 - time1;
+        }
     }
 
 }

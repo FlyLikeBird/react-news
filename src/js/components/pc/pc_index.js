@@ -50,23 +50,59 @@ const PCSearchIndex = Loadable({
   loading:()=><Spin size="large" />
 })
 
+const PCTopNews = Loadable({
+  loader:()=>import('./pc_topnews'),
+  loading:()=><Spin size="large" />
+});
+
 import '../../../css/pc.common.css';
 
 export default class PCRouter extends React.Component {
     constructor(){
       super();
       this.state = {
-        bodyHeight:0
+          bodyHeight:0,
+          scrollFunc:null,
+          reload:false,
+          fixPosition:false
       }
       
     }
   
     _setScrollTop(top){
         var container = this.container;
-        console.log(top);
         if (container&&container.scrollTo){         
             container.scrollTo({top:top,behavior:'smooth'})
         }
+    }
+
+    handleScroll(e){
+        var container = this.container;
+        var { bodyHeight, fixPosition, reload } = this.state;
+        if (container){        
+            var { scrollHeight, scrollTop } = container;
+            //  顶部图片定位           
+            if ( scrollTop >= 180){
+                this.setState({fixPosition:true});
+            } else {
+                this.setState({fixPosition:false});
+            }  
+            console.log(bodyHeight);
+            console.log(container.scrollHeight);
+            //  自动加载数据逻辑
+            if (  bodyHeight + container.scrollTop  >= container.scrollHeight ){
+                console.log('reload');
+                this.setState({reload:true});
+                setTimeout(()=>{
+                    this.setState({reload:false});
+                },500); 
+            }   
+
+        }
+    }
+
+    loadScrollFunc(){
+        this.setState({scrollFunc:this.handleScroll.bind(this)})
     }
 
     componentDidMount(){
@@ -74,14 +110,15 @@ export default class PCRouter extends React.Component {
         this.setState({bodyHeight})
     }
 
+
     render(){
         var { msg, socket, user, onLoginVisible, onCheckLogin } = this.props;
-        var { bodyHeight } = this.state;
-        return (
+        var { bodyHeight, scrollFunc, reload, fixPosition } = this.state;
 
-                         
+        return (
+                       
                 <Router>
-                    <div ref={container=>this.container=container} style={{height:bodyHeight,overflowX:'hidden',overflowY:'scroll'}}>
+                    <div ref={container=>this.container=container} onScroll={scrollFunc} style={{height:bodyHeight,overflowX:'hidden',overflowY:'scroll'}}>
                         <PCHeader {...this.props}/>
                         <Switch>
                           <Route exact path="/" component={PCNewsContainer} />                          
@@ -90,7 +127,7 @@ export default class PCRouter extends React.Component {
                               props.onCheckLogin = onCheckLogin;
                               props.msg = msg;
                               return <PCUserCenter {...props} />
-                            }} 
+                            }}
                           /> 
                           <Route exact path="/details/:uniquekey" render={props=>{
                               props.user = user;
@@ -115,24 +152,23 @@ export default class PCRouter extends React.Component {
                             return <PCActionDetail {...props} />
                           }}
                           />
+                          
+                          <Route exact path="/topNews" render={props=>{
+                              props.onHandleScroll = this.handleScroll.bind(this);
+                              props.onLoadScrollFunc = this.loadScrollFunc.bind(this);
+                              props.reload = reload;
+                              props.fixPosition = fixPosition;
+                              return <PCTopNews {...props}/>
+                          }}
+                          />
                           <Route exact path="/search" render={props=>{
                               props.socket = socket;
                               return <PCSearchIndex {...props}/>
-                          }} 
-                          />
+                          }}
+                          /> 
+                          
                           <Route exact path="/tag/:tag" component={PCTagIndex} />   
                           
-                        {/*
-                          <Route exact path="/" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCIndex {...props}/></div>}}></Route>
-                          
-                          <Route exact path="/usercenter/:userid" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCUserCenter {...props}/></div>}}></Route>
-                          <Route exact path="/search" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCSearchIndex {...props}/></div>}}></Route>
-                          <Route exact path="/topNews" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopNewsIndex {...props}/></div>}}></Route>
-                          <Route exact path="/topic" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopicIndex {...props}/></div>}}></Route>
-                          <Route exact path="/topic/:id" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCTopicDetail {...props}/></div>}}></Route>
-                          <Route exact path="/action/:id" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props} /><PCActionContainer {...props} /></div>}}></Route>
-                          <Route exact path="/:tag" render={(props)=>{props.onsocket=this.connectSocket.bind(this);props.socket=socket;props.msg=msg;return <div><PCHeader {...props}/><PCTagIndex {...props}/></div>}}></Route>
-                          */}
                         </Switch>
                         <PCFooter />
                     </div> 

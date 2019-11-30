@@ -6,60 +6,39 @@ var User = require('../../models/User');
 var Collect = require('../../models/Collect');
 var Article = require('../../models/Article');
 
-function getUserCollect(userid, uniquekey, res){
-    var promise = new Promise((resolve,reject)=>{
-      userPromise.getUserCollect(userid,resolve,true);
-    })
-    promise.then(data=>{
-      // 判断某篇文章是否已存在于收藏夹中
-      data = data.map(item=>{
-          var content = item.content;
-          for(var i=0,len=content.length;i<len;i++){
-            if ( content[i].articleId === uniquekey){
-                item['isCollected'] = true;
-                break;
-            }
-          }
-          return item;
-      })
-      util.responseClient(res,200,1,'ok',data)
-    })
+function getUserCollect(userid, res){
+    Collect.find({user:userid})
+        .populate({
+            path:'content'
+        })
+        .then(collects=>{
+            util.responseClient(res, 200, 0, 'ok', collects);
+        })
 }
 
 router.get('/createCollect',(req,res)=>{
     var { userid, tag, privacy } = req.query;    
     Collect.find({userid:userid},(err,collects)=>{
       var tags = collects.map(item=>item.tag);
-
       if (!tags.includes(tag)){
-
           var collect = new Collect({
-              userid,
+              user:userid,
               tag,
               createtime:new Date().toString(),
               privacy
             });
-
-            collect.save()
-              .then(()=>{
-                  
-                  var promise = new Promise((resolve,reject)=>{
-                      userPromise.getUserCollect(userid,resolve,true)
-                  });
-                  promise.then(data=>{                      
-                    util.responseClient(res,200,1,'ok',data);
-                  })
-                                
-              })
+            collect.save(function(err){
+                getUserCollect(userid, res);
+            })
       } else {
-          util.responseClient(res,200,0,'已存在同名的收藏夹!');
+          util.responseClient(res,200, 1,'已存在同名的收藏夹!');
       }
     })
 })
 
 router.get('/getUserCollect',(req,res)=>{
-    var { userid, uniquekey } = req.query;
-    getUserCollect(userid,uniquekey,res);
+    var { userid } = req.query;
+    getUserCollect(userid, res);
 })
 
 
@@ -78,18 +57,21 @@ router.get('/checkContentExist',(req,res)=>{
 })
 
 router.get('/addIntoCollect',(req,res)=>{
-    var { contentId, collectId } = req.query;
-    Collect.updateOne({'_id':collectId},{$push:{content:{id:contentId,addtime:new Date().toString()}}},(err,result)=>{      
-        Collect.findOne({_id:collectId},(err,collect)=>{
-            var promise = new Promise((resolve,reject)=>{
-                userPromise.translateUserCollect(collect,resolve);
-            });
-            promise.then(data=>{
-                util.responseClient(res,200,0,'ok',data);
+    var { contentId, collectId, onModel } = req.query;
+    var date = new Date().toString();
+    var content = {
+        addtime:date,
+        contentId,
+        onModel
+    };
+    
+    Collect.updateOne({_id:collectId},{$push:{content:content}},(err,result)=>{
+        Collect.findOne({_id:collectId})
+            .then(doc=>{
+                var { content } = doc;
+                util.responseClient(res, 200, 0, 'ok', content);
             })
-            
-        })    
-    })  
+    })
 })
 
 router.get('/followCollect',(req,res)=>{

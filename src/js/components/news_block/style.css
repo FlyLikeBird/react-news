@@ -1,0 +1,215 @@
+.news-list-container {
+    padding:4px;
+    font-size:12px;
+    text-align:left;
+    transition:all 0.3s ease-in;
+}
+
+/*transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1); */
+.news-list-container .title-container {
+    padding:10px 0;
+    min-height:0;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-list-container .title {
+    font-weight:500;
+    font-size:16px;
+    color:rgba(0, 0, 0, 0.85);
+}
+
+.news-list-container .button {
+    display:inline-block;
+    background-color:#1890ff;
+    border-radius:16px;
+    padding:4px 10px;
+    color:#fff;
+    cursor: pointer;
+    transform:scale(0.8);
+}
+
+.news-list-container .button:hover {
+    background-color:#40a9ff;
+}
+
+.news-list-container .button a{
+    color:#fff;
+}
+
+.news-list-container .button a i{
+    margin-left:4px;
+}
+
+.news-list-container ul {
+    padding:0;
+    list-style: none;
+}
+
+.news-list-container ul .news-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding:4px 0;
+}
+
+.news-list-container .img-container {
+    height: 100px;
+    overflow: hidden;
+    border-radius:4px;  
+    position:relative;
+    cursor:pointer;
+}
+
+.news-list-container .img-container.fixed {
+    position:fixed;
+    top:0;
+    width:100%;
+    border-top:20px solid #fff;
+    z-index:100;
+}
+
+.news-list-container .img-container .bg{
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height:100%;
+}
+
+.news-list-container .img-container .bg:hover{
+    transform:scale(1.5);
+}
+
+.news-list-container .order-num{
+    transform-origin: left;
+    transform:scale(0.8);
+    color: #fff;
+    display: inline-block;
+    padding: 1px 4px;
+    height: 16px;
+    line-height: 16px;    
+    text-align: center;
+    width: 20px;
+    border-radius: 4px;
+    background-color: rgb(226, 85, 85);
+    
+}
+
+
+.news-list-container .img-container .tags{
+    position: absolute;
+    padding:2px 6px;
+    font-size:12px;
+    top: -2px;
+    left: 0;
+    background-color: #1890ff;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    border-top-left-radius: 4px;
+    transform: scale(0.8);
+    transform-origin: left;
+}
+
+.news-list-container .img-container .desc{
+    position: absolute;
+    padding:2px 6px;
+    font-size:12px;
+    line-height: 30px;
+    height: 30px;
+    width:100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0,0,0,0.4);
+    color: #fff;
+    text-align:left;
+}
+
+.news-list-container .ant-card-head-title i.motion {
+    color:rgb(226, 85, 85);
+    margin-right:4px;
+    animation:cardHeaderIcon 8s ease infinite;
+}
+
+
+.news-list-container ul a:hover {
+    text-decoration: underline;
+}
+
+
+.news-list-container li.topic-item>span{
+    
+    display: flex;
+    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    align-items: center;
+    background-color: rgba(24, 144, 255, 0.1);
+    color: rgba(0, 0, 0, 0.45);
+    border-radius: 14px;
+    font-size: 12px;
+    transform: scale(0.8);
+    transform-origin: left;
+    
+}
+
+.news-list-container li.topic-item>span:hover{
+    background-color: rgba(24, 144, 255, 0.4);
+    cursor:pointer;
+    color:#fff;
+}
+
+.news-list-container li.topic-item span.icon{
+    background-color:#1890ff;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    display:inline-block;
+    line-height: 20px;
+    text-align: center;
+    margin:0 8px 0 4px;
+    
+}
+
+.news-list-container li.topic-item span.icon i{
+    color:#fff;
+    
+}
+
+.news-list-container li.news-item>div {
+    
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+.news-list-container li.news-item a  {
+    color:#666;
+}
+
+
+.topNews-container {
+    position:relative;
+    height:100%;
+}
+
+.topNews-container .topNews-item {
+    position:absolute;
+    padding:0 10px;
+    width:25%;
+    top:0;
+    transition:all 0.3s ease-in;
+}
+
+.topNews-container .topNews-item.selected ul {
+    opacity:1;
+}
+
+.topNews-container .topNews-item ul {
+    opacity:0;
+}
+
+
+

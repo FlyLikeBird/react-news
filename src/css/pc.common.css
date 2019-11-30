@@ -216,7 +216,7 @@ section .leftContainer {
 }
 
 .article-action-container>div{
-    display:inline-block;
+    display:inline-flex;
     transform:scale(0.8);
 }
 
@@ -272,127 +272,7 @@ section .leftContainer {
 
 */
 
-.newsList-container {
-    position:relative;
-    width:100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    height:530px
-}
 
-
-.newsList-container .position-container {
-    position:absolute;
-    top:0;
-    
-    width:100%;
-    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-
-.newsList-container .position-item {
-    position:absolute;
-    top:0;
-    padding:10px;
-    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-
-.toggle {
-    position:absolute;
-    top:50%;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    background-color: #ccc;
-    color: #fff;
-    border:none;
-    outline:none;
-}
-
-.toggle:hover {
-    background-color:#e4e1e1;
-}
-
-.toggle.toggle-left {
-    left:-60px;
-}
-
-.toggle.toggle-right {
-    right:-60px;
-}
-
-.topNewsList .ant-card-head .ant-card-head-wrapper{
-    height:100%;
-}
-
-.topNewsList .ant-card-extra .anticon{
-  padding-left:4px;
-}
-
-.topNewsList .ant-card-head {
-    padding:10px 0;
-    min-height:0;
-    border-bottom:none;
-}
-
-.topNewsList .img-container {
-    height: 120px;
-    overflow: hidden;
-    margin-bottom: 10px;
-    border-radius:6px;
-    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-    position:relative;
-}
-
-.topNewsList .img-container img{
-    width:100%;
-}
-
-.topNewsList .img-container .tags{
-    position: absolute;
-    padding:2px 6px;
-    font-size:12px;
-    
-    top: 0;
-    left: 0;
-    background-color: #1890ff;
-    color: #fff;
-}
-
-.topNewsList .img-container .newsList-title{
-    position: absolute;
-    padding:2px 6px;
-    font-size:12px;
-    line-height: 30px;
-    height: 30px;
-    width:100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(0,0,0,0.4);
-    color: #fff;
-    text-align:left;
-}
-
-.topNewsList .ant-card-head-title i.motion {
-    color:rgb(226, 85, 85);
-    margin-right:4px;
-    animation:cardHeaderIcon 8s ease infinite;
-}
-
-.topNewsList .ant-card-head .ant-card-head-title {
-    padding:4px 0;
-}
-
-.topNewsList .ant-card-extra {
-    padding:4px 0;
-    font-size:12px;
-}
-
-.topNewsList .ant-card-body {
-    padding:0;
-}
 
 
 .tabs_news {
@@ -407,87 +287,6 @@ section .leftContainer {
     
 }
 
-.topNewsList a:hover {
-    text-decoration: underline;
-}
-
-.topNewsList ul {
-    width:100%;
-    padding-left:0;
-    list-style:none;
-}
-
-
-.topNewsList li.news-item , .topNewsList li.topic-item{
-    height: 27px;
-    line-height: 27px;
-    font-size: 12px;  
-    text-align:left;    
-}
-
-.topNewsList li.topic-item>span{
-    
-    display: flex;
-    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-    align-items: center;
-    background-color: rgba(24, 144, 255, 0.1);
-    color: rgba(0, 0, 0, 0.45);
-    border-radius: 14px;
-    font-size: 12px;
-    transform: scale(0.8);
-    transform-origin: left;
-    
-}
-
-.topNewsList li.topic-item>span:hover{
-    background-color: rgba(24, 144, 255, 0.4);
-    cursor:pointer;
-    color:#fff;
-}
-
-.topNewsList li.topic-item span.icon{
-    background-color:#1890ff;
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    display:inline-block;
-    line-height: 20px;
-    text-align: center;
-    margin:0 8px 0 4px;
-    
-}
-
-.topNewsList li.topic-item span.icon i{
-    color:#fff;
-    
-}
-
-.topNewsList li.news-item>div {
-    
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-}
-
-.topNewsList li.news-item a  {
-    color:#666;
-}
-
-.topNewsList .order-num{
-    transform-origin: left;
-    transform:scale(0.8);
-    color: #fff;
-    display: inline-block;
-    padding: 1px 4px;
-    height: 16px;
-    line-height: 16px;    
-    text-align: center;
-    width: 20px;
-    border-radius: 4px;
-    background-color: rgb(226, 85, 85);
-    
-}
 
 .tabs_product li {
     height: 27px;
@@ -755,11 +554,12 @@ section .leftContainer {
     用户头像样式
 */
 
-.user-container {
+.user-container.ant-card {
     box-shadow: 1px 4px 6px rgba(10,10,10,.1);
     transition: all 0.5s ;
     border:none;
     text-align:left;
+    border-radius:4px;
 }
 
 .user-container span.ant-text {
@@ -1596,6 +1396,9 @@ section .leftContainer {
     margin-bottom:20px;
 }
 
+.action.forSimple {
+    margin-bottom:0;
+}
 .action .action-head {
     margin-bottom: 2px;
     background-color: #fff;
@@ -1609,14 +1412,22 @@ section .leftContainer {
 
 .action>.action-body {
     border:none;
-    padding:10px 20px;
+    padding:10px 20px 20px 20px;
     border-radius:4px;
     background-color:#fff;
 }
 
-.action.forDetail > .action-body{
+.action.forSimple>.action-body{
+    padding:20px;
+    background-color:#f7f7f7;
+}
+
+.action.forSimple .inner-action {
     background-color:#fff;
-    padding:0;
+}
+
+.action.forSimple .news.forSimple {
+    background-color:#fff;
 }
 
 .action>.action-body .avatar-container {
@@ -1702,14 +1513,14 @@ section .leftContainer {
 .inner-action {
     font-size:12px;
     color:rgba(0, 0, 0, 0.65);
-    padding:10px 20px;
+    padding:10px 20px 20px 20px;
     background-color:#f7f7f7;
     cursor:pointer;
     border-radius:4px;
 }
 
 .inner-action .title {
-    font-weight:500;
+    font-weight:600;
     color:#000;
 }
 
@@ -1749,8 +1560,8 @@ section .leftContainer {
 }
 
 .news.forSimple {
-    padding:20px;
-    margin:4px 0;
+    margin:0;
+    padding:0;
     background-color:#f7f7f7;
 }
 
@@ -1996,9 +1807,30 @@ section .leftContainer {
 }
 
 /*
-
+    topNews 主页样式
     
 */
+
+.ant-btn.toggle {
+    position:fixed;
+    top:50%;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    color: #fff;
+    border:none;
+    outline:none;
+}
+
+.ant-btn.toggle.toggle-left {
+    left:40px;
+}
+
+.ant-btn.toggle.toggle-right {
+    right:40px;
+}
+
 
 @keyframes selectedComment {
     0% {

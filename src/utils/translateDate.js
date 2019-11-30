@@ -35,25 +35,22 @@ export function getElementTop (el) {
 export function translateType(type){
     var str = '';
     switch(type){
-        case 'news':
+        case 'Article':
             str =  '新闻';
             break;
-        case 'collect':
+        case 'Collect':
             str = '收藏夹';
             break;
-        case 'topic':
+        case 'Topic':
             str = '话题';
             break;
-        case 'comment':
+        case 'Comment':
             str = '评论';
             break;
-        case 'action':
+        case 'Action':
             str = '动态';
             break;
         case 'msg':
-            str = '消息';
-            break;
-        case 'actionMsg':
             str = '消息';
             break;
 

@@ -14,7 +14,7 @@ export default class UpdateContainer extends React.Component{
     constructor(){
         super();
         this.state={
-            userAction:[],
+            userActions:[],
             visible:false,
             shareVisible:false,
             deleteId:0,
@@ -22,50 +22,52 @@ export default class UpdateContainer extends React.Component{
             actionId:'',
             showForm:false,
             TopicForm:null,
-            loaded:false
-            
+            loaded:false,
+            isLoading:true        
         }
     }
 
     componentDidMount(){
-        var { data } = this.props;
-        this.setState({userAction:data})
+        var { match } = this.props;
+        var userid = match.params.id
+        fetch(`/api/action/getUserActions?userid=${userid}`)
+            .then(response=>response.json())
+            .then(json=>{
+                var data = json.data;
+                this.setState({userActions:data,isLoading:false});
+            })
     }
     
     handleModalVisible(boolean,deleteId){
         this.setState({visible:boolean,deleteId})
     }
 
-    handleUpdateAction(data){
-        this.setState({isLoading:true});
-        setTimeout(()=>{
-            this.setState({userAction:data,isLoading:false})
-        },0)
-        
+    handleUpdateAction(data){     
+        this.setState({userActions:data})      
     }
 
-    handleShareVisible(boolean,option, _updateShareBy){
+    handleShareVisible(boolean, data, _updateShareBy){
         if ( boolean == true ){
             this._updateShareBy = _updateShareBy;
-            var { actionId } = option;
-            this.setState({shareVisible:boolean, actionInfo:option, actionId })
+            var { _id } = data;
+            this.setState({shareVisible:boolean, actionInfo:data, actionId:_id })
         } else {
             this.setState({shareVisible:boolean})
         }        
     }
 
     handleDelete(){
-        var { deleteId, userAction } = this.state;
-        var data = [...userAction];
+        var { deleteId, userActions } = this.state;
+        var data = [...userActions];
         var deleteIndex = 0;
-        for(var i=0,len=userAction.length;i<len;i++){
-            if(userAction[i].id === deleteId){
+        for(var i=0,len=userActions.length;i<len;i++){
+            if(userActions[i]._id === deleteId){
                 deleteIndex = i;
                 break;
             }
         }
         data.splice(deleteIndex,1)
-        this.setState({userAction:data})
+        this.setState({userActions:data})
     }
 
     componentWillUnmount(){
@@ -85,8 +87,8 @@ export default class UpdateContainer extends React.Component{
 
     
     render(){
-        var { history, socket, isSelf } = this.props;
-        var { userAction, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded } = this.state;
+        var { history, socket, onCheckLogin, isSelf } = this.props;
+        var { userActions, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded, isLoading } = this.state;
 
         return(
             
@@ -102,18 +104,23 @@ export default class UpdateContainer extends React.Component{
                 { TopicForm && <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateAction.bind(this)} forAction={true}/> }
                 {
                     
-                    userAction.length
+                    isLoading
+                    ?
+                    <Spin />
+                    :
+                    userActions.length
                     ?
                     <div style={{backgroundColor:'#f7f7f7',padding:'10px 20px 20px 20px',borderRadius:'4px'}}>
-                        <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共${userAction.length}条动态`}</span>
+                        <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共${userActions.length}条动态`}</span>
                         {
-                            userAction.map((item,index)=>(
+                            userActions.map((item,index)=>(
                                 <UpdateItem 
                                     key={index} 
                                     data={item} 
                                     history={history} 
                                     isSelf={isSelf}
-                                    socket={socket} 
+                                    socket={socket}
+                                    onCheckLogin={onCheckLogin} 
                                     onVisible={this.handleModalVisible.bind(this)}
                                     onShareVisible={this.handleShareVisible.bind(this)}
                                 />
@@ -122,6 +129,7 @@ export default class UpdateContainer extends React.Component{
                     </div>                    
                     :
                     <div style={{padding:'10px 0',fontSize:'12px'}}>你还没有发布过任何动态!</div>
+
                 }
                 {
                     visible
@@ -131,8 +139,8 @@ export default class UpdateContainer extends React.Component{
                         onVisible={this.handleModalVisible.bind(this)} 
                         deleteId={deleteId} 
                         onDelete={this.handleDelete.bind(this)}
-                        deleteType="action"
-                        forActions={true}
+                        deleteType="Action"
+                       
                     />
                     :
                     null
@@ -143,13 +151,13 @@ export default class UpdateContainer extends React.Component{
                     ?
                     <ShareModal 
                         visible={shareVisible} 
-                        actionInfo={actionInfo}
-                        uniquekey={actionId}
-                        history={history}    
+                        item={actionInfo}
+                        onModel="Action"
+                        forAction={true}
+                        uniquekey={actionId}    
                         onVisible={this.handleShareVisible.bind(this)} 
                         onUpdate={this.handleUpdateAction.bind(this)}
                         onUpdateShareBy={this._updateShareBy}
-                        forUserAction={true}
                         isSelf={isSelf}
                     />
                     :

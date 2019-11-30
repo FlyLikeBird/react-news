@@ -12,7 +12,6 @@ var Tag = require('../../models/Tag');
 var Article = require('../../models/Article');
 var User = require('../../models/User');
 var Comment = require('../../models/Comment');
-var secret = require('../../src/utils/secret');
 
 var createFolder = function(folder){
     try{
@@ -39,14 +38,30 @@ var storage = multer.diskStorage({
 });
 var upload = multer({storage});
 
-router.get('/shareContent',(req,res)=>{
+
+function getShareBy(Collect, contentId, actionId, res){
+    Collect.updateOne({_id:contentId},{$push:{shareBy:actionId}},(err,result)=>{
+        Collect.findOne({_id:contentId},{shareBy:1})
+            .populate({
+                path:'shareBy',
+                populate:{ path:'user', select:'username userImage'},
+                select:'user value date'
+            })
+            .then(doc=>{
+                util.responseClient(res, 200, 0, 'ok', doc);
+            })
+    })
+}
+
+
+router.get('/share',(req,res)=>{
     //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
-    var { userid, text, value, contentId, contentType, commentid  } = req.query;
+    var { userid, text, value, contentId, actionId, onModel, commentid, composeAction, isActionPage  } = req.query;
     var date = new Date().toString();
     //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
 
     if (!value){
-        value = `转发${util.translateType(contentType)}`
+        value = `转发${util.translateType(onModel)}`
     } 
     //console.log(userid,text,value,contentId,contentType,actionId);
     //util.responseClient(res,200,0,'ok');
@@ -59,130 +74,63 @@ router.get('/shareContent',(req,res)=>{
     var action = new Action({
         user:userid,
         contentId,
-        contentType,
-        date,
-        text,
-        value   
-    });
-
-    action.save()
-        .then(()=>{
-            //  如是转发的评论则更新该条评论的shareBy字段
-            if (commentid){
-                Comment.updateOne({_id:commentid},{$push:{shareBy:action._id}},(err,result)=>{
-                    Comment.findOne({_id:commentid},{shareBy:1})
-                        .populate({
-                            path:'shareBy',
-                            populate:{
-                                path:'user',
-                                select:'userImage username'
-                            },
-                            select:'user date value'
-                        })
-                        .then(shareBy=>{
-                            util.responseClient(res, 200, 0, 'ok', shareBy);
-                        })
-                });
-                return ;
-                //  如转发话题更新该话题的shareBy
-            }  else if (contentType=='topic') {
-                Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
-                    Topic.findOne({_id:contentId},(err,topic)=>{
-                        util.responseClient(res,200,0,'ok',topic.shareBy);
-                    })
-                })
-                //  如转发新闻更新该新闻的shareBy
-            } 
-            
-        })    
-})
-
-router.get('/shareAction',(req,res)=>{
-    //  isActionPage  字段是用来判断是否在用户中心的用户动态页面
-    var { userid, text, value, contentId, contentType, actionId, innerAction, commentid, parentcommentid ,isActionPage, composeAction } = req.query;
-    var date = new Date().toString();
-    //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
-
-    if (!value){
-        value = `转发${util.translateType(contentType)}`
-    } 
-    //console.log(userid,text,value,contentId,contentType,actionId);
-    //util.responseClient(res,200,0,'ok');
-    /*
-    User.updateOne({_id:userid},{$set:{userAction:[]}},(err,result)=>{
-        util.responseClient(res,200,0,'ok');
-    });
-    */
-    
-    var action = new Action({
-        userid,
-        contentId,
-        contentType,
-        innerAction,
+        onModel,
         date,
         text,
         value,
-        composeAction:Boolean(composeAction)    
+        composeAction:Boolean(composeAction)   
     });
 
     action.save()
         .then(()=>{
-            
-            //  如当前用户在动态列表页面
-            if (isActionPage){
-                Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err,result)=>{
-                    
-                        var promise = new Promise((resolve,reject)=>{
-                            userPromise.getUserActions(userid,resolve);
-                        });
-                        //  更新后的动态列表数据和被分享的某条动态的shareBy字段
-                        promise.then(actions=>{
-                            util.responseClient(res,200,0,'ok',actions);
-                        })
-                
+            if ( isActionPage ){
+                Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err, result)=>{
+                    getUserActions(userid, res);
                 })
+            } else if ( commentid ) {
             //  如是转发的评论则更新该条评论的shareBy字段
-            } else if (commentid){
-                // 转发评论
-                if (parentcommentid){
-                    Comment.updateOne({_id:parentcommentid,'replies._id':commentid},{$push:{'replies.$.shareBy':action._id}},(err,result)=>{
-                        console.log(result);
-
-                    })
-                } else {
-                    Comment.updateOne({_id:commentid},{$push:{shareBy:action._id}},(err,result)=>{
-                        Comment.findOne({_id:commentid},(err,comment)=>{
-                            util.responseClient(res,200,0,'ok',comment.shareBy);
-                        })
-                    })
-                }
-                //  如转发话题更新该话题的shareBy
-            }  else if (contentType=='topic') {
-                Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
-                    Topic.findOne({_id:contentId},(err,topic)=>{
-                        util.responseClient(res,200,0,'ok',topic.shareBy);
-                    })
-                })
-                //  如转发新闻更新该新闻的shareBy
-            } else if (contentType =='news') {
                 
-                Article.updateOne({articleId:contentId},{$push:{shareBy:action._id}},(err,result)=>{
-                    Article.findOne({articleId:contentId},(err,article)=>{
-                        util.responseClient(res,200,0,'ok',article.shareBy);
-                    })
-                })
-                //  在动态详情页
-            } else if (contentType=='action'){
-                Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err,result)=>{
-                    Action.findOne({_id:actionId},(err,action)=>{
-                        util.responseClient(res,200,0,'ok',action.shareBy);
-                    })
-                })
+                //  如转发话题更新该话题的shareBy
+            }  else if ( onModel =='Topic') {
+                getShareBy(Topic, contentId, action._id, res);
+                //  如转发新闻更新该新闻的shareBy
+            }   else if ( onModel == 'Article') {
+                getShareBy(Article, contentId, action._id, res);
+            } else if ( onModel =='Action') {
+                getShareBy(Action, contentId, action._id, res);
             }
             
-            
-        })    
+        })        
 })
+
+
+
+function getUserActions(userid, res){
+    Action.find({user:userid})
+        .populate({ path:'likeUsers.user', select:'username userImage'})
+        .populate({ path:'dislikeUsers.user', select:'username userImage'})
+        .populate({
+            path:'shareBy',
+            populate:{path:'user',select:'username userImage'},
+            select:'value date user'
+        })
+        .populate({path:'user', select:'username userImage'})
+        .populate({
+            path:'contentId',
+            populate:[
+                { path:'fromUser',select:'username userImage'},
+                { path:'tags',select:'tag'},
+                { path:'follows.user', select:'username userImage'},
+                { path:'user', select:'username userImage'},
+                { path:'contentId'}
+            ]
+                 
+        })
+        .sort({_id:-1})
+        .then(actions=>{
+            util.responseClient(res, 200, 0, 'ok', actions);
+        })
+}
 
 router.post('/create',upload.array('images'),(req,res)=>{
     var { description, privacy, userid } = req.body;
@@ -199,26 +147,27 @@ router.post('/create',upload.array('images'),(req,res)=>{
     });
     action.save()
         .then(()=>{
-            var promise = new Promise((resolve,reject)=>{
-                userPromise.getUserActions(userid,resolve);
-            });
-            promise.then(actions=>{
-                util.responseClient(res,200,0,'ok',actions);
-            })
+            getUserActions(userid, res);
         })
+})
 
+
+router.get('/getUserActions',(req,res)=>{
+    var { userid } = req.query;
+    getUserActions(userid, res);
 })
 
 function _operateAction( action, id, isCancel, userid, res ){
     var date = new Date().toString();
     var operate = isCancel ? '$pull':'$push';
-    var option = isCancel ? {userid:userid} : {userid,date};
+    var option = isCancel ? {user:userid} : {user:userid,date};
     Action.updateOne({_id:id},{[operate]:{[action+'Users']:option}},(err,result)=>{
-        console.log(result);
-        Action.findOne({_id:id},(err,actionDoc)=>{
-            var data = action == 'like' ? actionDoc.likeUsers : actionDoc.dislikeUsers;
-            util.responseClient(res,200,0,'ok',data);
-        })
+        Action.findOne({_id:id},{likeUsers:1, dislikeUsers:1})
+            .populate({ path:'likeUsers.user', select:'username userImage'})
+            .populate({ path:'dislikeUsers.user', select:'username userImage'})
+            .then(doc=>{
+                util.responseClient(res, 200, 0, 'ok', doc);
+            })
          
     })
 }
@@ -257,9 +206,26 @@ router.get('/getActionContent',(req,res)=>{
 
 router.get('/delete',(req,res)=>{
     var { id } = req.query;
-    Action.deleteOne({_id:id},(err,result)=>{
-        util.responseClient(res,200,0,'ok');
+    Action.findOne({_id:id},(err,doc)=>{
+        var { onModel, contentId } = doc;
+        Action.deleteOne({_id:id},(err,result)=>{
+            if ( onModel ==='Article') {
+                Article.updateOne({_id:contentId},{$pull:{shareBy:id}},(err,result)=>{
+                    util.responseClient(res, 200, 0, 'ok');
+                })
+            } else if ( onModel === 'Topic') {
+                Topic.updateOne({_id:contentId},{$pull:{shareBy:id}},(err, result)=>{
+                    util.responseClient(res, 200, 0, 'ok');
+                })
+            } else if ( onModel === 'Action') {
+                Action.updateOne({_id:contentId},{$pull:{shareBy:id}},(err, result)=>{
+                    util.responseClient(res, 200, 0, 'ok');
+                })
+            }
+        })
+        
     })
+    
 })
 
 module.exports = router;

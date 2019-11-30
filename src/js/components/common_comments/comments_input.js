@@ -82,13 +82,14 @@ class CommentsInput extends React.Component{
                         .then(response=>response.json())
                         .then(json=>{
                             var data = json.data;
-                            var { replies } = data;  
+                            var { commentid, replies } = data;  
                             if (isSub){
                                 if (onUpdateFromSub) onUpdateFromSub(replies);
                             } else {
                                 if (onUpdateReplies) onUpdateReplies(replies);
                             }
                             if (onCloseReply) onCloseReply();
+                            sendActionMsg(values['comments'], userid, commentid, socket);
                         })        
                     }
                     setFieldsValue({'comments':''});

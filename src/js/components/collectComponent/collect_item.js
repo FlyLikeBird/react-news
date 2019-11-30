@@ -37,9 +37,10 @@ export default class CollectItem extends React.Component {
         this.setState({item:data,isCollected,followedBy, userCollected});
     }
     
-    handleAddIntoCollect(id,uniquekey,e){
+    handleAddIntoCollect(id, e){
         e.stopPropagation();
-        fetch(`/api/collect/addIntoCollect?collectId=${id}&contentId=${uniquekey}`)
+        var { uniquekey, onModel } = this.props;
+        fetch(`/api/collect/addIntoCollect?collectId=${id}&contentId=${uniquekey}&onModel=${onModel}`)
             .then(response=>response.json())
             .then(json=>{            
                 var data = json.data;
@@ -66,7 +67,7 @@ export default class CollectItem extends React.Component {
     }
     
     componentWillReceiveProps(newProps){
-        if (this.props.data.id != newProps.data.id){
+        if (this.props.data._id != newProps.data._id){
             var { isCollected, followedBy, userCollected } = newProps.data;
             this.setState({item:newProps.data,isCollected,followedBy, userCollected});
         }
@@ -127,7 +128,7 @@ export default class CollectItem extends React.Component {
     render(){
         var { forUser, forCollect, isSelf, uniquekey, onAddCollect } = this.props;
         var { item, iconType, innerIcon, className, isCollected, followedBy, userCollected, addFlash, motion, visible } = this.state;
-        var { tag, defaultCollect, privacy, content, id } = item;
+        var { tag, defaultCollect, privacy, content, _id } = item;
         return(
             <div className="collect-container">
                 <div className="collect-header" onClick={this.handleShowContent.bind(this)}>
@@ -171,9 +172,9 @@ export default class CollectItem extends React.Component {
                             :
                             isCollected
                             ?
-                            <Button size="small" className="cancel" onClick={this.handleRemoveContent.bind(this,id,uniquekey)} shape="circle" icon="check"/> 
+                            <Button size="small" className="cancel" onClick={this.handleRemoveContent.bind(this,_id,uniquekey)} shape="circle" icon="check"/> 
                             :
-                            <Button size="small" className="add"  onClick={this.handleAddIntoCollect.bind(this,id,uniquekey)} shape="circle" icon="plus"/> 
+                            <Button size="small" className="add"  onClick={this.handleAddIntoCollect.bind(this,_id)} shape="circle" icon="plus"/> 
                         }
                         
                         {
@@ -185,12 +186,12 @@ export default class CollectItem extends React.Component {
                             :
                             isSelf && !forCollect
                             ?
-                            <Button size="small"  onClick={this.handleRemoveCollect.bind(this,id)} shape="circle" icon="close"/> 
+                            <Button size="small"  onClick={this.handleRemoveCollect.bind(this,_id)} shape="circle" icon="close"/> 
                             :
                             
                             // #fadb14  outlined
                             <Tooltip title={userCollected?'取消收藏':'收藏'}>
-                                <Icon type="star" className={addFlash} theme={userCollected?'filled':'outlined'} style={{color:userCollected?'#1890ff':'rgba(0, 0, 0, 0.65)'}} onClick={this.handleFollowCollect.bind(this,id,userCollected?true:'')} />
+                                <Icon type="star" className={addFlash} theme={userCollected?'filled':'outlined'} style={{color:userCollected?'#1890ff':'rgba(0, 0, 0, 0.65)'}} onClick={this.handleFollowCollect.bind(this,_id,userCollected?true:'')} />
                             </Tooltip>
                             
                             :
@@ -204,7 +205,7 @@ export default class CollectItem extends React.Component {
                     {
                         content && content.length
                         ?
-                        <NewsList data={content} collectId={id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
+                        <NewsList data={content} collectId={_id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
                         :
                         <div>还没有收藏任何内容</div>
 

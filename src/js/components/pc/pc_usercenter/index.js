@@ -12,9 +12,6 @@ export default class PCUserCenter extends React.Component{
 			isSelf:false,
 			userFollows:[],
 			userFans:[],
-			userCollects:[],			
-			userActions:[],
-			userComments:[],
 			userHistorys:[],
 			isLoading:true
 		}
@@ -30,8 +27,8 @@ export default class PCUserCenter extends React.Component{
 				//console.log(data);
 				var user = json.data;
 				//console.log(responseData);
-				var { userFollows, userFans, userActions, userHistorys, userCollects, } = user;				
-				this.setState({user, userFollows, userFans, userActions, userCollects,  userHistorys, isSelf,isLoading:false})
+				var { userFollows, userFans, userHistorys,  } = user;				
+				this.setState({user, userFollows, userFans, userHistorys, isSelf,isLoading:false})
 		})
 
 	}
@@ -52,7 +49,7 @@ export default class PCUserCenter extends React.Component{
 	render(){
 		
 		var { socket, history, match, msg, onCheckLogin } = this.props;
-		var { user, userFollows, userFans, userActions, userComments, userHistorys, userCollects,  isSelf, isLoading  } = this.state;
+		var { user, userFollows, userFans, userHistorys, isSelf, isLoading  } = this.state;
 
 		return(
 
@@ -72,11 +69,8 @@ export default class PCUserCenter extends React.Component{
 								<Col span={16} style={{position:'relative',textAlign:'left'}}>									
 									<PCUserCenterContainer 
 										userFollows={userFollows}
-										userFans = {userFans}
-										userActions={userActions}
-										userComments={userComments}
-										userHistorys={userHistorys}
-										userCollects={userCollects}			
+										userFans = {userFans}										
+										userHistorys={userHistorys}												
 										socket={socket}
 										onCheckLogin={onCheckLogin}
 										history={history}

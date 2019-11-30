@@ -4,12 +4,6 @@ import { parseDate, formatDate, translateType } from '../../../utils/translateDa
 
 
 export default class NewsListItem extends React.Component {
-  constructor(){
-      super();
-      this.state = {
-          item:{}
-      }
-  }
   
   handleRemoveHistory( articleId, e){
       e.stopPropagation();

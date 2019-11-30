@@ -100,8 +100,9 @@ export default class CommentComponentButton extends React.Component{
   }
 
   handleDeleteMsg(msgId){
+      console.log(msgId);
       var { socket } = this.props;
-      socket.emit('deleteMsg',userid, msgId);
+      socket.emit('deleteMsg',localStorage.getItem('userid'), msgId);
   }
 
   handleShare(commentid,parentcommentid){
@@ -117,7 +118,6 @@ export default class CommentComponentButton extends React.Component{
   }
 
   handleMarkIsRead(id){
-    console.log(id);
     var { socket } = this.props;
     socket.emit('markActionMsg',localStorage.getItem('userid'),id);
   }
@@ -129,11 +129,8 @@ export default class CommentComponentButton extends React.Component{
       .then(response=>response.json())
       .then(json=>{
           var pageNum = json.data;
-          console.log(history);
-          if (history){   
-              console.log('a');          
-              if (onModel == 'Article') {
-                  console.log('b');
+          if (history){                          
+              if (onModel == 'Article') {                  
                   history.push(`/details/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)                 
               } else if (onModel =='Topic'){
                   history.push(`/topic/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)
@@ -176,7 +173,7 @@ export default class CommentComponentButton extends React.Component{
                   ?
                   <div>
                       <span onClick={this.handleGotoDetail.bind(this, commentid, parentcommentid)} ><span className="text"><Icon type="edit" />回复</span></span>
-                      <span onClick={this.handleMarkIsRead.bind(this, msgId)} ><span className="text"><Icon type="edit" />{ msgRead ? '标为未读':'标为已读'}</span></span>
+                      <span onClick={this.handleMarkIsRead.bind(this, msgId)} ><span className="text"><Icon type="bell" />{ msgRead ? '标为未读':'标为已读'}</span></span>
                       <span onClick={this.handleDeleteMsg.bind(this, msgId)} ><span className="text"><Icon type="close" />删除</span></span>
                   </div>
                   :

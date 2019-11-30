@@ -1,6 +1,7 @@
 var User = require('../../models/User');
 var Message = require('../../models/Message');
 var userPromise = require('../userPromise');
+var util = require('../util');
 
 var onlineUsers = {};
 
@@ -68,10 +69,9 @@ function storeMsg( targetUser, toUser, fromUser, content,resolve){
             })
 }
 
+// 动态消息
 function sendActionMsg( user, sender, commentid, io ){
     var date = new Date().toString();
-    //console.log(user);console.log(sender);console.log(commentid);
-    
     var msg = new Message({
         commentid,
         toUser:sender,
@@ -104,6 +104,11 @@ function getMsg(socket, userid){
                     populate:[
                         { path:'fromUser', select:'username userImage'},
                         { 
+                            path:'replyTo',
+                            populate:{ path:'fromUser',select:'username userImage'},
+                            select:'fromUser'
+                        },
+                        { 
                             path:'related',
                             populate:[
                                 { path:'fromUser',select:'username userImage'},
@@ -124,7 +129,7 @@ function getMsg(socket, userid){
 
             var systemMsg = messages.filter(filterMsgType('system'));
             var userMsg =messages.filter(filterMsgType('user'));
-            var actionMsg = messages.filter(filterMsgType('action'));
+            var actionMsg = messages.filter(filterMsgType('action')).sort(util.sortArr('date'));
 
             msg['userMsg'] = userMsg;
             msg['systemMsg'] = systemMsg;
@@ -216,6 +221,7 @@ function socketIndex(socket,io){
     })
 
     socket.on('markActionMsg',(userid,msgId)=>{
+        console.log(msgId);
         Message.findOne({_id:msgId},(err,doc)=>{
             var isRead = doc.isRead;
             Message.updateOne({_id:msgId},{$set:{isRead:!isRead}},(err,result)=>{

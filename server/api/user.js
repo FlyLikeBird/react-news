@@ -159,59 +159,14 @@ router.get('/getChatList',(req,res)=>{
 	
 })
 
-/*
-
-.then(user=>{
-			var data = {};
-			data.description = user.description;
-			data.level = user.level;
-			data.registertime = user.registerTime;
-			data.username = user.username;
-			data.userImage = user.userImage;
-			var promise1 = new Promise((resolve,reject)=>{
-				userPromise.getUserFollows(user.userFollow,resolve);
-			});
-			var promise2 = new Promise((resolve,reject)=>{
-				userPromise.getUserFollows(user.userFans,resolve);
-			});
-			var promise3 = new Promise((resolve,reject)=>{
-				userPromise.getUserActions(user._id,resolve)
-			});
-			var promise4 = new Promise((resolve,reject)=>{
-				userPromise.getUserComments(user.username,resolve)
-			});
-			var promise5 = new Promise((resolve,reject)=>{
-				userPromise.getUserHistory(userid,resolve);
-			});
-			var promise6 = new Promise((resolve,reject)=>{
-				userPromise.getUserCollect(userid,resolve,isSelf);
-			});
-			
-			Promise.all([promise1,promise2,promise3,promise4,promise5,promise6])
-				.then(([follows,fans,actions,comments,userHistory,userCollect])=>{
-					data.userFollow = follows;
-					data.userFans = fans;
-					data.userAction = actions;
-					data.userHistory = userHistory;
-					data.userCollect = userCollect;			
-					data.comments = comments;
-					util.responseClient(res,200,0,'ok',data);
-
-				})			
-		})
-*/
-
 router.get('/usercenter',(req,res)=>{
 	let { userid, isSelf } = req.query;
 	User.findOne({_id:userid},{password:0,message:0})
 		.populate({path:'userFollows', select:'username level userImage userFans userFollow description'})
 		.populate({path:'userFans', select:'username level userImage userFans userFollow description'})
-		.populate({path:'userActions'})
-		.populate({path:'userCollects'})
 		.then(data=>{
 			util.responseClient(res, 200, 0, 'ok', data);
 		})
-	
 })
 
 router.get('/getUserInfo',(req,res)=>{

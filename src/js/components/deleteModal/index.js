@@ -19,7 +19,7 @@ export default class DeleteModal extends React.Component{
                 }
             }
         })
-    } else if ( deleteType === 'action'){
+    } else if ( deleteType === 'Action'){
         fetch(`/api/action/delete?id=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{

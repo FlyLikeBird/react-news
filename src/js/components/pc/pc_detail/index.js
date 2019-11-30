@@ -3,7 +3,7 @@ import { Row, Col, BackTop, Button, Icon, Popover, Modal, Spin } from 'antd';
 
 import CommentsListContainer from '../../common_comments/comments_list_container';
 import ArticleAction from './pc_detail_article_action';
-
+import SideBar from '../../side_bar';
 
 export default class PCNewsDetails extends React.Component {
 	constructor(props){
@@ -75,7 +75,7 @@ export default class PCNewsDetails extends React.Component {
 							<Spin size="large"/>
 							:
 							<Row>								
-								<Col span={18} style={{position:'relative',textAlign:'left'}}>
+								<Col span={18} style={{position:'relative',textAlign:'left', paddingRight:'30px'}}>
 									<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
 									<div>
 										<ArticleAction uniquekey={uniquekey} onCheckLogin={onCheckLogin} item={newsItem} history={history}/> 
@@ -83,11 +83,8 @@ export default class PCNewsDetails extends React.Component {
 									</div>
 									
 								</Col>	
-								<Col span={6} style={{marginLeft:'10px'}}>
-									{/*
-										<PCNewsImageBlock count={40} type="top" width="100%" cardTitle="相关新闻" imageWidth="130px" />
-										*/
-									}
+								<Col span={6}>
+									<SideBar />									
 								</Col>
 							</Row>
 						}

@@ -10,6 +10,7 @@ import PCRouter from './js/components/pc/pc_index';
 import MobileRouter from './js/components/mobile/mobile_root';
 import LoginContainer from './js/components/login_container';
 
+import 'antd/dist/antd.css';
 
 export default class Root extends React.Component {
   constructor(){

@@ -128,7 +128,11 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
                             }
                         ]
                     }) 
-                    .then(data=>{
+                    .then(doc=>{
+                        var { replies } = doc;
+                        var data = {};
+                        data.commentid = comment._id;
+                        data.replies = replies;
                         util.responseClient(res, 200, 0, 'ok', data);
                     })
             })

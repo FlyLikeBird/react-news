@@ -2,22 +2,10 @@ import React from 'react';
 import { Link  } from 'react-router-dom';
 import { Card, Icon, Spin } from 'antd';
 
-const { Meta } = Card;
+import style from './style.css';
 
 export default class PCNewsBlock extends React.Component {
-	constructor(){
-		super();
-		this.state = {
-			newsListWithoutHot:[],
-			newsList:[],
-			newsImg:'',
-			newsTitle:'',
-			newsId:'',
-			scrollStyle:{}
-			
-		}
-	}
-
+	
 	loadNewsList(){
 
 		if ( this.props.isTopic){
@@ -44,47 +32,7 @@ export default class PCNewsBlock extends React.Component {
 
 		} else {
 
-		fetch('/api/article/getArticleTitle?type='+this.props.type+"&count="+this.props.count)
-		.then(response=>response.json())
-		.then(json=>{
-			
-				//console.log(json);
-				var data = json.data;
-				const newsList = data.length
-								?
-								data.map((newsItem,index)=>(
-									<li key={index} className="news-item">
-										
-											{
-												(()=>{
-													
-													switch (index) {
 		
-														case 0:return <div><span className="order-num">1</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														case 1:return <div><span className="order-num">2</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														case 2:return <div><span className="order-num">3</span><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-														default:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>;break;
-													}
-												})(index)
-											}
-										
-									</li>
-							    ))	
-								:
-								'没有加载到新闻!';
-								
-				var newsListWithoutHot = data.map((newsItem,index)=>(
-								<li key={index} className="news-item">
-									
-										
-									<div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${newsItem.uniquekey}`}>{ newsItem.title}</Link></div>
-												
-								</li>
-							    ))	
-				
-				this.setState({newsList,newsListWithoutHot});
-
-			})
 		}
 	}
 
@@ -92,106 +40,63 @@ export default class PCNewsBlock extends React.Component {
 		this.loadNewsList();		
 	}
 	
-	componentWillReceiveProps(newProps){
-		var { reload } = newProps;
-		if (reload){
-			var prevNewsList = this.state.newsList;
-			var nextIndex = prevNewsList.length - 1;
-			var addNewsList = this.state.newsListWithoutHot;
-			addNewsList = addNewsList.map(item=>{
-				var obj = {};
-				return {...item,key:++nextIndex}
-			})
-			var finalArr = [...prevNewsList,...addNewsList];
-			
-			setTimeout(()=>{
-				this.setState({newsList:finalArr});
-				if (this.props.onReload){
-				this.props.onReload();
-			}
-			},500)
-			
-		}
-	}
 	
 	render() {
 		
-		const { newsList } = this.state;
-
-		const linkStyle = {
-			    backgroundColor: '#1890ff',
-    			padding: '4px 10px',
-    			color: '#fff',
-    			borderRadius: '14px',
-    			display: 'inline-block',
-    			transform: 'scale(0.7)',
-
-		}
-
-		const titleContent = this.props.title
-							?
-
-							this.props.isTopic
-							?
-							<span>
-								<Icon type="message" theme="filled" className="motion"/>
-								{this.props.title}
-							</span>
-							:
-							<span>
-								<Icon type="fire" theme="filled" className="motion"/>
-								{this.props.title}
-							</span>
-							:
-							null;
-
-		const extraContent = this.props.title
-							?
-							this.props.isTopic
-							?							
-							<Link style={linkStyle} to={`/topicIndex`}>进入话题中心<Icon type="right-circle" /></Link>							
-							:							
-							<Link style={linkStyle} to={`/topNews`}>查看更多新闻<Icon type="right-circle" /></Link>
-							:
-							null;
-
-						
+		var { data, title, forTopic, hasImg, fixPosition, fixWidth } = this.props;
+		
 		return(
 			
-			<Card 
-				width={this.props.width}
-				className="topNewsList" 
-				title={titleContent} 
-				bordered={false} 
-				extra={extraContent}				
-			>
-				<Meta
-					description={
-						<div>
-							{	
-								this.props.hasImg
-								?
-								<div className="img-container"  style={this.props.scrollStyle} ref={img=>this.imgContainer = img}>
-									<Link to={`/details/${this.state.newsId}`}>
-										<img src={this.state.newsImg}/>
-										<span className="newsList-title">{this.state.newsTitle}</span>
-										<span className="tags">{this.props.newsListTitle}</span>
-									</Link>
-								</div>
-								:
-								null
-							}
-							
-							<ul>
-								{ newsList? newsList:'新闻正在加载中……' }
-							</ul>
-								
-							
-						</div>
-					}
-				/>
+			<div className={style["news-list-container"]}>
+				{
+					hasImg
+					?
+					<div style={{ width:fixWidth}} className={ fixPosition ? style["fixed"] + " " + style["img-container"] : style["img-container"] }>
+						<div className={style["bg"]} style={{backgroundImage:`url(${data[0].thumbnails[0]})`}}></div>
+						<span className={style["tags"]}>{data[0].type}</span>
+						<span className={style["desc"]}>{data[0].title}</span>
+					</div>
+					:
+					<div className={style["title-container"]}>
+						{
+							forTopic
+							?
+							<Icon type="message" theme="filled" className="motion"/>
+							:
+							<Icon type="fire" theme="filled" className="motion"/>
+						}
+						<span className={style["title"]}>{ title } </span>
+						<span className={style.button}><Link to={ forTopic ? '/topicIndex':'/topNews'} >{ forTopic ? "查看更多话题":"查看更多新闻"}<Icon type="right-circle" /></Link></span>
+					</div>
+				}
 				
-			</Card>
+				<div>					
+						{
+							data && data.length
+							?
+							<ul>
+								{
+									data.map((item,index)=>(
+											<li key={index} className={style["news-item"]}>												
+												{
+													(()=>{														
+														switch (index) {			
+															case 0:return <div><span className={style["order-num"]}>1</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+															case 1:return <div><span className={style["order-num"]}>2</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+															case 2:return <div><span className={style["order-num"]}>3</span><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+															default:return <div><Icon type="link" style={{paddingRight:'4px'}}/><Link to={`/details/${item._id}`}>{ item.title}</Link></div>;break;
+														}
+													})(index)
+												}												
+											</li>
+									))
+								}
+							</ul>	
+							:
+							<span>没有加载到新闻!</span>
+						}					
+				</div>
+			</div>
 			
 
 

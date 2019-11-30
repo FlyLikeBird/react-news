@@ -82,60 +82,7 @@ function getUserFollows(ids,resolve){
     })    
 }
 
-function _translateAction(action,resolve){
-    var promise = new Promise((resolve,reject)=>{
-        User.findOne({_id:action.userid},(err,user)=>{
-            var obj = {};
-            obj.username = user.username;
-            obj.avatar = user.userImage;
-            obj.userLevel = user.level;
-            obj.contentType = action.contentType;
-            obj.contentId = action.contentId;
-            obj.composeAction = action.composeAction;
-            obj.isCreated = action.isCreated;
-            obj.date = action.date;
-            obj.text = action.text;
-            obj.images = action.images;
-            obj.value = action.value;
-            obj.userid = action.userid;
-            obj.id = action._id;
-            obj.innerAction = action.innerAction;
-            obj.likeUsers = action.likeUsers;
-            obj.dislikeUsers = action.dislikeUsers;
-            obj.shareBy = action.shareBy;
-            resolve(obj);
-        })
-    });
-    promise.then(action=>{
-        Comment.find({uniquekey:action.id},(err,comments)=>{
-            action.comments = comments.length;
-            resolve(action);
-        })
-    })
-    
-}
 
-function getActionsInfo(actions,resolve){
-    var allPromises = [];
-    for(var i=0,len=actions.length;i<len;i++){
-      (function(i){
-          var promise = new Promise((resolve,reject)=>{
-              _translateAction(actions[i],resolve);
-          });
-          allPromises.push(promise);
-      })(i)
-    }
-    Promise.all(allPromises)
-      .then(data=>{
-          resolve(sort(data,'date'));
-      })   
-}
-
-function getUserActions(userid,resolve){    
-    Action.find({userid:userid},(err,actions)=>{
-        getActionsInfo(actions,resolve);  
-    })
-}
 
 function getUserComments(username,resolve){
 
@@ -286,25 +233,12 @@ function getFollowedCollect(userid, resolve){
     })
 }
 
-function getUserActionMsg(msgDoc,resolve){
-    var obj = {},commentid = msgDoc.commentid;
-    obj.username = msgDoc.fromUser;
-    obj._id = msgDoc._id;
-    obj.date = msgDoc.msgtime;
-    obj.isRead = msgDoc.isRead;
-    resolve(obj);
-    
-
-}
 
 module.exports = {
     getUserFollows,
-    getUserActions,
     getUserComments,
     getUserHistory,
     getUserCollect,
     getFollowedCollect,
-    translateUserCollect,
-    getUserActionMsg,
-    getActionsInfo
+    translateUserCollect
 }

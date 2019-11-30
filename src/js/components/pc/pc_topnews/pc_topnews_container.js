@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from 'antd';
-import PCNewsBlock from './pc_news_block';
+import PCNewsBlock from '../../news_block';
 
 class PCNewsBlockItem extends React.Component {
 

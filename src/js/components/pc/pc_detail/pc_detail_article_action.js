@@ -12,12 +12,10 @@ export default class ArticleAction extends React.Component {
             collectVisible:false,
             shareVisible:false,
             rateVisible:false,
-            userCollect:[],
             shareBy:[],
             viewUsers:[],
             rateCaret:'caret-down',
             shareByCaret:'caret-down',
-
             collectLoaded:false,
             CollectContainer:null
 
@@ -26,11 +24,12 @@ export default class ArticleAction extends React.Component {
     
     componentDidMount(){
         var { item } = this.props;
-        
-        
+        var { shareBy, viewUsers } = item;
+        this.setState({shareBy, viewUsers});
     }
-    
+
     updateShareBy(data){
+        console.log(data);
         this.setState({shareBy:data});
     }
     
@@ -39,7 +38,10 @@ export default class ArticleAction extends React.Component {
     }
 
     handleShareVisible(boolean){
-        this.setState({shareVisible:boolean})
+        var { onCheckLogin } = this.props;
+        if ( onCheckLogin()){
+            this.setState({shareVisible:boolean})
+        }      
     }
 
     handleRateVisible(){
@@ -72,12 +74,11 @@ export default class ArticleAction extends React.Component {
             } else {
                 this.setState({shareByCaret:'caret-down'})
             }
-        }
-        
+        }    
     }
 
     render(){
-        var { collectVisible, shareVisible, rateVisible, userCollect, shareBy, viewUsers, rateCaret, shareByCaret, CollectContainer } = this.state;
+        var { collectVisible, shareVisible, rateVisible, shareBy, viewUsers, rateCaret, shareByCaret, CollectContainer } = this.state;
         var { uniquekey, item, history } = this.props;
 
         return (
@@ -93,7 +94,7 @@ export default class ArticleAction extends React.Component {
                     <Button className="left" type="primary" size="small" icon="smile" onClick={this.handleRateVisible.bind(this)}>看完此文章</Button>
                     <span className="line"></span>
                     <Popover autoAdjustOverflow={false} placement="bottom" onVisibleChange={this.handleChangeCaret.bind(this,'rateCaret')} content={<TopicItemPopover data={viewUsers} history={history} text="发布" forRate={true}/>}>
-                        <Button type="primary" size="small" icon={rateCaret} className="right"></Button>
+                        <Button type="primary" size="small" className="right"><span>{viewUsers.length}人发布心情 <Icon type={rateCaret} /></span></Button>
                     </Popover>
                 </div>   
                 
@@ -101,7 +102,7 @@ export default class ArticleAction extends React.Component {
                     { 
                         CollectContainer
                         ?
-                        <CollectContainer data={userCollect} uniquekey={uniquekey} isSelf={true}/>
+                        <CollectContainer uniquekey={uniquekey} isSelf={true} onModel="Article"/>
                         :
                         null
                     }
@@ -109,19 +110,20 @@ export default class ArticleAction extends React.Component {
                 <Modal className="score-container" visible={rateVisible} footer={null} onCancel={this.handleRateVisible.bind(this)}>
                     <PCDetailRate uniquekey={uniquekey} onVisible={this.handleRateVisible.bind(this)} onUpdateViewUsers={this.updateViewUsers.bind(this)}/>
                 </Modal>
-                <ShareModal 
-                    visible={shareVisible}
-                    contentType="news"
-                    uniquekey={uniquekey}      
-                    onVisible={this.handleShareVisible.bind(this)} 
-                    onUpdateShareBy={this.updateShareBy.bind(this)}
-                    actionInfo={{
-                        contentType:'news'
-
-                    }}
-                />
-
-                   
+                {
+                    shareVisible
+                    ?
+                    <ShareModal 
+                        visible={shareVisible}
+                        onModel="Article"
+                        uniquekey={uniquekey}      
+                        onVisible={this.handleShareVisible.bind(this)} 
+                        onUpdateShareBy={this.updateShareBy.bind(this)}
+                        item={item}
+                    />
+                    :
+                    null
+                }                  
             </div>
         )
         

@@ -5,6 +5,16 @@ var config = require('../config/config.js');
 var secret = require('../src/utils/secret');
 
 /*
+
+  数据库初始化逻辑
+*/
+function reset(){
+    Article.updateMany({},{$set:{shareBy:[],viewUsers:[]}},(err,result)=>{
+
+    });
+
+}
+/*
     去掉文章里过期的图片资源
 */
 function deleteArticleImg(content){
@@ -155,5 +165,6 @@ module.exports = {
     changeArticlesContents,
     addThumbnails,
     resetArticles,
-    createTestData
+    createTestData,
+    reset
 }

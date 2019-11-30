@@ -3,6 +3,7 @@
  */
 
 var mongoose = require('mongoose');
+var config = require('../config/config');
 var Schema = mongoose.Schema;
 
 module.exports = new Schema({
@@ -18,7 +19,7 @@ module.exports = new Schema({
     message:[{type:Schema.Types.ObjectId, ref:'Message'}],
     description:{type:String,default:'还未设置签名～'},
     level:{type:Number,default:0},
-    userImage:{type:String,default:"https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"},
+    userImage:{type:String,default:`${config.uploadPath}/defaultAvatar.jpg`},
     registerTime:{type:String,default:''},
     loginTime:{type:String,default:''},
     lastLoginTime:{type:String,default:''},

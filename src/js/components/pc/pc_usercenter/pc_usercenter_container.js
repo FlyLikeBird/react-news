@@ -52,14 +52,14 @@ export default class PCUserCenterContainer extends React.Component{
 
     render(){
         var { loadChart, loadUserComment, loadUserTopic, UserComment, UserTopic, UserChart } = this.state;
-        var { userFollows, userFans, userActions, userComments, userHistorys, followedCollect, socket, history, match, isSelf, msg, onCheckLogin } = this.props;
+        var { userFollows, userFans, userHistorys, socket, history, match, isSelf, msg, onCheckLogin } = this.props;
         
         return(
 
                 <div>
                     <Tabs onChange={this.handleChangeTabs.bind(this)} className="usercenter-tabs" style={{paddingLeft:'10px'}} defaultActiveKey="action" tabPosition="left">
                             <TabPane tab={<span><Icon type="share-alt" />{isSelf?"我的动态":"TA的动态"}</span>} key="action" className="background-color">
-                                <UpdateContainer data={userActions} history={history} socket={socket} isSelf={isSelf}/>
+                                <UpdateContainer match={match} history={history} socket={socket} isSelf={isSelf} onCheckLogin={onCheckLogin}/>
                             </TabPane>
                             <TabPane tab={<span><Icon type="container" />{isSelf?"我的关注":"TA的关注"}</span>} key="follow"> 
                                 <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFollows} text="follow"/>
@@ -71,7 +71,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf
                                 ?
                                 <TabPane tab={<Badge className="message-info" count={msg.total}><span><Icon type="notification" />我的消息</span></Badge>} key="message">
-                                    <MessageContainer socket={socket} msg={msg}/>
+                                    <MessageContainer history={history} socket={socket} msg={msg}/>
                                 </TabPane>
                                 :
                                 null
@@ -87,7 +87,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf 
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="file-search" />我的评论</span>} key="comment">
-                                    <UserComment socket={socket} data={userComments} history={history} onCheckLogin={onCheckLogin} text="还没有发布过任何评论!" />
+                                    <UserComment socket={socket} history={history} onCheckLogin={onCheckLogin} text="还没有发布过任何评论!" />
                                 </TabPane>
                                 :
                                 null

@@ -1,16 +1,36 @@
 import React from 'react';
-import { Row, Col, Tabs, Icon, Card } from 'antd';
+import { Row, Col, Tabs, Icon, Card, Spin } from 'antd';
 
-import PCNewsBlock from './pc_news_block';
-import PCNewsImageBlock from './pc_news_image_block';
+import PCNewsBlock from '../news_block';
+import PCNewsImageBlock from '../news_image_block';
 import PCProduct from './pc_product';
 import AutoCarousel from '../autoCarousel';
 
 const TabPane = Tabs.TabPane;
 
 export default class PCNewsContainer extends React.Component {
+	constructor(){
+		super();
+		this.state = {
+			newsList:[],
+			topList:[],
+			isLoading:true
+		}
+	}
+
+	componentDidMount(){
+		fetch(`/api/article/getArticleTitle?type=yule&count=10`)
+			.then(response=>response.json())
+			.then(json=>{
+				var { data } = json;
+				this.setState({newsList:data, isLoading:false})
+			})
+
+	}
+
 	render() {
 		var { history } = this.props;
+		var { newsList, topList, isLoading } = this.state;
 		return(
 
 			<section style={{paddingTop:'30px'}}>
@@ -23,14 +43,22 @@ export default class PCNewsContainer extends React.Component {
 						</div>
 						*/}
 						<div>
-							<div style={{width:'64%',float:'left',display:'flex'}}>
+							<div style={{width:'64%',float:'left'}}>
+								{
+									isLoading
+									?
+									<Spin/>
+									:
+									<div style={{display:'flex'}}>
+										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
+											<PCNewsBlock title="本周热门新闻" data={newsList}/>
+										</div>
+										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
+											<PCNewsBlock type="yule" title="本周热门话题" isTopic/>
+										</div>
+									</div>
+								}
 								
-								<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-									<PCNewsBlock type="yule" title="本周热门新闻" count={10}/>
-								</div>
-								<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-									<PCNewsBlock type="yule" title="本周热门话题" count={10} isTopic/>
-								</div>
 								
 							</div>
 							<div style={{width:'36%',float:'left'}}>
