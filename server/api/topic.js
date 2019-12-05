@@ -93,31 +93,6 @@ var storage = multer.diskStorage({
 });
 var upload = multer({storage});
 
-
-function handleFollowTopic( userid, topicId, isCancel, res){
-    var operate = isCancel ? '$pull' : '$push';
-    var option = isCancel ? { userid : userid } : { userid :userid ,date:new Date().toString()};  
-     
-    User.updateOne({_id:userid},{[operate]:{userTopic:topicId}},(err,result)=>{
-            Topic.updateOne({_id:topicId},{[operate]:{follows:option}},(err,result)=>{ 
-                Topic.findOne({_id:topicId},(err,topic)=>{                    
-                    util.responseClient(res,200,0,'ok',topic.follows)
-                })                              
-            })            
-        })
-    
-    /*
-    User.updateOne({_id:userid},{$pull:{userTopic:{}}},(err,result)=>{
-        Topic.updateOne({_id:topicId},{$pull:{follows:{}}},(err,result)=>{
-            console.log(result);
-            util.responseClient(res,200,0,'ok')
-        })
-    })
-    */
-    
-}
-
-
 /*
 
 [ { fieldname: 'images',
@@ -143,6 +118,7 @@ router.post('/upload',upload.array('images'),(req,res)=>{
         });
     }    
      //  判断用户是否添加了新标签
+    tags = tags ? tags.map ? tags : [tags] : [];
     var promise = new Promise((resolve,reject)=>{
         checkIsNewTags(tags,resolve);
     });
@@ -152,7 +128,7 @@ router.post('/upload',upload.array('images'),(req,res)=>{
             title,
             description,
             date,
-            fromUser:userid,
+            user:userid,
             privacy,
             images, 
             tags  
@@ -166,38 +142,24 @@ router.post('/upload',upload.array('images'),(req,res)=>{
     })  
 })
 
-function getTopicComments(topic, resolve){
-    Comment.find({'uniquekey':topic._id},(err,comments)=>{
-        topic.replies = comments.length;
-        resolve(topic);
-    })
-}
-
-function getAllOrUserTopics(res, userid, topicId){
-    var option = topicId ? {_id:topicId} : userid ? { fromUser:userid} :{};
+function getAllOrUserTopics(res, userid, topicId, someTopics){
+    var option = someTopics ? { _id:{$in:someTopics}} : topicId ? {_id:topicId} : userid ? {user:userid} : {privacy:0};
     Topic.find(option)
-        .populate({path:'fromUser', select:'username userImage'})
+        .populate({path:'user', select:'username userImage'})
         .populate({path:'tags',select:'tag'})
         .populate({
-            path:'follows'
+            path:'follows.user',
+            select:'username userImage'
         })
         .populate({
-            path:'shareBy'
+            path:'shareBy',
+            populate:{ path:'user', select:'username userImage'},
+            select:'date user value'
         })
         // 话题按生成时间排序
-        .sort({date:-1})
-        .then(topics=>{
-            var allPromises = [];
-            topics.map(item=>{
-                var promise = new Promise((resolve,reject)=>{
-                    getTopicComments(item,resolve);
-                });
-                allPromises.push(promise);
-            });
-            Promise.all(allPromises)
-                .then(topics=>{
-                    util.responseClient(res, 200, 0, 'ok', topics);
-                })
+        .sort({_id:-1})
+        .then(topics=>{           
+            util.responseClient(res, 200, 0, 'ok', topics);                
         })
 }
 
@@ -210,42 +172,34 @@ router.get('/getAllTopics',(req,res)=>{
     getAllOrUserTopics(res);
 })
 
-
 router.get('/getTopicsByTag',(req,res)=>{
     var { id } = req.query;
-    Tag.findOne({_id:id},(err,tag)=>{
-        var topicIds = tag.content;
-        Topic.find({_id:{$in:topicIds}},(err,topics)=>{
-            getAllTopics(topics,res);
+    Tag.findOne({_id:id})
+        .then(doc=>{
+            var topicIds = doc.content;
+            getAllOrUserTopics(res, null, null, topicIds);
         })
-    })
-})
 
-router.get('/checkTopicIsFollowed',(req,res)=>{
-    var { userid, topicId } = req.query;
-    User.findOne({_id:userid},(err,user)=>{
-        if (user){
-            var topicIds = user.userTopics;
-            if(topicIds.includes(topicId)){
-                util.responseClient(res,200,0,'ok');
-            } else {
-                util.responseClient(res,200,1,'ok');
-            }
-        } else {
-            util.responseClient(res,200,1,'ok');
-        }
-
-    })
 })
 
 router.get('/getTopicDetail',(req,res)=>{
     var { topicId } = req.query;
-    getAllOrUserTopics(res, null, topicId);
+    Topic.updateOne({_id:topicId},{$inc:{view:1}},(err,result)=>{
+        getAllOrUserTopics(res, null, topicId);
+    })  
 })
 
 router.get('/followTopic',(req,res)=>{
-    var { userid, topicId, isCancel } = req.query;  
-    handleFollowTopic(userid, topicId, isCancel, res);   
+    var { userid, topicId, isCancel } = req.query; 
+    var date = new Date().toString(); 
+    var operation = isCancel ? '$pull' : '$push';
+    var option = isCancel ? {user:userid} : { user:userid, date};
+    User.updateOne({_id:userid},{[operation]:{userTopics:topicId}},(err,result)=>{
+        Topic.updateOne({_id:topicId},{[operation]:{follows:option}},(err,result)=>{
+            //console.log(result);
+            getAllOrUserTopics(res, null, topicId);
+        })
+    })
 })
 
 router.get('/removeTopic',(req,res)=>{

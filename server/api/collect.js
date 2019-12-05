@@ -4,13 +4,30 @@ var userPromise = require('../userPromise');
 var util = require('../util');
 var User = require('../../models/User');
 var Collect = require('../../models/Collect');
+var CollectItem = require('../../models/CollectItem');
 var Article = require('../../models/Article');
 
-function getUserCollect(userid, res){
-    Collect.find({user:userid})
+function getUserOrSingleCollect(res, userid, collectId){
+    var option = collectId ? { _id:collectId} : userid ? { user:userid} : {};
+    Collect.find(option)
         .populate({
-            path:'content'
+            path:'collectItem',
+            populate:{ 
+                path:'contentId',
+                populate:[
+                    { path:'tags', select:'tag'},
+                    { path:'follows.user', select:'username userImage'},
+                    { path:'user', select:'username userImage'},
+                    { path:'shareBy', populate:{path:'user', select:'username userImage'}, select:'date value user'}
+                ]
+            }
         })
+        .populate({
+            path:'shareBy',
+            populate:{ path:'user', select:'username userImage'},
+            select:'value date user'
+        })
+        .populate({ path:'followedBy'})
         .then(collects=>{
             util.responseClient(res, 200, 0, 'ok', collects);
         })
@@ -18,7 +35,7 @@ function getUserCollect(userid, res){
 
 router.get('/createCollect',(req,res)=>{
     var { userid, tag, privacy } = req.query;    
-    Collect.find({userid:userid},(err,collects)=>{
+    Collect.find({user:userid},(err,collects)=>{
       var tags = collects.map(item=>item.tag);
       if (!tags.includes(tag)){
           var collect = new Collect({
@@ -28,7 +45,7 @@ router.get('/createCollect',(req,res)=>{
               privacy
             });
             collect.save(function(err){
-                getUserCollect(userid, res);
+                getUserOrSingleCollect(res, userid);
             })
       } else {
           util.responseClient(res,200, 1,'已存在同名的收藏夹!');
@@ -38,40 +55,24 @@ router.get('/createCollect',(req,res)=>{
 
 router.get('/getUserCollect',(req,res)=>{
     var { userid } = req.query;
-    getUserCollect(userid, res);
+    getUserOrSingleCollect(res, userid);
 })
 
-
-router.get('/checkContentExist',(req,res)=>{
-  var { uniquekey, userid } = req.query;
-  Collect.findOne({_id:id},(err,collect)=>{
-    var contentIds = collect.content.map(item=>item.id);
-
-    if (contentIds.includes(uniquekey)){
-        util.responseClient(res,200,0,'收藏夹已经收藏该内容!');
-    } else {
-        util.responseClient(res,200,1,'');
-    }
-
-  })
-})
 
 router.get('/addIntoCollect',(req,res)=>{
     var { contentId, collectId, onModel } = req.query;
     var date = new Date().toString();
-    var content = {
+    var collectItem = new CollectItem({
         addtime:date,
         contentId,
         onModel
-    };
-    
-    Collect.updateOne({_id:collectId},{$push:{content:content}},(err,result)=>{
-        Collect.findOne({_id:collectId})
-            .then(doc=>{
-                var { content } = doc;
-                util.responseClient(res, 200, 0, 'ok', content);
-            })
-    })
+    });
+
+    collectItem.save(function(err){
+        Collect.updateOne({_id:collectId},{$push:{collectItem:collectItem._id}},(err,result)=>{
+            getUserOrSingleCollect(res, null, collectId);
+        })
+    })  
 })
 
 router.get('/followCollect',(req,res)=>{
@@ -87,17 +88,6 @@ router.get('/followCollect',(req,res)=>{
       option = {userid}
     }
 
-    /*
-    Collect.updateOne({_id:collectId},{$set:{followedBy:[]}},(err,result)=>{
-      console.log(result);
-      User.updateOne({_id:userid},{$set:{userCollect:[]}},(err,result)=>{
-          Collect.findOne({_id:collectId},(err,collect)=>{
-                util.responseClient(res,200,0,'ok',collect.followedBy);           
-            }) 
-      })
-    })
-    */
-    
     User.updateOne({_id:userid},{[operation]:{userCollect:collectId}},(err,result)=>{
         Collect.updateOne({_id:collectId},{[operation]:{followedBy:option}},(err,result)=>{
             Collect.findOne({_id:collectId},(err,collect)=>{
@@ -129,18 +119,23 @@ router.get('/removeCollect',(req,res)=>{
 })
 
 router.get('/removeCollectContent',(req,res)=>{
-  var { collectId, contentId } = req.query;
-  Collect.updateOne({'_id':collectId},{$pull:{content:{id:contentId}}},(err,result)=>{
-      Collect.findOne({_id:collectId},(err,collect)=>{
-            var promise = new Promise((resolve,reject)=>{
-                userPromise.translateUserCollect(collect,resolve);
+    var { collectId, contentId } = req.query;
+    Collect.findOne({_id:collectId})
+        .populate({ path:'collectItem'})
+        .then(doc=>{
+            var { collectItem } = doc;
+            var deleteId = '';
+            collectItem.map((item, index)=>{
+                if (item.contentId == contentId){
+                    deleteId = item._id;
+                }
             });
-            promise.then(data=>{
-                util.responseClient(res,200,0,'ok',data);
+            CollectItem.deleteOne({_id:deleteId},(err,result)=>{
+                Collect.updateOne({_id:collectId}, {$pull:{collectItem:deleteId}},(err,result)=>{
+                    getUserOrSingleCollect(res, null, collectId);
+                })
             })
-            
-        }) 
-  })
+        })
 })
 
 module.exports = router;

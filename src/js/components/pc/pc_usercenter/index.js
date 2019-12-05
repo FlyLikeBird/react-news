@@ -69,7 +69,8 @@ export default class PCUserCenter extends React.Component{
 								<Col span={16} style={{position:'relative',textAlign:'left'}}>									
 									<PCUserCenterContainer 
 										userFollows={userFollows}
-										userFans = {userFans}										
+										userFans = {userFans}
+										user={user}										
 										userHistorys={userHistorys}												
 										socket={socket}
 										onCheckLogin={onCheckLogin}

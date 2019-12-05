@@ -4,6 +4,7 @@ import {  Row, Col, Spin  } from 'antd';
 import UpdateItem from '../../update_list/update_list_item';
 import CommentsListContainer from '../../common_comments/comments_list_container';
 import ShareModal from '../../shareModal';
+import Sidebar from '../../side_bar';
 
 export default class PCActionContainer extends React.Component{
     constructor(){
@@ -17,13 +18,12 @@ export default class PCActionContainer extends React.Component{
     }
 
     componentDidMount(){
-        var uniquekey = this.props.match.params.id;   
-        console.log(uniquekey);    
+        var uniquekey = this.props.match.params.id;       
         fetch(`/api/action/getActionContent?contentId=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                this.setState({data,isLoading:false});
+                this.setState({ data:data && data[0],isLoading:false});
             })
         
     }
@@ -38,9 +38,8 @@ export default class PCActionContainer extends React.Component{
     }
 
     render(){
-        var uniquekey = this.props.match.params.id;
-        
-        var { history, location, socket, onSetScrollTop } = this.props;
+        var uniquekey = this.props.match.params.id;       
+        var { history, location, socket, onCheckLogin, onSetScrollTop } = this.props;
         var { isLoading, data, actionInfo, shareVisible } = this.state;
        
         return(
@@ -48,10 +47,9 @@ export default class PCActionContainer extends React.Component{
             <div>               
                 <Row style={{paddingTop:'30px'}}>
                     <Col span={2}></Col>                   
-                    <Col span={4}>
-                    </Col>
-                    <Col span={16}>
-                        <div>
+                    <Col span={5}><Sidebar/></Col>
+                    <Col span={15}>
+                        <div style={{paddingLeft:'50px',textAlign:'left'}}>
                             {
                                 isLoading
                                 ?
@@ -60,11 +58,24 @@ export default class PCActionContainer extends React.Component{
                                 <UpdateItem                               
                                     data={data} 
                                     history={history} 
-                                    forDetail={true}
-                                    socket={socket} 
+                                    forSimple={true}
+                                    socket={socket}
+                                    onCheckLogin={onCheckLogin} 
                                     onShareVisible={this.handleShareVisible.bind(this)}
                                 />
                             }
+                            <div style={{margin:'20px 0'}}>
+                                <CommentsListContainer 
+                                    history={history}
+                                    location={location}
+                                    socket={socket}
+                                    onCheckLogin={onCheckLogin} 
+                                    uniquekey={uniquekey} 
+                                    onSetScrollTop={onSetScrollTop} 
+                                    commentType="Topic" 
+                                    warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
+                                />
+                            </div>
                             {
                                 shareVisible
                                 ?

@@ -52,7 +52,7 @@ export default class PCUserCenterContainer extends React.Component{
 
     render(){
         var { loadChart, loadUserComment, loadUserTopic, UserComment, UserTopic, UserChart } = this.state;
-        var { userFollows, userFans, userHistorys, socket, history, match, isSelf, msg, onCheckLogin } = this.props;
+        var { user, userFollows, userFans, userHistorys, socket, history, match, isSelf, msg, onCheckLogin } = this.props;
         
         return(
 
@@ -77,7 +77,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 null
                             }                            
                             <TabPane tab={<span><Icon type="book" />{isSelf?"我的收藏":"TA的收藏"}</span>} key="collect">
-                                <CollectContainer isSelf={isSelf} match={match} forUser={true}/>
+                                <CollectContainer isSelf={isSelf} match={match} forUser={true} user={user._id}/>
                             </TabPane>
                             
                             <TabPane tab={<span><Icon type="message" />{isSelf?"我的话题":"TA的话题"}</span>} key="topic">
@@ -87,7 +87,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf 
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="file-search" />我的评论</span>} key="comment">
-                                    <UserComment socket={socket} history={history} onCheckLogin={onCheckLogin} text="还没有发布过任何评论!" />
+                                    <UserComment socket={socket} history={history} onCheckLogin={onCheckLogin} />
                                 </TabPane>
                                 :
                                 null

@@ -29,8 +29,8 @@ export default class ArticleAction extends React.Component {
     }
 
     updateShareBy(data){
-        console.log(data);
-        this.setState({shareBy:data});
+        var { shareBy } = data;
+        this.setState({shareBy});
     }
     
     updateViewUsers(data){
@@ -83,7 +83,7 @@ export default class ArticleAction extends React.Component {
 
         return (
             <div className="article-action-container">
-                <div><Button type="primary" icon="star" size="small" onClick={this.handleCollectVisible.bind(this)}>收藏此文章</Button></div>
+                <div><Button type="primary" icon="star" size="small" onClick={this.handleCollectVisible.bind(this, true)}>收藏此文章</Button></div>
                 <div>
                     <Button className="left" type="primary" icon="export" size="small" onClick={this.handleShareVisible.bind(this,true)}>分享至空间</Button>
                     <Popover autoAdjustOverflow={false} placement="bottom" onVisibleChange={this.handleChangeCaret.bind(this,'shareByCaret')} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发"/>}>
@@ -102,7 +102,7 @@ export default class ArticleAction extends React.Component {
                     { 
                         CollectContainer
                         ?
-                        <CollectContainer uniquekey={uniquekey} isSelf={true} onModel="Article"/>
+                        <CollectContainer uniquekey={uniquekey} isSelf={true} onModel="Article" user={localStorage.getItem('userid')}/>
                         :
                         null
                     }
@@ -118,7 +118,7 @@ export default class ArticleAction extends React.Component {
                         onModel="Article"
                         uniquekey={uniquekey}      
                         onVisible={this.handleShareVisible.bind(this)} 
-                        onUpdateShareBy={this.updateShareBy.bind(this)}
+                        onUpdateItem={this.updateShareBy.bind(this)}
                         item={item}
                     />
                     :

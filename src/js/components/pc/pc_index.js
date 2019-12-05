@@ -149,6 +149,7 @@ export default class PCRouter extends React.Component {
                           <Route exact path="/action/:id" render={props=>{
                             props.onSetScrollTop = this._setScrollTop.bind(this);
                             props.socket = socket;
+                            props.onCheckLogin = onCheckLogin;
                             return <PCActionDetail {...props} />
                           }}
                           />

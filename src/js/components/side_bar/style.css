@@ -1,0 +1,39 @@
+
+.side-bar .modal {
+    background-color:rgba(0, 0, 0, 0.2);
+    height:100px;
+    cursor:pointer;
+    border-radius:4px;
+    overflow: hidden;
+    margin-bottom:10px;
+}
+
+.side-bar .bg {
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:cover;
+    border-radius:4px;
+    height:100px;
+    font-size:20px;
+    color:#fff; 
+    cursor:pointer; 
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+}
+
+.side-bar .bg i{
+    margin:0 4px;
+    font-size:10px; 
+}
+
+.side-bar .icon {
+    display:inline-block;
+    width:20px;
+    height:20px;
+    background-color:#fff;
+}
+
+.side-bar .bg:hover {
+    transform:scale(1.5);
+}

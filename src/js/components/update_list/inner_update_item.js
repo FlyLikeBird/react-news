@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Popover, Button, Input, Select, Radio, Icon, Modal, Card  } from 'antd';
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
-import TopicListItem  from '../topic_list/topic_list';
+import TopicListItem  from '../topic_list/topic_list_item';
 import NewsListItem from '../news_list/news_list_item';
 import ImgContainer from '../img_container';
 import { formatContent } from '../../../utils/translateDate';
@@ -10,9 +10,9 @@ import { formatContent } from '../../../utils/translateDate';
 export default class UpdateInnerItem extends React.Component{
 
     handleClick(){
-        var { uniquekey, history, noLink } = this.props;
-        if (!noLink){
-            history.push(`/action/${uniquekey}`)
+        var { history, data, noLink } = this.props;
+        if (history) {
+            history.push(`/action/${data._id}`)
         }
     }
 
@@ -68,7 +68,7 @@ export default class UpdateInnerItem extends React.Component{
                     :
                     onModel === 'Topic'
                     ?
-                    <TopicListItem  noAction={true} forSimple={true}/>
+                    <TopicListItem  data={contentId} noAction={true} forSimple={true}/>
                     :  
                     null                                                  
                 } 

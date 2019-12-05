@@ -18,8 +18,8 @@ class CollectForm extends React.Component {
 
     createCollect(e){
         e.preventDefault();
-        var { form, onUpdate } = this.props;
-        var { validateFields } = form;
+        var { form, onUpdate, onShowForm } = this.props;
+        var { validateFields, setFieldsValue } = form;
         var { privacy } = this.state;
         var userid = localStorage.getItem('userid');
         validateFields(['collect'],(errs,values)=>{
@@ -28,13 +28,14 @@ class CollectForm extends React.Component {
                 fetch(`/api/collect/createCollect?userid=${userid}&tag=${collect}&privacy=${privacy}`)
                     .then(response=>response.json())
                     .then(json=>{
-                        var { code, data, message } = json;
+                        var { code, data } = json;
                         if ( code===1 ){
-
-                            message.info(message);
+                            message.warning(json.message);
                         } else {
                             var data = json.data;
-                            if (onUpdate) onUpdate(data);                           
+                            if (onUpdate) onUpdate(data); 
+                            if (onShowForm) onShowForm();
+                            setFieldsValue({'collect':''});                          
                         }
                     })           
             }  

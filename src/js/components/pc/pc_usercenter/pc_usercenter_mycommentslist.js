@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Button } from 'antd';
+import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Select, Spin, Badge, Button } from 'antd';
 import CommentComponent from '../../common_comments/comment_component';
 import DeleteModal from '../../deleteModal';
-import { parseDate, formatDate } from '../../../../utils/translateDate';
+import SelectContainer from '../../select_container';
+import { parseDate, formatDate, translateType } from '../../../../utils/translateDate';
 
 class ListContent extends React.Component {
   constructor(){
@@ -94,11 +95,13 @@ export default class MyCommentsList extends React.Component{
         super();
         this.state={
            comments:[],
+           allComments:[],
            isLoading:true,
            visible:false,
            listVisible:false,
            commentid:'',
            parentcommentid:'',
+           value:'all'
         }
     }
 
@@ -109,13 +112,13 @@ export default class MyCommentsList extends React.Component{
             .then(json=>{
                 var data = json.data;
                 var { comments } = data;
-                this.setState({comments,isLoading:false});
+                this.setState({comments,allComments:comments,isLoading:false});
             })       
     }
 
     handleDelete(data){
         var { comments } = data;
-        this.setState({comments});
+        this.setState({comments,value:'all'});
     }
 
     handleListVisible(boolean,commentid){
@@ -126,22 +129,29 @@ export default class MyCommentsList extends React.Component{
         this.setState({visible:boolean,commentid, parentcommentid})
     }
 
+    _updateComments(data, value){
+        this.setState({comments:data,value});
+    }
+
     render(){
-        var { text, history, socket, onCheckLogin } = this.props;
-        var  { comments, visible, commentid, parentcommentid, listVisible, isLoading } = this.state;
+        var { history, socket, onCheckLogin } = this.props;
+        var  { comments, allComments, visible, text, commentid, parentcommentid, listVisible, isLoading, value } = this.state;
         
         return(
-            <div>
+            <div style={{padding:'20px',borderRadius:'4px',backgroundColor:'#f7f7f7'}}>
                 {
                     isLoading
                     ?
                     <Spin/>
                     :
-                    comments.length
+                    allComments.length
                     ?
-                    <div  style={{padding:'10px 20px 20px 20px',borderRadius:'4px',backgroundColor:'#f7f7f7'}}>
-                        <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共发布${comments.length}条评论`}</span>
-                        <div className="commentsContainer">
+                    <div> 
+                        <SelectContainer data={comments} onSelect={this._updateComments.bind(this)} value={value} text="评论"/>                       
+                        {
+                            comments && comments.length
+                            ?
+                            <div className="commentsContainer">
                             {
                                  comments.map((item,index)=>(
                                     <CommentComponent 
@@ -157,10 +167,16 @@ export default class MyCommentsList extends React.Component{
                                     />
                                 ))
                             }
-                        </div>
+                            </div>
+                            :
+                            <div style={{padding:'30px 0'}}>{`还没有发布过任何${value=='all'?'':translateType(value)}评论!`}</div>
+                        }
+                         
+                        {/*<span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共发布${comments.length}条评论`}</span> */}
+                        
                     </div>
                     :
-                    <div>{text}</div>
+                    <span>还没有发布过任何评论!</span>
                 }
                 {
                     visible
@@ -170,7 +186,7 @@ export default class MyCommentsList extends React.Component{
                         onVisible={this.handleModalVisible.bind(this)} 
                         deleteId={commentid} 
                         onDelete={this.handleDelete.bind(this)}
-                        deleteType="comment"
+                        deleteType="Comment"
                         parentcommentid={parentcommentid}
                     />
                     :

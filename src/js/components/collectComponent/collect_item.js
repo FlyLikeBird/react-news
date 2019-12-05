@@ -1,7 +1,8 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Tooltip, Popover, Modal, Input, Form, Select, Card, Collapse } from 'antd';
+import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 
-import NewsList from '../news_list/news_list';
+import CollectContentItem from './collect_content_item';
 import TopicItemPopover from '../topic_list/topic_item_popover';
 
 const { Option } = Select;
@@ -22,7 +23,6 @@ export default class CollectItem extends React.Component {
             item:{},
             className:'',
             isCollected:false,
-            followedBy:[],
             visible:false,
             iconType:'caret-right',
             innerIcon:'caret-left',
@@ -33,8 +33,8 @@ export default class CollectItem extends React.Component {
 
     componentDidMount(){
         var { data } = this.props;
-        var { isCollected, followedBy, userCollected } = data;
-        this.setState({item:data,isCollected,followedBy, userCollected});
+        var { isCollected, userCollected } = data;
+        this.setState({item:data, isCollected, userCollected});
     }
     
     handleAddIntoCollect(id, e){
@@ -52,7 +52,7 @@ export default class CollectItem extends React.Component {
                         rollIn.classList.remove('addFlash');
                     },1000)
                 } 
-                this.setState({item:data,isCollected:true});               
+                this.setState({item:data && data[0],isCollected:true});               
             })   
         
            
@@ -68,8 +68,8 @@ export default class CollectItem extends React.Component {
     
     componentWillReceiveProps(newProps){
         if (this.props.data._id != newProps.data._id){
-            var { isCollected, followedBy, userCollected } = newProps.data;
-            this.setState({item:newProps.data,isCollected,followedBy, userCollected});
+            var { isCollected, userCollected } = newProps.data;
+            this.setState({item:newProps.data,isCollected, userCollected});
         }
     }
     
@@ -87,9 +87,20 @@ export default class CollectItem extends React.Component {
                         rollOut.classList.remove('addFlash');
                     },1000)
                 } 
-                this.setState({item:data,isCollected:false});
+                this.setState({item:data && data[0],isCollected:false});
                 
             })     
+    }
+
+    _updateItem(data){
+        this.setState({item:data});
+    }
+
+    handleShareCollect(id, e){
+        e.stopPropagation();
+        var { onShareVisible } = this.props;
+        var { item } = this.state;
+        if ( onShareVisible ) onShareVisible(true, item, this._updateItem.bind(this));
     }
 
     handleChangeIcon(type,visible){
@@ -126,11 +137,11 @@ export default class CollectItem extends React.Component {
     }
 
     render(){
-        var { forUser, forCollect, isSelf, uniquekey, onAddCollect } = this.props;
-        var { item, iconType, innerIcon, className, isCollected, followedBy, userCollected, addFlash, motion, visible } = this.state;
-        var { tag, defaultCollect, privacy, content, _id } = item;
+        var { forUser, forCollect, isSelf, uniquekey, onAddCollect, forSimple } = this.props;
+        var { item, iconType, innerIcon, className, isCollected, userCollected, addFlash, motion, visible } = this.state;
+        var { tag, defaultCollect, privacy, createtime, followedBy, shareBy, collectItem, _id } = item;
         return(
-            <div className="collect-container">
+            <div className={ forSimple ? "collect-container forSimple" : "collect-container"}>
                 <div className="collect-header" onClick={this.handleShowContent.bind(this)}>
                     <Icon type={iconType} />
                     <div className="collect-card">
@@ -144,25 +155,45 @@ export default class CollectItem extends React.Component {
                             
                         </span>
                         <div style={{flex:'7'}}>
-                            <span>{tag}</span>
+                            <span style={{color:'#000',fontWeight:'500'}}>{tag}</span>
                             <div>
-                                <span className="text">{privacyObj[privacy]}</span>
-                                <span className="text">{`${content?content.length:0}条内容`}</span>
-                                {
-                                    defaultCollect 
-                                    ?
-                                    null
-                                    :
-                                    privacy == 2 
-                                    ?
-                                    null
-                                    :
-                                    <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏"/>}>
-                                        <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>
-                                    </Popover>
-                                    
-                                }
-                                
+                                <span className="text">{`创建于${formatDate(parseDate(createtime))}`}</span>
+                                <div style={{display:'flex',alignItems:'center'}}>
+                                    <span className="text">{`${privacyObj[privacy]}`}</span>
+                                    <span className="dot">·</span>
+                                    <span className="text">{`${collectItem?collectItem.length:0}条内容`}</span>
+                                    <span className="dot">·</span>
+                                    {
+                                        defaultCollect 
+                                        ?
+                                        null
+                                        :
+                                        privacy == 2 
+                                        ?
+                                        null
+                                        :
+                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏"/>}>
+                                            <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>
+                                            
+                                        </Popover>
+                                        
+                                    }
+                                    <span className="dot">·</span>
+                                    {
+                                        defaultCollect 
+                                        ?
+                                        null
+                                        :
+                                        privacy == 2 
+                                        ?
+                                        null
+                                        :
+                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} text="收藏"/>}>
+                                            <span className="text">{`${shareBy?shareBy.length:0}人转发`}<Icon type={innerIcon} /></span>
+                                        </Popover>
+                                        
+                                    }
+                                </div>
                             </div>
                         </div>
                         {
@@ -170,11 +201,21 @@ export default class CollectItem extends React.Component {
                             ?
                             null
                             :
-                            isCollected
-                            ?
-                            <Button size="small" className="cancel" onClick={this.handleRemoveContent.bind(this,_id,uniquekey)} shape="circle" icon="check"/> 
-                            :
-                            <Button size="small" className="add"  onClick={this.handleAddIntoCollect.bind(this,_id)} shape="circle" icon="plus"/> 
+                            <div>
+                                {
+                                    forSimple
+                                    ?
+                                    null
+                                    :
+                                    isCollected
+                                    ?
+                                    <Button size="small" className="button" onClick={this.handleRemoveContent.bind(this,_id, uniquekey)} shape="circle" icon="check"/> 
+                                    :
+                                    <Button size="small" className="button"  style={{backgroundColor:'rgb(24, 144, 255)'}} onClick={this.handleAddIntoCollect.bind(this,_id)} shape="circle" icon="plus"/> 
+                                }
+                                <Button size="small" className="button" style={{backgroundColor:'rgb(24, 144, 255)'}} onClick={this.handleShareCollect.bind(this,_id)} shape="circle" icon="export"/>
+                            </div>
+                            
                         }
                         
                         {
@@ -186,7 +227,10 @@ export default class CollectItem extends React.Component {
                             :
                             isSelf && !forCollect
                             ?
-                            <Button size="small"  onClick={this.handleRemoveCollect.bind(this,_id)} shape="circle" icon="close"/> 
+                            <div>
+                                <Button size="small"  className="button" style={{backgroundColor:'rgb(24, 144, 255)'}} onClick={this.handleRemoveCollect.bind(this,_id)} shape="circle" icon="close"/>
+                                <Button size="small" className="button" style={{backgroundColor:'rgb(24, 144, 255)'}} onClick={this.handleShareCollect.bind(this,_id)} shape="circle" icon="export"/>
+                            </div> 
                             :
                             
                             // #fadb14  outlined
@@ -203,9 +247,11 @@ export default class CollectItem extends React.Component {
                 </div>
                 <div style={{display:visible?'block':'none'}}>
                     {
-                        content && content.length
+                        collectItem && collectItem.length
                         ?
-                        <NewsList data={content} collectId={_id} hasImg={true} forSimple={true} onAddCollect={this.props.onAddCollect}/>
+                        collectItem.map((item, index)=>(
+                            <CollectContentItem data={item} key={index} forSimple={forSimple}/>
+                        ))
                         :
                         <div>还没有收藏任何内容</div>
 

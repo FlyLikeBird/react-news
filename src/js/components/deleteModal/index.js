@@ -41,19 +41,15 @@ export default class DeleteModal extends React.Component{
                 }
             }
         })
-    } else if ( deleteType === 'collect'){
+    } else if ( deleteType === 'Collect'){
         fetch(`/api/collect/removeCollect?id=${deleteId}&userid=${userid}`)
             .then(response=>response.json())
             .then(json=>{
-                if (onDelete){
-                  onDelete();
-                  if (onVisible){
-                    onVisible(false)
-                  }
-                }
+                if (onDelete) onDelete();
+                if ( onVisible ) onVisible(false);
                 
         })
-    } else if ( deleteType === 'comment') {
+    } else if ( deleteType === 'Comment') {
         fetch(`/api/comment/delete?commentid=${deleteId}&userid=${userid}`)
           .then(response=>response.json())
           .then(json=>{

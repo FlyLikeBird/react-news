@@ -7,6 +7,7 @@ import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from './comment_popover_useravatar';
 import NewsListItem from '../news_list/news_list_item';
 import TopicListItem  from '../topic_list/topic_list_item';
+import ImgContainer from '../img_container';
 import { parseDate, formatDate, getElementTop, formatContent } from '../../../utils/translateDate';
 const { Meta } = Card;
 
@@ -20,24 +21,31 @@ export default class CommentComponent extends React.Component{
     }
   }
 
-  handleUpdateReplies(replies){
-    this.setState({replies});
-  }
-
-  handlePreview(boolean,img){
-      this.setState({previewVisible:boolean,img})
-  }
-
-  handleDownload(url){
-    var a = document.createElement('a');
-    var event = new MouseEvent('click');
-    a.download = url;
-    a.href = url;
-    a.dispatchEvent(event);
+  handleUpdateReplies(data){
+    var { onUpdateTotalNum } = this.props;
+    var { total, comments } = data;
+    this.setState({replies:comments[0].replies});
+    if (onUpdateTotalNum) onUpdateTotalNum(total);
   }
 
   handleShowReplies(){
-    this.setState({showReplies:!this.state.showReplies})
+      var subContainer = this.subContainer;
+      var { showReplies } = this.state;
+      if (subContainer){
+          if (showReplies){
+              subContainer.style.transform = 'scale(0)';
+              setTimeout(()=>{
+                  subContainer.style.display = 'none';
+              },300)
+          } else {
+              subContainer.style.display = 'block';
+              setTimeout(()=>{
+                  subContainer.style.transform = 'scale(1)';
+              },0)
+          }
+      }
+      
+      this.setState({showReplies:!this.state.showReplies});
   }
 
   componentDidMount(){
@@ -80,6 +88,7 @@ export default class CommentComponent extends React.Component{
 
   componentWillUnmount(){
       this.commentDom = null;
+      this.subContainer = null;
   }
 
   render(){
@@ -114,10 +123,8 @@ export default class CommentComponent extends React.Component{
       related,
       commentid: _id,
       parentcommentid,
-      showReplies,
       owncomment,
-      onCheckLogin,
-      onShowReplies:this.handleShowReplies.bind(this),   
+      onCheckLogin,  
       onUpdateReplies:this.handleUpdateReplies.bind(this),
       onUpdateFromSub:onUpdateFromSub
     };
@@ -126,14 +133,14 @@ export default class CommentComponent extends React.Component{
 
       <div>
           <div ref={comment=>this.commentDom = comment} className={forUser?'comment user':selected ? 'comment selected' :'comment'}>      
-                    <div style={{display:'flex',alignItems:'center'}}>
-                      <Popover content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
-                          <Badge count={ forMsg ? msgRead ? 0 : 1 : 0}><div className="avatar-container"><img src={fromUser.userImage} /></div></Badge>
-                      </Popover>
-                      <div style={{marginLeft:'10px'}}>
-                          <div><span style={{color:'#000',fontWeight:'500'}}>{fromUser.username}</span>{ owncomment ?<span className="label">用户</span>:null}</div>
-                          <span className="text">{`发布于 ${commentDate}`}</span>
-                      </div>
+                    <div className="comment-user-info">
+                        <Popover content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
+                            <Badge className="avatar-container" count={ forMsg ? msgRead ? 0 : 1 : 0}><img src={fromUser.userImage} /></Badge>
+                        </Popover>
+                        <div>
+                            <div><span style={{color:'#000',fontWeight:'500'}}>{fromUser.username}</span>{ owncomment ?<span className="label">用户</span>:null}</div>
+                            <span className="text">{`发布于 ${commentDate}`}</span>
+                        </div>
                     </div>
                     <div className="comment-content">
                         {
@@ -167,21 +174,11 @@ export default class CommentComponent extends React.Component{
                     <div>
                       {
                         //  判断images是否存在因为子评论没有images字段
-                        images
-                        ?
-                        images.length
+                        images && images.length
                         ?
                         images.map((item,index)=>(
-                          <div className="img-container"  key={index}>
-                            <div className="preview-mask" >
-                              <Icon type="eye" onClick={this.handlePreview.bind(this,true,item)} style={{marginRight:'20px'}}/>
-                              <Icon type="download" onClick={this.handleDownload.bind(this,item)}/>
-                            </div>
-                            <img src={item}/>
-                          </div>
+                          <ImgContainer bg={item} key={index} />
                         ))
-                        :
-                        null
                         :
                         null
                       }
@@ -189,7 +186,7 @@ export default class CommentComponent extends React.Component{
                     {
                       forUser && onModel =='Article'
                       ?
-                      <NewsListItem data={related} hasImg={true} forSimple={true} history={history}/> 
+                      <div style={{padding:'20px',backgroundColor:'#f7f7f7'}}><NewsListItem data={related} hasImg={true} forSimple={true} history={history}/></div>
                       : 
                       forUser && onModel == 'Topic'
                       ?
@@ -198,8 +195,17 @@ export default class CommentComponent extends React.Component{
                       null
                     }                
                     <CommentComponentButton {...buttonProps}/> 
+                    {
+                        showReplies
+                        ?
+                        null
+                        :
+                        <span className="hidden open" onClick={this.handleShowReplies.bind(this)}><Icon type="double-left" style={{transform:'rotate(-90deg) scale(0.8)'}}/><span className="text">展开评论</span></span>
+                                             
+                    }
           </div>
-                   
+
+                 
           {
               isSub
               ?
@@ -207,7 +213,7 @@ export default class CommentComponent extends React.Component{
               :
               replies && replies.length
               ?
-              <div className="subcommentsContainer" style={{display:showReplies ? 'block':'none'}}>
+              <div ref={subContainer=>this.subContainer=subContainer} className='subcommentsContainer' /*style={{display:showReplies?'block':'none',transform:showReplies?'scale(1)':'scale(0)'}} */>
                   {
                       replies.map((item,index)=>(
                           <CommentComponent 
@@ -215,6 +221,7 @@ export default class CommentComponent extends React.Component{
                               history={history}                              
                               onCheckLogin={onCheckLogin}
                               onDelete={onDelete}
+                              onVisible={onVisible}
                               onUpdateFromSub={this.handleUpdateReplies.bind(this)}
                               onSetScrollTop={onSetScrollTop} 
                               isSub={true}
@@ -227,6 +234,7 @@ export default class CommentComponent extends React.Component{
                           />
                       ))
                   }
+                  <span className="hidden close" onClick={this.handleShowReplies.bind(this)}><Icon type="double-left" style={{transform:'rotate(90deg) scale(0.8)'}}/><span className="text">折叠评论</span></span>
               </div>
               :
               null

@@ -54,7 +54,7 @@ export default class PCNewsContainer extends React.Component {
 											<PCNewsBlock title="本周热门新闻" data={newsList}/>
 										</div>
 										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-											<PCNewsBlock type="yule" title="本周热门话题" isTopic/>
+											<PCNewsBlock type="yule" title="本周热门话题" forTopic/>
 										</div>
 									</div>
 								}

@@ -4,7 +4,7 @@ import { Menu, Icon, Tabs, Modal, Card, List, Spin, Badge, Input, Button, Popove
 import TopicListItem from '../topic_list/topic_list_item';
 import NewsListItem  from '../news_list/news_list_item';
 import UpdateItem from '../update_list/update_list_item';
-import UpdateInnerItem from '../update_list/inner_update_item';
+import CollectItem from '../collectComponent/collect_item';
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
 import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 
@@ -57,11 +57,10 @@ export default class ShareModal extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                var { shareBy } = data;
                 if ( forAction && isSelf){
                     onUpdate(data);
                 }  else {
-                    if (onUpdateShareBy) onUpdateShareBy(shareBy);
+                    if (onUpdateShareBy) onUpdateShareBy(data);
                 }       
                 if (onVisible) onVisible(false);               
                 message.info(`转发${forAction?'动态':translateType(onModel)}成功!`)
@@ -71,17 +70,43 @@ export default class ShareModal extends React.Component{
 
     render(){      
         var { onModel, item, visible, history, text, translateData, onVisible } = this.props;
-        var { contentId } = item;
         return(      
                 <Modal visible={visible} footer={null} onCancel={()=>onVisible(false)} destroyOnClose={true}>
                     <div>
-                        <TextArea rows={2} ref={textarea=>this.textArea=textarea}/>                                                                                                
+                        <TextArea rows={2} ref={textarea=>this.textArea=textarea}/> 
+                        {
+                            translateData && translateData.length
+                            ?
+                            <div style={{padding:'4px 0', fontSize:'12px'}}>
+                                {                              
+                                    translateData.map((item,index)=>(
+                                        <span key={index}>
+                                            { item.text ? <span>{item.text}</span> : null }
+                                            {
+                                                item.user
+                                                ?
+                                                <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                                :
+                                                null
+                                            }
+                                            
+                                        </span>
+                                    ))                                    
+                                }
+                            </div>
+                            :
+                            text
+                            ?
+                            <div style={{padding:'4px 0'}}>{text}</div>
+                            :
+                            null
+                        }                                                                                               
                         {   
                             onModel === 'Action'
                             ?
                             <UpdateItem data={item} forSimple={true} noAction={true}/>
-                            :
-                            <div style={{padding:'20px',backgroundColor:'#fff'}}>
+                            : 
+                            <div>                      
                                 {
                                     onModel === 'Article' 
                                     ?
@@ -89,11 +114,15 @@ export default class ShareModal extends React.Component{
                                     :
                                     onModel === 'Topic' 
                                     ?
-                                    <TopicListItem noAction={true} forSimple={true}/>
+                                    <TopicListItem data={item} noAction={true} forSimple={true}/>
+                                    :
+                                    onModel === 'Collect'
+                                    ?
+                                    <CollectItem data={item} forSimple={true}/>
                                     :
                                     null
                                 }
-                            </div>                                                 
+                            </div>                                               
                         }                                
                         <div style={{padding:'10px 0'}}>
                             <Button size="small" style={{fontSize:'12px',marginRight:'4px'}} type="primary" onClick={this.handleShare.bind(this)}>转发</Button>

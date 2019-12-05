@@ -57,8 +57,8 @@ class CommentsInput extends React.Component{
                         .then(response=>response.json())
                         .then(json=>{
                             var data = json.data;
-                            var { comments, commentid } = data;                       
-                            if(onAddComment) onAddComment(comments);
+                            var { commentid } = data;                       
+                            if(onAddComment) onAddComment(data);
                             sendActionMsg(values['comments'], userid, commentid, socket);                                         
                         })
                     } else {
@@ -82,11 +82,11 @@ class CommentsInput extends React.Component{
                         .then(response=>response.json())
                         .then(json=>{
                             var data = json.data;
-                            var { commentid, replies } = data;  
+                            var { commentid } = data;  
                             if (isSub){
-                                if (onUpdateFromSub) onUpdateFromSub(replies);
+                                if (onUpdateFromSub) onUpdateFromSub(data);
                             } else {
-                                if (onUpdateReplies) onUpdateReplies(replies);
+                                if (onUpdateReplies) onUpdateReplies(data);
                             }
                             if (onCloseReply) onCloseReply();
                             sendActionMsg(values['comments'], userid, commentid, socket);

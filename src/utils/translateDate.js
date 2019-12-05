@@ -101,6 +101,17 @@ export function checkArrIsEqual(arr1, arr2){
     return arr1.sort().toString() == arr2.sort().toString();
 }
 
+export function once(fn, context){
+    var result;
+    return function (){
+        if (fn){
+            result = fn.apply(context || this, arguments);
+            fn = null
+        }
+        return result;
+    }
+}
+
 
 
 

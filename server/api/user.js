@@ -172,7 +172,7 @@ router.get('/usercenter',(req,res)=>{
 router.get('/getUserInfo',(req,res)=>{
 	var { user } = req.query;
 	//  0-未关注 1-已关注 2-互相关注
-	User.findOne({'username':user},{username:1, userImage:1, userFollow:1, userFans:1, description:1, level:1},(err, userInfo)=>{		
+	User.findOne({'username':user},{username:1, userImage:1, userFollows:1, userFans:1, description:1, level:1},(err, userInfo)=>{		
 		util.responseClient(res,200,0,'ok',userInfo);	
 	})
 

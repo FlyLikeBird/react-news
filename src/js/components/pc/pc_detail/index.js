@@ -16,7 +16,7 @@ export default class PCNewsDetails extends React.Component {
 	}
 	
 	_loadArticle(props){
-		var { match, user } = this.props;	
+		var { match, user } = props;	
 		var uniquekey = match.params.uniquekey;
 		fetch('/api/article/getArticleContent?uniquekey='+uniquekey)
 			.then(response=>response.json())
@@ -58,38 +58,27 @@ export default class PCNewsDetails extends React.Component {
 		var { isLoading, newsItem } = this.state;
 		var { socket, history, location, match, user, onCheckLogin, onSetScrollTop } = this.props;
 		var uniquekey   = this.props.match.params.uniquekey;	
-		var  styleObj = {
-			padding:'0 4px',
-			color:'#1890ff',
-			textDecoration : 'underline'
-		};
 		
 		return(
 			
 				<Row style={{paddingTop:'30px'}}>
 					<Col span={2}></Col>
-					<Col span={20}>
+					<Col span={15}>
 						{
 							isLoading
 							?
 							<Spin size="large"/>
 							:
-							<Row>								
-								<Col span={18} style={{position:'relative',textAlign:'left', paddingRight:'30px'}}>
-									<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
-									<div>
-										<ArticleAction uniquekey={uniquekey} onCheckLogin={onCheckLogin} item={newsItem} history={history}/> 
-										<CommentsListContainer commentType="Article" onCheckLogin={onCheckLogin} history={history} onSetScrollTop={onSetScrollTop} socket={socket} location={location} uniquekey={uniquekey} item={newsItem} warnMsg="还没有用户评论呢!快来抢沙发吧～"/>
-									</div>
-									
-								</Col>	
-								<Col span={6}>
-									<SideBar />									
-								</Col>
-							</Row>
+							<div style={{paddingRight:'50px',textAlign:'left'}}>																
+								<div className="articleContainer" dangerouslySetInnerHTML={this.createMarkup()} ></div>
+								<div>
+									<ArticleAction uniquekey={uniquekey} onCheckLogin={onCheckLogin} item={newsItem} history={history}/> 
+									<CommentsListContainer commentType="Article" onCheckLogin={onCheckLogin} history={history} onSetScrollTop={onSetScrollTop} socket={socket} location={location} uniquekey={uniquekey} item={newsItem} warnMsg="还没有用户评论呢!快来抢沙发吧～"/>
+								</div>								
+							</div>
 						}
 					</Col>
-					
+					<Col span={5}><SideBar/></Col>
 					<Col span={2}></Col>
 				</Row>
 				

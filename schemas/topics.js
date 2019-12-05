@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 
 module.exports = new mongoose.Schema({
     title:String,
-    fromUser:{type:Schema.Types.ObjectId, ref:'User'},
+    user:{type:Schema.Types.ObjectId, ref:'User'},
     date:String,
     description:String,
     isHot:{type:Boolean,default:false},
@@ -19,9 +19,9 @@ module.exports = new mongoose.Schema({
         originalname:String,
         originalpath:String
     }],
-    follows:[{user:{type:Schema.Types.ObjectId},date:String}],
+    follows:[{user:{type:Schema.Types.ObjectId, ref:'User'},date:String}],
     shareBy:[{type:Schema.Types.ObjectId, ref:'Action'}],
-    replies:{type:Number, default:0}   
+    replies:{type:Number,default:0}   
 });
 
 

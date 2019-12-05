@@ -35,14 +35,6 @@ function getMinIndexOfArr(arr,min){
 
 
 export default class TopicList extends React.Component{
-    constructor(){
-        super();
-        
-    }
-
-    componentDidUpdate(){
-        this._sortTopicList(this.props);
-    }
 
     _sortTopicList(props){
         var { inline, forIndex, columns } = props;
@@ -52,15 +44,17 @@ export default class TopicList extends React.Component{
             var cardContainers = container.childNodes;
             var cardWidth = container.offsetWidth/columns;
             // 放置每一列的高度数据
+            
             var cardsColHeight = [];
             if ( inline ) {
                 for(var i=0,len=cardContainers.length;i<len;i++){
-                    var cardContainer = cardContainers[i];
-                    if(i<columns){                   
+                    var cardContainer = cardContainers[i];                    
+                    if(i<columns){      
+
                         cardsColHeight.push(cardContainer.offsetHeight);
                         cardContainer.style.left = i*cardWidth + 'px';
                         cardContainer.style.top = '0px';
-                        cardContainer.style.display = 'inline-block';
+                        
                     } else {                    
                         var minHeight = getMinValueOfArr(cardsColHeight);                    
                         var minHeightIndex = getMinIndexOfArr(cardsColHeight,minHeight);
@@ -68,6 +62,7 @@ export default class TopicList extends React.Component{
                         cardContainer.style.top = minHeight + 'px';
                         cardsColHeight[minHeightIndex] = cardsColHeight[minHeightIndex] + cardContainer.offsetHeight;
                     }
+                    cardContainer.style.margin = '0';
                 
                 }
                 
@@ -76,6 +71,7 @@ export default class TopicList extends React.Component{
                     cardContainers[i].style.left = '0px';
                     cardContainers[i].style.top = '0px';
                     cardContainers[i].style.display = 'block';
+                    cardContainers[i].style.margin = '10px 0';
                 }
             }
             var maxHeight = getMaxValueOfArr(cardsColHeight);
@@ -84,8 +80,17 @@ export default class TopicList extends React.Component{
         } 
     }
 
+    componentDidUpdate(){
+        setTimeout(()=>{
+            this._sortTopicList(this.props);
+        },0)  
+    }
+
     componentDidMount(){
-        this._sortTopicList(this.props);
+        var container = this.cardContainer;       
+        setTimeout(()=>{
+            this._sortTopicList(this.props);
+        },0)       
     }
     
     render(){

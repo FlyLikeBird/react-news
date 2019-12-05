@@ -95,7 +95,7 @@ export default class CommentComponentButton extends React.Component{
   }
 
   handleDelete(commentid, parentcommentid){
-      var { onDelete } = this.props;
+      var { onDelete, onModel } = this.props;
       if( onDelete ) onDelete(true, commentid, parentcommentid);
   }
 
@@ -105,16 +105,17 @@ export default class CommentComponentButton extends React.Component{
       socket.emit('deleteMsg',localStorage.getItem('userid'), msgId);
   }
 
-  handleShare(commentid,parentcommentid){
+  handleShare(commentid){
     var { onVisible, onCheckLogin } = this.props;
     var userid = onCheckLogin();
     if (userid){
-        if ( onVisible ) onVisible(true, commentid, parentcommentid, this._updateShareByUsers.bind(this))
+        if ( onVisible ) onVisible(true, commentid, this._updateShareByUsers.bind(this))
     } 
   }
 
   _updateShareByUsers(data){
-      this.setState({shareBy:data})
+      var { shareBy } = data;
+      this.setState({shareBy})
   }
 
   handleMarkIsRead(id){
@@ -142,7 +143,7 @@ export default class CommentComponentButton extends React.Component{
 
   render(){
     var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, iconType, visible } = this.state;
-    var { history, isSub,  uniquekey, fromUser, commentid, parentcommentid, commentType, showReplies, onShowReplies, socket, forUser, forMsg, msgId, msgRead, replies, owncomment, onCheckLogin, hasDelete } = this.props;
+    var { history, isSub,  uniquekey, fromUser, commentid, parentcommentid, commentType, showReplies, socket, forUser, forMsg, msgId, msgRead, replies, owncomment, onCheckLogin, hasDelete } = this.props;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
       socket,
@@ -193,20 +194,9 @@ export default class CommentComponentButton extends React.Component{
                           ?
                           null
                           :
-                          <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}><span onClick={this.handleShare.bind(this,commentid,parentcommentid)} ><span className="text"><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
+                          <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}><span onClick={this.handleShare.bind(this,commentid)} ><span className="text"><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
                       }
                       
-                      {                          
-                          isSub
-                          ?
-                          null
-                          :
-                          replies && replies.length
-                          ?
-                          <span onClick={()=>onShowReplies()} ><span className="text"><Icon type="menu-fold" />{showReplies?'折叠评论':'展开评论'}</span></span>
-                          :
-                          null                                               
-                      }
                       {
                           (owncomment && hasDelete)
                           ?

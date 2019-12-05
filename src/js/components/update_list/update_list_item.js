@@ -8,6 +8,8 @@ import TopicItemPopover from '../topic_list/topic_item_popover';
 import TopicListItem  from '../topic_list/topic_list_item';
 import NewsListItem  from '../news_list/news_list_item';
 import UpdateInnerItem from './inner_update_item';
+import CollectItem from '../collectComponent/collect_item';
+
 import ImgContainer from '../img_container';
 var isAllowed = true;
 
@@ -242,11 +244,15 @@ export default class UpdateItem extends React.Component{
                             :  //  说明包含新闻或者话题 -- 一级动态
                             onModel === 'Article'
                             ?
-                            <div style={{padding:'20px',backgroundColor:'#fff'}}><NewsListItem data={contentId} hasImg={true} forSimple={true} noLink={true}/></div>
+                            <NewsListItem data={contentId} hasImg={true} forSimple={true} noLink={true}/>
                             :
                             onModel === 'Topic'
                             ?
-                            <div style={{padding:'20px',backgroundColor:'#fff'}}><TopicListItem history={history} forSimple={true}/></div>
+                            <TopicListItem data={contentId} history={history} forSimple={true}/>
+                            :
+                            onModel === 'Collect'
+                            ?
+                            <CollectItem data={contentId} forSimple={true}/>
                             :
                             null
                             

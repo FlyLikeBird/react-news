@@ -24,12 +24,12 @@ export default class CommentPopoverUserAvatar extends React.Component{
         .then(response=>response.json())
         .then(json=>{
           var data = json.data; 
-          var { userFollow, userFans } = data;
+          var { userFollows, userFans } = data;
           var followStatus = 0;
           //  0-未关注 1-已关注 2-互相关注
           var userid = localStorage.getItem('userid');
           if (userFans.includes(userid)){
-              if (userFollow.includes(userid)){
+              if (userFollows.includes(userid)){
                   followStatus = 2;
               } else {
                   followStatus = 1;
@@ -68,7 +68,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
 
   render(){
     var { user, followStatus } = this.state;
-    var { username, userImage, userFollow, userFans, description, level, _id } = user;
+    var { username, userImage, userFollows, userFans, description, level, _id } = user;
     var totalLevel = formatLevel(level);
     
     var isSelf = localStorage.getItem('userid') == _id ? true : false;
@@ -127,7 +127,7 @@ export default class CommentPopoverUserAvatar extends React.Component{
                       <div className="user-follow-container">
                         <div className="user-follow">
                           <p><span style={{color:'#000'}} className="ant-text">关注者</span></p>
-                          <p><span> {userFollow?userFollow.length:0} </span></p>
+                          <p><span> {userFollows?userFollows.length:0} </span></p>
                         </div>
                         <div className="user-fans">
                           <p><span style={{color:'#000'}} className="ant-text">追随者</span></p>

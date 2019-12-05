@@ -12,6 +12,7 @@ var Tag = require('../../models/Tag');
 var Article = require('../../models/Article');
 var User = require('../../models/User');
 var Comment = require('../../models/Comment');
+var Collect = require('../../models/Collect');
 
 var createFolder = function(folder){
     try{
@@ -41,11 +42,17 @@ var upload = multer({storage});
 
 function getShareBy(Collect, contentId, actionId, res){
     Collect.updateOne({_id:contentId},{$push:{shareBy:actionId}},(err,result)=>{
-        Collect.findOne({_id:contentId},{shareBy:1})
+        Collect.findOne({_id:contentId})
             .populate({
                 path:'shareBy',
                 populate:{ path:'user', select:'username userImage'},
                 select:'user value date'
+            })
+            .populate({
+                path:'collectItem',
+                populate:{
+                    path:'contentId'
+                }
             })
             .then(doc=>{
                 util.responseClient(res, 200, 0, 'ok', doc);
@@ -63,13 +70,8 @@ router.get('/share',(req,res)=>{
     if (!value){
         value = `转发${util.translateType(onModel)}`
     } 
-    //console.log(userid,text,value,contentId,contentType,actionId);
+    
     //util.responseClient(res,200,0,'ok');
-    /*
-    User.updateOne({_id:userid},{$set:{userAction:[]}},(err,result)=>{
-        util.responseClient(res,200,0,'ok');
-    });
-    */
     
     var action = new Action({
         user:userid,
@@ -85,19 +87,23 @@ router.get('/share',(req,res)=>{
         .then(()=>{
             if ( isActionPage ){
                 Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err, result)=>{
-                    getUserActions(userid, res);
+                    getUserOrSingleActions(userid, res);
                 })
             } else if ( commentid ) {
             //  如是转发的评论则更新该条评论的shareBy字段
-                
+                getShareBy(Comment, commentid, action._id, res);
                 //  如转发话题更新该话题的shareBy
             }  else if ( onModel =='Topic') {
-                getShareBy(Topic, contentId, action._id, res);
+                Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
+                    userPromise.getAllOrUserTopics(res, null, contentId);
+                })               
                 //  如转发新闻更新该新闻的shareBy
             }   else if ( onModel == 'Article') {
                 getShareBy(Article, contentId, action._id, res);
             } else if ( onModel =='Action') {
                 getShareBy(Action, contentId, action._id, res);
+            } else if ( onModel == 'Collect') {
+                getShareBy(Collect, contentId, action._id, res);
             }
             
         })        
@@ -105,8 +111,10 @@ router.get('/share',(req,res)=>{
 
 
 
-function getUserActions(userid, res){
-    Action.find({user:userid})
+function getUserOrSingleActions( res, userid, actionId){
+    var option = actionId ? { _id:actionId} : userid ? { user:userid} : null;
+    if (!option) return;
+    Action.find(option)
         .populate({ path:'likeUsers.user', select:'username userImage'})
         .populate({ path:'dislikeUsers.user', select:'username userImage'})
         .populate({
@@ -122,7 +130,25 @@ function getUserActions(userid, res){
                 { path:'tags',select:'tag'},
                 { path:'follows.user', select:'username userImage'},
                 { path:'user', select:'username userImage'},
-                { path:'contentId'}
+                {
+                    path:'collectItem',
+                    populate:{ path:'contentId'}
+                },
+                {
+                    path:'shareBy',
+                    populate:{path:'user', select:'username userImage'},
+                    select:'value date user'
+                },
+                //  填充内部动态的所需的字段
+                {
+                    path:'contentId',
+                    populate:[
+                        { path:'user', select:'username userImage'},
+                        { path:'tags', select:'tag'},
+                        { path:'follows.user', select:'username userImage'},
+                        { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'}
+                    ]
+                }
             ]
                  
         })
@@ -147,14 +173,14 @@ router.post('/create',upload.array('images'),(req,res)=>{
     });
     action.save()
         .then(()=>{
-            getUserActions(userid, res);
+            getUserOrSingleActions( res, userid);
         })
 })
 
 
 router.get('/getUserActions',(req,res)=>{
     var { userid } = req.query;
-    getUserActions(userid, res);
+    getUserOrSingleActions( res, userid);
 })
 
 function _operateAction( action, id, isCancel, userid, res ){
@@ -181,27 +207,7 @@ router.get('/operate',(req,res)=>{
 
 router.get('/getActionContent',(req,res)=>{
     var { contentId } = req.query;
-    Action.findOne({_id:contentId},(err,action)=>{
-        var userid = action.userid;
-        User.findOne({_id:userid},(err,user)=>{
-            var obj = {};
-            obj.username = user.username;
-            obj.avatar = user.userImage;
-            obj.id = action.id;
-            obj.value = action.value;
-            obj.text = action.text;
-            obj.shareBy = action.shareBy;
-            obj.likeUsers = action.likeUsers;
-            obj.dislikeUsers = action.dislikeUsers;
-            obj.contentId = action.contentId;
-            obj.contentType = action.contentType;
-            obj.innerAction = action.innerAction;
-            obj.composeAction = action.composeAction;
-            obj.images = action.images;
-            obj.isCreated = action.isCreated;       
-            util.responseClient(res,200,0,'ok',obj);
-        })
-    })
+    getUserOrSingleActions(res, null, contentId);
 })
 
 router.get('/delete',(req,res)=>{

@@ -18,7 +18,7 @@ export default class PCNewsImageBlock extends React.Component {
 
 		var { columns, type, count } = this.props;
 		var width = (100/columns)+'%';
-		fetch('/api/article/getArticleList?type='+type+"&count="+count)
+		fetch('/api/article/getArticleTitle?type='+type+"&count="+count)
 		.then(response=>response.json())
 		.then(json=>{
 			var data = json.data;
@@ -26,7 +26,7 @@ export default class PCNewsImageBlock extends React.Component {
 						?
 						data.map((newsItem,index)=>(
 							<div key={index} className={style.imageblock} style={{width}}>
-								<Link to={`details/${newsItem.articleId}`}>
+								<Link to={`/details/${newsItem._id}`}>
 									<div className={style['custom-image']} style={{backgroundImage:`url(${newsItem.thumbnails[0]})`}}>
 									</div>
 									<div className={style['custom-card']}>

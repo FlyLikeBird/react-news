@@ -21,8 +21,7 @@ export default class CommentsListContainer extends React.Component{
       translateData:[],
       commentid:'',
       currentPageNum:1,
-      isLoading:true,
-      forTrack:false    
+      isLoading:true    
     }
   }
 
@@ -31,7 +30,7 @@ export default class CommentsListContainer extends React.Component{
   }
 
   _loadComments(num=1,order='time'){
-    var { uniquekey, location } = this.props;
+    var { uniquekey, location, onSetReplies } = this.props;
     var userid = localStorage.getItem('userid');
     var finalPageNum = num;
     var commentid, parentcommentid, forTrack ;
@@ -45,11 +44,11 @@ export default class CommentsListContainer extends React.Component{
             params[result[1]] = result[2];
             result = pattern.exec(str);
         }
-        console.log(params);
+        
         finalPageNum = Number(params.pageNum);
         commentid = params.commentid;
         parentcommentid = params.parentcommentid;
-        forTrack = params.forTrack ? true : false;
+        
     }
     //console.log(params);
         
@@ -75,8 +74,8 @@ export default class CommentsListContainer extends React.Component{
                     return item;
                 })
             }    
-            console.log(comments);
-            this.setState({comments,total,isLoading:false,currentPageNum:finalPageNum,forTrack});
+            this.setState({comments,total,isLoading:false,currentPageNum:finalPageNum});
+            if (onSetReplies) onSetReplies(total);
           })
          
  }
@@ -93,17 +92,24 @@ handleSelectChange(value){
   this.setState((state)=>{
     this._loadComments(1,state.order);
   })
- 
 }
 
-handleAddComment(list){
-  this.setState({comments:list,total:list.length})
+_updateTotalNum(total){
+    var { onSetReplies } = this.props;
+    this.setState({total});
+    if (onSetReplies) onSetReplies(total);
 }
 
-handleShareVisible(boolean,commentid,parentcommentid,onUpdateShareBy){
+handleAddComment(data){
+  var { total, comments } = data;
+  this.setState({comments, total});
+  this._updateTotalNum(total);
+}
+
+handleShareVisible(boolean, commentid, onUpdateShareBy){
     if (boolean === true){
       this.onUpdateShareBy = onUpdateShareBy;
-      fetch(`/api/comment/getCommentInfo?commentid=${commentid}&parentcommentid=${parentcommentid}`)
+      fetch(`/api/comment/getCommentInfo?commentid=${commentid}`)
       .then(response=>response.json())
       .then(json=>{   
           var str = json.data;      
@@ -122,36 +128,34 @@ componentWillUnmount(){
 
 render(){
   var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop, onCheckLogin } = this.props;
-  var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum, forTrack } = this.state;
+  var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum } = this.state;
   const dropdownStyle = {
     width:'160px',
     fontSize:'12px'
   }
 
   return (
-      <div>
-        <div>            
-            {
-                comments.length 
-                ?
-                <div>
-                    <span style={{fontSize:'12px'}}>{`共${total}条评论`}</span>
-                    <Select className="filter" onChange={this.handleSelectChange.bind(this)} dropdownStyle={dropdownStyle} size="small" defaultValue={value}  dropdownMatchSelectWidth={false}>
-                      <OptGroup label="按时间">
-                        <Option value="time">从近到远</Option>
-                        <Option value="timeInvert">从远到近</Option>
-                      </OptGroup>
-                      <OptGroup label="按热度">
-                        <Option value="hot">从高到低</Option>
-                        <Option value="hotInvert">从低到高</Option>
-                      </OptGroup>
-                    </Select> 
-                </div>     
-                :
-                null
-            }     
-        </div>        
-        <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/>          
+      <div>                  
+        {
+            comments.length 
+            ?
+            <div className="comment-select">
+                <span><span className="text">全部评论</span><span className="num">{total}</span><span style={{display:'inline-block',transform:'scale(0.8)'}}>条</span></span>
+                <Select className="filter" onChange={this.handleSelectChange.bind(this)} dropdownStyle={dropdownStyle} size="small" defaultValue={value}  dropdownMatchSelectWidth={false}>
+                  <OptGroup label="按时间">
+                    <Option value="time">从近到远</Option>
+                    <Option value="timeInvert">从远到近</Option>
+                  </OptGroup>
+                  <OptGroup label="按热度">
+                    <Option value="hot">从高到低</Option>
+                    <Option value="hotInvert">从低到高</Option>
+                  </OptGroup>
+                </Select> 
+            </div>     
+            :
+            null
+        }                   
+                
         {
            isLoading
            ?
@@ -159,24 +163,26 @@ render(){
            :
            <div className="commentsContainer" >
               {
+                  comments.length
+                  ?
                   comments.map((item,key)=>(
                      <CommentComponent 
                          socket={socket} 
-                         history={history}
-                         
+                         history={history}                         
                          onCheckLogin={onCheckLogin}
-                         
-                         onSetScrollTop={onSetScrollTop} 
+                         onVisible={this.handleShareVisible.bind(this)}
+                         onSetScrollTop={onSetScrollTop}
+                         onUpdateTotalNum={this._updateTotalNum.bind(this)} 
                          isSub={false}
                          uniquekey={uniquekey}
-                         comment={item}
-                         
-                      
+                         comment={item}                   
                          key={key}
                          commentType={commentType}
                          
                      />
                   ))
+                  :
+                  <span>{warnMsg}</span>
               }
           </div>
         }
@@ -196,21 +202,18 @@ render(){
               uniquekey={uniquekey}       
               onVisible={this.handleShareVisible.bind(this)} 
               text={text}
-              actionInfo={{
-                contentType:commentType
-              }}
               item={item}
-              data={translateData}
-              contentType={commentType}
+              translateData={translateData}
+              onModel={commentType}
               onUpdateShareBy={this.onUpdateShareBy}
               commentid={commentid}
           />
           :
           null
         }
-        
-          
-        
+        <div style={{margin:'30px 0'}}>
+            <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/> 
+        </div>
       </div>
       
       
