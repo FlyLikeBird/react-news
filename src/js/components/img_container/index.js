@@ -43,6 +43,13 @@ export default class ImgContainer extends React.Component{
         })
     }
 
+    componentWillReceiveProps(newProps){
+        var { single } = this.props;
+        if (single){
+            this.setState({img:newProps.bg})
+        }
+    }
+
     handleMouseOver(e){
         var target = e.currentTarget;
         var inner = e.fromElement || e.relatedTarget;
@@ -80,9 +87,10 @@ export default class ImgContainer extends React.Component{
     }
 
     render(){
+        var { single } = this.props;
         var { img, visible } = this.state;
         return (
-            <div className={style['container']}>
+            <div className={ single ? `${style.container} ${style.single}` : style.container}>
                 <div className={style['img-container']} style={{backgroundImage:`url(${img})`}}>
                     <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)}  className={style['modal-container']}>
                         <Icon type="eye" onClick={this.handlePreview.bind(this,true)}/>

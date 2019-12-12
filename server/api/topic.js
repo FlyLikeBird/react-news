@@ -189,6 +189,16 @@ router.get('/getTopicDetail',(req,res)=>{
     })  
 })
 
+router.get('/getTopicList',(req,res)=>{
+    var { count } = req.query;
+    count = Number(count);
+    Topic.find({},{title:1})
+        .limit(count)
+        .then(topics=>{
+            util.responseClient(res, 200, 0, 'ok', topics);
+        })
+})
+
 router.get('/followTopic',(req,res)=>{
     var { userid, topicId, isCancel } = req.query; 
     var date = new Date().toString(); 

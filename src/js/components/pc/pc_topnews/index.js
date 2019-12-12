@@ -1,22 +1,18 @@
 import React from 'react';
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin , Button } from 'antd';
-
-import TopNewsItem from './topnews_item';
-import style from '../../news_block/style.css';
-
+import { once } from '../../../../utils/translateDate';
+import TopNewsContainer from './topnews_container';
 var arr = ['guonei','yule','guoji','shehui'];
-var count = 0;
+
+var count = 0; // 记录自动加载的次数
 export default class PCTopNewsIndex extends React.Component{
     constructor(){
         super();
         this.state={
-           position:0,
-           currentIndex:0,
            data:[],
+           addData:[],
            isLoading:true,
-           allowUpdate:false,
-           scrollToBottom:false
-                     
+           loadEnd:false      
         }
     }
 
@@ -33,112 +29,73 @@ export default class PCTopNewsIndex extends React.Component{
 
     componentDidMount(){
         var { onLoadScrollFunc } = this.props;
-        var container = this.topNewsContainer;
+        var container = this.container;
         var promises = arr.map(item=>this._fetchData(item));
         Promise.all(promises)
             .then(newsList=>{
                 var data = newsList.concat(newsList);
-                this.setState({data, isLoading:false});
-                if ( onLoadScrollFunc) onLoadScrollFunc();
+                this.setState({data, addData:data, isLoading:false});
+                if ( onLoadScrollFunc) onLoadScrollFunc(true);
             })   
     }
 
+    componentWillUnmount(){
+        var { onLoadScrollFunc, onResetFixed } = this.props;
+        if (onLoadScrollFunc) onLoadScrollFunc(false);
+        if (onResetFixed) onResetFixed();
+    }
+
     componentWillReceiveProps(newProps){
-        var { reload } = newProps;
-        console.log(reload);            
-        if (reload) {
-            console.log(count);
+        var { reloading, onStopAutoLoad } = newProps;
+        //console.log(reloading);
+        if(reloading){
             count++;
-            if ( count>3 ) {
-                this.setState({scrollToBottom:true});
-            } else {
-                this._reloadNewsList();
-            }     
-        }           
+            if (count==4){
+                if ( onStopAutoLoad) onStopAutoLoad(false,false);
+                this.setState({loadEnd:true});
+                return ;
+            }
+            //console.log(count);
+            var promise = new Promise((resolve,reject)=>{
+                setTimeout(()=>{
+                    this._reloadNewsList();
+                    resolve();
+                },500)
+            });
+            promise.then(()=>{
+                if (onStopAutoLoad) onStopAutoLoad(true,false);
+            });
+            
+            
+        }
     }
 
     _reloadNewsList(){
-        var { data } = this.state;
-        data = data.map(item=>{
-            var arr = item.concat(item);
+        var { data, addData } = this.state;
+        data = data.map((item,index)=>{
+            var arr = item.concat(addData[index]);
             return arr;
         })
-        this.setState({data})
-    }
-
-    handleToggle(direction){
-        var { currentIndex, data } = this.state;
-        var position = 0;
-        var prevIndex;
-        if (direction ==='left'){
-            prevIndex = currentIndex;
-            currentIndex++;
-            position = -25;
-            if (currentIndex>(data.length-4)){
-                setTimeout(()=>{                   
-                    this.setState({currentIndex:prevIndex, position:25});
-                },100)
-            } 
-            this.setState({currentIndex, position, allowUpdate:true})
-        } else {
-            prevIndex = currentIndex;
-            currentIndex--;
-            //  当列表已经在最左端而向右滑动时，往左拉回25距离
-            position = 25;
-            if (currentIndex<0){
-                setTimeout(()=>{                               
-                    this.setState({currentIndex:prevIndex, position:-25});
-                },100)
-            } 
-            this.setState({currentIndex, position, allowUpdate:true})                 
-        }
-        // 将allowUpdate 重置为false,防止自动加载时 <topNews-item /> 更新
-        setTimeout(()=>{
-            this.setState({allowUpdate:false});
-        },300)
-        
+        this.setState({data});
     }
 
     
     render(){
-        var { fixPosition } = this.props;
-        var { isLoading, data, position, currentIndex, allowUpdate, scrollToBottom } = this.state;
+        var { isFixed, history, reloading } = this.props;
+        var { isLoading, data, addData, loadEnd } = this.state;
         
         return(
 
              
-            <div style={{paddingTop:'30px',height:'100%'}}>
+            <div style={{paddingTop:'30px',display:'flex'}}>
                 <Col span={2}></Col>                   
-                <Col span={20} style={{height:'100%'}}>
+                <Col span={20}>
                     {
                         isLoading
                         ?
                         <Spin size="large"/>
                         :
-                        <div className={style["topNews-container"]}>
-                            {
-                                data.map((item,index)=>(
-                                    <TopNewsItem 
-                                        key={index} 
-                                        data={item} 
-                                        initPosition={index*25} 
-                                        movePosition={position}
-                                        allowUpdate={allowUpdate} 
-                                        selected={ index >= currentIndex && index<(currentIndex+4) ? true: false} 
-                                        fixPosition={fixPosition}
-                                    />
-                                ))
-                            }
-                            {
-                                scrollToBottom
-                                ?
-                                <span>没有更多新闻了！</span>
-                                :
-                                null
-                            }
-                            <Button onClick={this.handleToggle.bind(this,'left')} className="toggle toggle-left"><Icon type="left" /></Button>
-                            <Button onClick={this.handleToggle.bind(this,'right')} className="toggle toggle-right"><Icon type="right" /></Button>
-                        </div>
+                        <TopNewsContainer data={data} imgData={addData} isFixed={isFixed} reloading={reloading} loadEnd={loadEnd} history={history}/>
                     }
                     
                    

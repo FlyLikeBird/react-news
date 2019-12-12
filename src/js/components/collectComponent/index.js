@@ -117,7 +117,7 @@ export default class CollectContainer extends React.Component {
         
         return(
             
-            <div style={{position:'relative',textAlign:'left'}}>
+            <div style={{position:'relative',textAlign:'left',minHeight:'200px'}}>
                 {
                     isSelf
                     ?

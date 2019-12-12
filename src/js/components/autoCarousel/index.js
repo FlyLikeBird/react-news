@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
 
-import style from './style.css';
+import style from './autoCarousel.style.css';
 
 export default class AutoCarousel extends React.Component {
     
@@ -81,7 +81,7 @@ export default class AutoCarousel extends React.Component {
                         return item;
                     })
                     this.setState({images:data,isLoading:false});
-                    this._setTimer();
+                    //this._setTimer();
                 })
                 
             })
@@ -110,12 +110,12 @@ export default class AutoCarousel extends React.Component {
     handleMouseOver(index,e){
         var inner = e.toElement || e.relatedTarget;
         clearInterval(this.timer);        
-        this.setState({currentIndex:index});
+        //this.setState({currentIndex:index});
         
     }
 
     handleMouseOut(e){
-        this._setTimer()
+        //this._setTimer()
     }
 
     componentWillUnmount(){
@@ -154,7 +154,7 @@ export default class AutoCarousel extends React.Component {
                                         <div 
                                             style={{backgroundImage:`url(${item.thumbnails[0]})`}}
                                             className={currentIndex==index?style['selected']:''}
-                                            onClick={this.handleClick.bind(this,item.articleId)}    
+                                            onClick={this.handleClick.bind(this,item._id)}    
                                             onMouseOver={this.handleMouseOver.bind(this,index)}
                                             onMouseOut={this.handleMouseOut.bind(this)}
                                             key={index} 

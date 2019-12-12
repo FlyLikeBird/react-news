@@ -26,7 +26,8 @@ module.exports = new mongoose.Schema({
     shareBy:[{type:Schema.Types.ObjectId,ref:'Action'}],
     user:{type:Schema.Types.ObjectId,ref:'User'},
     // 标识是创建还是转发生成的动态
-    isCreated:{type:Boolean,default:false}
+    isCreated:{type:Boolean,default:false},
+    replies:{type:Number,default:0}
 });
 
 

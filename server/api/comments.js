@@ -10,6 +10,7 @@ var Article = require('../../models/Article');
 var Topic = require('../../models/Topic');
 var Action  = require('../../models/Action');
 var config = require('../../config/config');
+var userPromise = require('../userPromise');
 
 var createFolder = function(folder){
     try{
@@ -70,14 +71,14 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
       var onModel = comment.onModel;
       if ( onModel =='Topic'){
           Topic.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-              getComments(null, comment._id, res, uniquekey);
+              getComments(null, comment._id, res, onModel, uniquekey);
           })
       }  else if (onModel=='Action') {
           Action.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-              getComments(null, comment._id, res, uniquekey);
+              getComments(null, comment._id, res, onModel, uniquekey);
           })
       } else if (onModel=='Article'){
-          getComments(null, comment._id, res, uniquekey);
+          getComments(null, comment._id, res, null, uniquekey);
       }
       
       User.findOne({_id:userid},(err,user)=>{
@@ -123,14 +124,14 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
                 var onModel = comment.onModel;
                 if ( onModel =='Topic'){
                     Topic.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-                        getComments(true, parentcommentid, res, uniquekey);
+                        getComments(true, parentcommentid, res, onModel, uniquekey);
                     })
                 }  else if (onModel=='Action') {
                     Action.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-                        getComments(true, parentcommentid, res, uniquekey);
+                        getComments(true, parentcommentid, res, onModel, uniquekey);
                     })
                 } else if (onModel=='Article'){
-                    getComments(true, parentcommentid, res, uniquekey);
+                    getComments(true, parentcommentid, res, null, uniquekey);
                 }
             })
         })
@@ -138,7 +139,7 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
   
 })
 
-function getComments( forOneComment, commentid, res, related, pageNum=1, orderBy='time'){
+function getComments( forOneComment, commentid, res, onModel, related, pageNum=1, orderBy='time'){
     var skip = (Number(pageNum) -1 ) < 0 ? 0 : (Number(pageNum) -1) * 10; 
     var data = {
         total:0,
@@ -204,14 +205,19 @@ function getComments( forOneComment, commentid, res, related, pageNum=1, orderBy
           .limit(10)
           .then(comments=>{           
               data.comments = comments;
-              util.responseClient(res,200,0,'ok',data);             
+              if (!onModel) {
+                 util.responseClient(res,200,0,'ok',data);
+              } else if ( onModel=='Topic' ) {
+                 userPromise.getTopicContent(res, related, data);
+              }
+                        
           })
       })
 }
 
 router.get('/getcomments',(req,res)=>{
   var { uniquekey, pageNum, orderBy } = req.query;
-  getComments( null, null, res, uniquekey, pageNum, orderBy );
+  getComments( null, null, res, null, uniquekey, pageNum, orderBy );
 })
 
 router.get('/getOneComment',(req,res)=>{
@@ -295,34 +301,28 @@ router.get('/operatecomment',(req,res)=>{
 })
 
 
-function getUserComments(userid, res){
-  var data = {};
-  Comment.count({fromUser:userid})
-      .then(count=>{
-          data.count = count;
-          Comment.find({fromUser:userid})
-              .populate({path:'fromUser',select:'username userImage'})
-              .populate({
-                  path:'replyTo',
-                  select:'fromUser',
-                  populate:{ path:'fromUser', select:'username'}
-              })
-              .populate({
-                path:'related',
-                populate:[
-                    { path:'fromUser',select:'username userImage'},
-                    { path:'tags',select:'tag'},
-                    { path:'user', select:'username userImage'},
-                    { path:'follows.user', select:'username userImage'},
-                    { path:'shareBy',populate:{path:'user',select:'username userImage'}, select:'user date value'}
-                ]                 
-              })
-              .sort({date:-1})
-              .then(comments=>{
-                data.comments = comments;
-                util.responseClient(res, 200, 0, 'ok', data);
-              })
-      })  
+function getUserComments(userid, res){  
+    Comment.find({fromUser:userid})
+        .populate({path:'fromUser',select:'username userImage'})
+        .populate({
+            path:'replyTo',
+            select:'fromUser',
+            populate:{ path:'fromUser', select:'username'}
+        })
+        .populate({
+          path:'related',
+          populate:[
+              { path:'fromUser',select:'username userImage'},
+              { path:'tags',select:'tag'},
+              { path:'user', select:'username userImage'},
+              { path:'follows.user', select:'username userImage'},
+              { path:'shareBy',populate:{path:'user',select:'username userImage'}, select:'user date value'}
+          ]                 
+        })
+        .sort({date:-1})
+        .then(comments=>{
+          util.responseClient(res, 200, 0, 'ok', comments);
+        })   
 }
 
 router.get('/getUserComments',(req,res)=>{
@@ -330,24 +330,35 @@ router.get('/getUserComments',(req,res)=>{
     getUserComments(userid, res);
 })
 
+function deleteCommmentRelated(onModel, related, num){
+    if(onModel=='Topic') {
+        Topic.updateOne({_id:related},{$inc:{replies:num}},(err,result)=>{});
+    } else if (onModel=='Action'){
+        Action.updateOne({_id:related},{$inc:{replies:num}},(err,result)=>{});
+    }
+}
+
 router.get('/delete',(req,res)=>{
     let { commentid, userid } = req.query;
     Comment.findOne({_id:commentid},(err,comment)=>{
-        var parentcommentid = comment.parent;
-        var replies = comment.replies;
+        var { parentcommentid, replies, related, onModel } = comment;
         if (parentcommentid){
             Comment.deleteOne({_id:commentid},(err,result)=>{
                 Comment.updateOne({_id:parentcommentid},{$pull:{replies:commentid}},(err)=>{
                     getUserComments(userid, res);
                 })
-            })
+            });
+            deleteCommmentRelated(onModel, related, -1);
         } else {
+            var num = -(replies.length + 1);
             Comment.deleteMany({_id:{$in:replies}},(err,result)=>{
                 Comment.deleteOne({_id:commentid},(err,result)=>{
                     getUserComments(userid, res);
                 })
-            })
+            });
+            deleteCommmentRelated(onModel, related, num);
         }
+        
     }) 
 })
 

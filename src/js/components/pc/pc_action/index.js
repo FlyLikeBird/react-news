@@ -17,15 +17,18 @@ export default class PCActionContainer extends React.Component{
         }
     }
 
-    componentDidMount(){
-        var uniquekey = this.props.match.params.id;       
+    _loadActionData(props){
+        var uniquekey = props.match.params.id;       
         fetch(`/api/action/getActionContent?contentId=${uniquekey}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
                 this.setState({ data:data && data[0],isLoading:false});
             })
-        
+    }
+
+    componentDidMount(){
+        this._loadActionData(this.props);        
     }
 
     handleShareVisible(boolean,option, _updateShareby){
@@ -35,6 +38,13 @@ export default class PCActionContainer extends React.Component{
 
     componentWillUnmount(){
         this._updateShareby = null;
+    }
+
+    componentWillReceiveProps(newProps){
+        if(this.props.match.params.id != newProps.match.params.id){
+            this.setState({isLoading:true});
+            this._loadActionData(newProps);
+        }
     }
 
     render(){
@@ -55,27 +65,30 @@ export default class PCActionContainer extends React.Component{
                                 ?
                                 <Spin />
                                 :
-                                <UpdateItem                               
-                                    data={data} 
-                                    history={history} 
-                                    forSimple={true}
-                                    socket={socket}
-                                    onCheckLogin={onCheckLogin} 
-                                    onShareVisible={this.handleShareVisible.bind(this)}
-                                />
+                                <div>
+                                    <UpdateItem                               
+                                        data={data} 
+                                        history={history} 
+                                        forSimple={true}
+                                        socket={socket}
+                                        onCheckLogin={onCheckLogin} 
+                                        onShareVisible={this.handleShareVisible.bind(this)}
+                                    />
+                                    <div style={{margin:'20px 0'}}>
+                                        <CommentsListContainer 
+                                            history={history}
+                                            location={location}
+                                            socket={socket}
+                                            onCheckLogin={onCheckLogin} 
+                                            uniquekey={uniquekey} 
+                                            onSetScrollTop={onSetScrollTop} 
+                                            commentType="Topic" 
+                                            warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
+                                        />
+                                    </div>
+                                </div>
                             }
-                            <div style={{margin:'20px 0'}}>
-                                <CommentsListContainer 
-                                    history={history}
-                                    location={location}
-                                    socket={socket}
-                                    onCheckLogin={onCheckLogin} 
-                                    uniquekey={uniquekey} 
-                                    onSetScrollTop={onSetScrollTop} 
-                                    commentType="Topic" 
-                                    warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
-                                />
-                            </div>
+                            
                             {
                                 shareVisible
                                 ?

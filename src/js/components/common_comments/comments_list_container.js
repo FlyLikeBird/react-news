@@ -75,7 +75,6 @@ export default class CommentsListContainer extends React.Component{
                 })
             }    
             this.setState({comments,total,isLoading:false,currentPageNum:finalPageNum});
-            if (onSetReplies) onSetReplies(total);
           })
          
  }
@@ -95,15 +94,15 @@ handleSelectChange(value){
 }
 
 _updateTotalNum(total){
-    var { onSetReplies } = this.props;
     this.setState({total});
-    if (onSetReplies) onSetReplies(total);
 }
 
 handleAddComment(data){
-  var { total, comments } = data;
-  this.setState({comments, total});
-  this._updateTotalNum(total);
+    var { onUpdateItemComments } = this.props;
+    var { total, comments, doc } = data;
+    this.setState({comments, total});
+    if ( onUpdateItemComments ) onUpdateItemComments(doc);
+    
 }
 
 handleShareVisible(boolean, commentid, onUpdateShareBy){
@@ -127,7 +126,7 @@ componentWillUnmount(){
 }
 
 render(){
-  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop, onCheckLogin } = this.props;
+  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop, onUpdateItemComments, onCheckLogin } = this.props;
   var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum } = this.state;
   const dropdownStyle = {
     width:'160px',
@@ -172,7 +171,8 @@ render(){
                          onCheckLogin={onCheckLogin}
                          onVisible={this.handleShareVisible.bind(this)}
                          onSetScrollTop={onSetScrollTop}
-                         onUpdateTotalNum={this._updateTotalNum.bind(this)} 
+                         onUpdateTotalNum={this._updateTotalNum.bind(this)}
+                         onUpdateItemComments={onUpdateItemComments} 
                          isSub={false}
                          uniquekey={uniquekey}
                          comment={item}                   

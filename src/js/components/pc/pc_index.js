@@ -61,10 +61,10 @@ export default class PCRouter extends React.Component {
     constructor(){
       super();
       this.state = {
-          bodyHeight:0,
           scrollFunc:null,
-          reload:false,
-          fixPosition:false
+          allowReload:true,
+          reloading:false,
+          isFixed:false
       }
       
     }
@@ -78,47 +78,52 @@ export default class PCRouter extends React.Component {
 
     handleScroll(e){
         var container = this.container;
-        var { bodyHeight, fixPosition, reload } = this.state;
+        var { isFixed, reload, allowReload, reloading } = this.state;
         if (container){        
-            var { scrollHeight, scrollTop } = container;
-            //  顶部图片定位           
-            if ( scrollTop >= 180){
-                this.setState({fixPosition:true});
+            var { scrollHeight, scrollTop, clientHeight } = container;
+            //  顶部图片定位              
+            if (!isFixed){
+                if (scrollTop >=180){
+                    this.setState({isFixed:true});
+                }
             } else {
-                this.setState({fixPosition:false});
-            }  
-            console.log(bodyHeight);
-            console.log(container.scrollHeight);
+                if (scrollTop<180){
+                    this.setState({isFixed:false});
+                }
+            }              
             //  自动加载数据逻辑
-            if (  bodyHeight + container.scrollTop  >= container.scrollHeight ){
-                console.log('reload');
-                this.setState({reload:true});
-                setTimeout(()=>{
-                    this.setState({reload:false});
-                },500); 
+            //console.log(allowReload);
+            if (  allowReload && (scrollHeight - (clientHeight + scrollTop) == 0)  ){                
+                this._stopAutoLoad(false, true);              
             }   
-
         }
     }
 
-    loadScrollFunc(){
-        this.setState({scrollFunc:this.handleScroll.bind(this)})
+    _stopAutoLoad(allowReload, reloading){
+        this.setState({allowReload,reloading});
     }
 
-    componentDidMount(){
-        var bodyHeight = document.body.offsetHeight;
-        this.setState({bodyHeight})
+    _resetFixed(){
+        this.setState({isFixed:false});
     }
 
-
+    loadScrollFunc(load){
+        if (load) {
+            this.setState({scrollFunc:this.handleScroll.bind(this)});
+        } else {
+            this.setState({scrollFunc:null});
+        }       
+    }
+    
     render(){
         var { msg, socket, user, onLoginVisible, onCheckLogin } = this.props;
-        var { bodyHeight, scrollFunc, reload, fixPosition } = this.state;
-
+        var { scrollFunc, allowReload, reloading, isFixed } = this.state;
+        
         return (
                        
                 <Router>
-                    <div ref={container=>this.container=container} onScroll={scrollFunc} style={{height:bodyHeight,overflowX:'hidden',overflowY:'scroll'}}>
+                    
+                    <div ref={container=>this.container=container} onScroll={scrollFunc} style={{height:'100%',overflowX:'hidden',overflowY:'scroll'}}>
                         <PCHeader {...this.props}/>
                         <Switch>
                           <Route exact path="/" component={PCNewsContainer} />                          
@@ -157,8 +162,11 @@ export default class PCRouter extends React.Component {
                           <Route exact path="/topNews" render={props=>{
                               props.onHandleScroll = this.handleScroll.bind(this);
                               props.onLoadScrollFunc = this.loadScrollFunc.bind(this);
-                              props.reload = reload;
-                              props.fixPosition = fixPosition;
+                              props.onStopAutoLoad=this._stopAutoLoad.bind(this);
+                              props.onResetFixed = this._resetFixed.bind(this);
+                              props.allowReload = allowReload;
+                              props.reloading = reloading;
+                              props.isFixed = isFixed;
                               return <PCTopNews {...props}/>
                           }}
                           />
@@ -173,6 +181,7 @@ export default class PCRouter extends React.Component {
                         </Switch>
                         <PCFooter />
                     </div> 
+                    
                 </Router> 
             
         )

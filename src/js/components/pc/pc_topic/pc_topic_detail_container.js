@@ -17,8 +17,7 @@ export default class TopicDetailContainer extends React.Component{
             item:{},
             isLoading:true,
             shareVisible:false,
-            collectVisible:false,
-            replies:0
+            collectVisible:false
         }
     }
 
@@ -33,21 +32,21 @@ export default class TopicDetailContainer extends React.Component{
             }) 
     }
 
-    handleShareVisible(boolean, onUpdateShareBy){    
-        this.onUpdateShareBy = onUpdateShareBy;
-        this.setState({shareVisible:boolean})   
+    handleShareVisible(boolean, item){   
+        if (boolean){
+            console.log(item);
+            this.setState({shareVisible:boolean, item})
+        } else {
+            this.setState({shareVisible:boolean});
+        }          
     }
 
     handleCollectVisible(boolean){
         this.setState({collectVisible:boolean});
     }
 
-    componentWillUnmount(){
-        this.onUpdateShareBy = null
-    }
-
-    _updateReplies(replies){
-        this.setState({replies})
+    _updateItem(data){
+        this.setState({item:data});
     }
 
     render(){
@@ -66,14 +65,13 @@ export default class TopicDetailContainer extends React.Component{
                         <TopicListItem
                             data={item}
                             uniquekey={uniquekey}
-                            replies={replies}
                             forDetail={true}
                             onCheckLogin={onCheckLogin}
                             onVisible={this.handleShareVisible.bind(this)}
                             onCollectVisible={this.handleCollectVisible.bind(this)} 
                         />
                         
-                        <Modal visible={collectVisible} footer={null} onCancel={this.handleCollectVisible.bind(this,false)} maskClosable={true}>                           
+                        <Modal visible={collectVisible} footer={null} onCancel={this.handleCollectVisible.bind(this,false)} maskClosable={true} destroyOnClose={true}>                           
                                 <CollectContainer uniquekey={uniquekey} isSelf={true} onModel="Topic" user={localStorage.getItem('userid')}/>                
                         </Modal>
                         <div style={{margin:'40px 0'}}>
@@ -85,7 +83,7 @@ export default class TopicDetailContainer extends React.Component{
                                 uniquekey={uniquekey} 
                                 onSetScrollTop={onSetScrollTop} 
                                 commentType="Topic" 
-                                onSetReplies = {this._updateReplies.bind(this)}
+                                onUpdateItemComments = {this._updateItem.bind(this)}
                                 warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
                             />
                         </div>
@@ -98,9 +96,8 @@ export default class TopicDetailContainer extends React.Component{
                                 onModel="Topic"
                                 uniquekey={uniquekey}       
                                 onVisible={this.handleShareVisible.bind(this)} 
-                                onUpdateShareBy={this.onUpdateShareBy}
-                                item={item}
-                                
+                                onUpdateShareBy={this._updateItem.bind(this)}
+                                item={item}                               
                             />
                             :
                             null

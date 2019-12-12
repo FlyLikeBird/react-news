@@ -84,7 +84,7 @@ export default class Root extends React.Component {
   render(){
       var { visible } = this.state;
       return (
-          <div style={{textAlign:'center'}}>            
+          <div style={{textAlign:'center',height:'100%'}}>            
               <MediaQuery query='(min-device-width:640px)'>
                   <PCRouter {...this.state} onLoginVisible={this._setLoginVisible.bind(this)} onLoginOut={this.handleLoginOut.bind(this)} onCheckLogin={this._checkUserLogin.bind(this)}/>
               </MediaQuery>

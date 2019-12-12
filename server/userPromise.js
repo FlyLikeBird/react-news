@@ -6,15 +6,6 @@ var Action = require('../models/Action');
 var Topic = require('../models/Topic');
 var util = require('./util');
 
-function sort(arr,prop){
-  arr.sort((a,b)=>{
-    var time1 = Date.parse(a[prop]);
-    var time2 = Date.parse(b[prop]);
-    return time2 - time1
-  })
-  return arr; 
-}
-
 function selectImgByUniquekey(content){
   var pattern = /<img[^>]*src=([^\s]*)\s[^>]*>/g;
   var result;
@@ -29,16 +20,9 @@ function selectImgByUniquekey(content){
   return multiImg;
 }
 
-function getTopicComments(topic, resolve){
-    Comment.find({'uniquekey':topic._id},(err,comments)=>{
-        topic.replies = comments.length;
-        resolve(topic);
-    })
-}
 
-function getAllOrUserTopics(res, userid, topicId, someTopics){
-    var option = someTopics ? { _id:{$in:someTopics}} : topicId ? {_id:topicId} : userid ? {user:userid} : {privacy:0};
-    Topic.find(option)
+function getTopicContent(res, topicId, data){
+    Topic.findOne({_id:topicId})
         .populate({path:'user', select:'username userImage'})
         .populate({path:'tags',select:'tag'})
         .populate({
@@ -51,22 +35,18 @@ function getAllOrUserTopics(res, userid, topicId, someTopics){
             select:'date user value'
         })
         // 话题按生成时间排序
-        .sort({_id:-1})
-        .then(topics=>{
-            var allPromises = [];
-            topics.map(item=>{
-                var promise = new Promise((resolve,reject)=>{
-                    getTopicComments(item,resolve);
-                });
-                allPromises.push(promise);
-            });
-            Promise.all(allPromises)
-                .then(topics=>{
-                    util.responseClient(res, 200, 0, 'ok', topics);
-                })
+        .then(doc=>{
+            var result ;
+            if (data){
+                result = data;
+                result.doc = doc;
+            } else {
+                result = doc;
+            }
+            util.responseClient(res, 200, 0, 'ok', result);
         })
 }
 
 module.exports = {
-    getAllOrUserTopics
+    getTopicContent
 }

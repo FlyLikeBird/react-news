@@ -6,6 +6,16 @@
     border-radius:4px;
 }
 
+.container.single {
+    height:200px;
+    width:100%;
+    display:block;
+    padding:0;
+    border-radius:0;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
 .img-container {
     position:relative;
     background-repeat: no-repeat;
@@ -13,6 +23,12 @@
     background-size: cover;
     border-radius: 4px;
     height:100%;
+}
+
+.container.single .img-container {
+    border-radius:0;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
 }
 
 .modal-container {
@@ -24,6 +40,11 @@
     text-align: center;
     border-radius:4px;
     background-color:rgba(0, 0, 0, 0.5);
+    transition:all 0.3s;
+}
+
+.container.single .modal-container {
+    line-height:200px;
 }
 
 .modal-container i{

@@ -81,7 +81,7 @@ class PicturesWall extends React.Component {
     formData.append('userid',localStorage.getItem('userid'));
     //console.log(fileData.upload.file)
     
-    fetch('/usr/upload',{
+    fetch('/api/usr/upload',{
       method:'post',
       body:formData
     }).then(response=>response.json())
@@ -111,8 +111,7 @@ class PicturesWall extends React.Component {
       </div>
     );
     return (
-      <div className="clearfix">
-        
+      <div className="clearfix">      
         <Form onSubmit={this.handleSubmit.bind(this)}>
           <FormItem>
             { getFieldDecorator('upload')(
@@ -137,8 +136,7 @@ class PicturesWall extends React.Component {
           </FormItem>
           <Button type="primary" htmlType="submit">更换头像</Button>
         </Form>
-        
-       
+           
         <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel.bind(this)} okText={'更换图像'}>
           <img alt="example" style={{ width: '100%' }} src={previewImage} />
         </Modal>

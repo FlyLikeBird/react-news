@@ -164,6 +164,10 @@ router.get('/usercenter',(req,res)=>{
 	User.findOne({_id:userid},{password:0,message:0})
 		.populate({path:'userFollows', select:'username level userImage userFans userFollow description'})
 		.populate({path:'userFans', select:'username level userImage userFans userFollow description'})
+		.populate({
+			path:'userHistorys.articleId',
+			select:'auth title newstime type thumbnails'
+		})
 		.then(data=>{
 			util.responseClient(res, 200, 0, 'ok', data);
 		})
@@ -179,15 +183,12 @@ router.get('/getUserInfo',(req,res)=>{
 })
 
 router.get('/editSign',(req,res)=>{
-	let { user, description } = req.query;
-	User.updateOne({username:user},{$set:{description}},(err,result)=>{
+	let { userid, description } = req.query;
+	User.updateOne({_id:userid},{$set:{description}},(err,result)=>{
 		if (result) {
-			User.findOne({username:user})
-				.then(user=>{
-					var data={};
-					data.description = user.description;
-					util.responseClient(res,200,0,'',data);
-				})
+			User.findOne({_id:userid},(err,user)=>{
+				util.responseClient(res, 200, 0, 'ok', user.description);
+			})
 		}
 	})
 })
@@ -253,15 +254,17 @@ router.get('/pushHistory',(req,res)=>{
 			var isExist = false;
 			var date  = new Date().toString();
 			historys.map(item=>{
-				if(item.articleId===uniquekey) {
+				if(item.articleId==uniquekey) {
 					isExist = true;
 				}
 			})
-			
+			console.log(isExist);
 			if(!isExist){
 				User.updateOne({_id:userid},{$push:{userHistorys:{articleId:uniquekey,viewtime:date}}},(err,result)=>{})
 			} else {
-				User.updateOne({_id:userid,'userHistorys.articleId':uniquekey},{$set:{'userHistory.$.viewtime':date}},(err,result)=>{})
+				User.updateOne({_id:userid,'userHistorys.articleId':uniquekey},{$set:{'userHistorys.$.viewtime':date}},(err,result)=>{
+					console.log(result);
+				})
 			}
 			util.responseClient(res,200,0,'ok');
 		}				
@@ -270,7 +273,7 @@ router.get('/pushHistory',(req,res)=>{
 
 router.get('/removeHistory',(req,res)=>{
 	let { userid , uniquekey } = req.query;
-	User.updateOne({_id:userid},{$pull:{userHistorys:{'articleId':uniquekey}}},(err,result)=>{
+	User.updateOne({_id:userid},{$pull:{userHistorys:{'_id':uniquekey}}},(err,result)=>{
 		util.responseClient(res,200,0,'ok');
 	})
 })

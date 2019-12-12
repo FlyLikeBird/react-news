@@ -13,7 +13,7 @@ module.exports = new Schema({
     userFans:[{type:Schema.Types.ObjectId,ref:'User'}],
     userCollects:[{type:Schema.Types.ObjectId,ref:'Collect'}],
     userActions:[{type:Schema.Types.ObjectId,ref:'Action'}],
-    userHistorys:[{articleId:String,viewtime:String}],
+    userHistorys:[{articleId:{type:Schema.Types.ObjectId, ref:'Article'},viewtime:String}],
     userTopics:[{type:Schema.Types.ObjectId,ref:'Topic'}],
     //  String指的是Message表的 ObjectId
     message:[{type:Schema.Types.ObjectId, ref:'Message'}],

@@ -82,7 +82,7 @@ export default class NewsList extends React.Component{
                         
                         list.map((item,index)=>(
                             <NewsListItem 
-                                item={item} 
+                                data={item} 
                                 key={index}
                                 forSimple={forSimple}
                                 forSearch={forSearch}

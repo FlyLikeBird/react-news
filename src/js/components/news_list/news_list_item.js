@@ -5,35 +5,6 @@ import { parseDate, formatDate, translateType } from '../../../utils/translateDa
 
 export default class NewsListItem extends React.Component {
   
-  handleRemoveHistory( articleId, e){
-      e.stopPropagation();
-      var { onDelete } = this.props;
-      fetch(`/api/usr/removeHistory?userid=${localStorage.getItem('userid')}&uniquekey=${articleId}`)
-        .then(response=>response.json())
-        .then(data=>{
-            var newsItem;
-            if (this.container){
-                newsItem = this.container;
-            }
-            if ( newsItem && newsItem.classList){
-                newsItem.classList.add('motion')
-            }
-            setTimeout(()=>{
-                if (onDelete) onDelete(articleId);
-                newsItem.classList.remove('motion');
-            },500)
-        })  
-  }
-  
-  translateTimeFormat(viewtime){
-    var time = formatDate(parseDate(viewtime))
-    //console.log(time);
-    var formatArr = time.split(/\s+/);
-    //console.log(formatArr);
-    return formatArr[0]+'<br/>' + '<span style="color:black">'+formatArr[1]+'</span>';
-  }
-
-
   markKeyWords(content){
     var { location } = this.props;
     var result = '';
@@ -74,18 +45,11 @@ export default class NewsListItem extends React.Component {
   render(){
     var { data, hastime, hasImg, forSimple, forSearch, hasSearchContent } = this.props;
     var { viewtime, _id, auth, newstime, content, thumbnails, title, type } = data;
-  
     return (
 
         
               <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
-                  { 
-                      hastime 
-                      ? 
-                      <div style={{color:'#1890ff',margin:'0 10px'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime?viewtime:'')}}></div> 
-                      : 
-                      null 
-                  }
+            
                   {
                       hasImg && thumbnails
                       ? 
@@ -115,13 +79,7 @@ export default class NewsListItem extends React.Component {
                         </div>
                         
                     </div>
-                    {
-                          hastime
-                          ?
-                          <Button size="small" className="button" onClick={this.handleRemoveHistory.bind(this, _id)} shape="circle" icon="close"/>
-                          :
-                          null
-                    } 
+                    
               </div>
               
         

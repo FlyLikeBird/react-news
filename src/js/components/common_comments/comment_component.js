@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Row,Col, Avatar, List, Card, Popover, Modal, Icon, Badge } from 'antd';
 
 import CommentComponentButton from './comment_component_button';
-import CommentPopoverUserAvatar from './comment_popover_useravatar';
+import CommentPopoverUserAvatar from '../popover_user_avatar';
 import NewsListItem from '../news_list/news_list_item';
 import TopicListItem  from '../topic_list/topic_list_item';
 import ImgContainer from '../img_container';
@@ -22,10 +22,11 @@ export default class CommentComponent extends React.Component{
   }
 
   handleUpdateReplies(data){
-    var { onUpdateTotalNum } = this.props;
-    var { total, comments } = data;
+    var { onUpdateTotalNum, onUpdateItemComments } = this.props;
+    var { total, comments, doc } = data;
     this.setState({replies:comments[0].replies});
     if (onUpdateTotalNum) onUpdateTotalNum(total);
+    if (onUpdateItemComments) onUpdateItemComments(doc);
   }
 
   handleShowReplies(){
@@ -51,12 +52,13 @@ export default class CommentComponent extends React.Component{
   componentDidMount(){
     var { onSetScrollTop, comment, forUser, forMsg } = this.props;
     var { replies, selected, content, fromUser, replyTo, fromSubTextarea } = comment;
-    if (selected &&this.commentDom){        
+    if (selected &&this.commentDom){    
+        this.setState({showReplies:true});    
         var scrollTop = getElementTop(this.commentDom);
         if (onSetScrollTop) {
             setTimeout(()=>{             
               onSetScrollTop(scrollTop);
-            },0)
+            },300)
         }
         setTimeout(()=>{
             this.commentDom.classList.remove('selected');
@@ -134,7 +136,7 @@ export default class CommentComponent extends React.Component{
       <div>
           <div ref={comment=>this.commentDom = comment} className={forUser?'comment user':selected ? 'comment selected' :'comment'}>      
                     <div className="comment-user-info">
-                        <Popover content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
+                        <Popover autoAdjustOverflow={false} placement="top" content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
                             <Badge className="avatar-container" count={ forMsg ? msgRead ? 0 : 1 : 0}><img src={fromUser.userImage} /></Badge>
                         </Popover>
                         <div>
@@ -152,7 +154,7 @@ export default class CommentComponent extends React.Component{
                                     {
                                         item.user
                                         ?
-                                        <Popover content={<CommentPopoverUserAvatar user={item.user}/>}><span className="popover-content">{`@${item.user}`}</span></Popover>
+                                        <Popover autoAdjustOverflow={false} placement="top" content={<CommentPopoverUserAvatar user={item.user}/>}><span className="popover-content">{`@${item.user}`}</span></Popover>
                                         :
                                         null
                                     }
@@ -213,7 +215,7 @@ export default class CommentComponent extends React.Component{
               :
               replies && replies.length
               ?
-              <div ref={subContainer=>this.subContainer=subContainer} className='subcommentsContainer' /*style={{display:showReplies?'block':'none',transform:showReplies?'scale(1)':'scale(0)'}} */>
+              <div ref={subContainer=>this.subContainer=subContainer} className='subcommentsContainer'>
                   {
                       replies.map((item,index)=>(
                           <CommentComponent 

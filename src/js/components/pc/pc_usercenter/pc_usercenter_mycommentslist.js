@@ -4,7 +4,7 @@ import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Select, Spin, Ba
 import CommentComponent from '../../common_comments/comment_component';
 import DeleteModal from '../../deleteModal';
 import SelectContainer from '../../select_container';
-import { parseDate, formatDate, translateType } from '../../../../utils/translateDate';
+import { parseDate, formatDate, sortByDate, translateType } from '../../../../utils/translateDate';
 
 class ListContent extends React.Component {
   constructor(){
@@ -94,14 +94,15 @@ export default class MyCommentsList extends React.Component{
     constructor(){
         super();
         this.state={
-           comments:[],
-           allComments:[],
+           data:[],
+           currentData:[],
            isLoading:true,
            visible:false,
            listVisible:false,
            commentid:'',
            parentcommentid:'',
-           value:'all'
+           selectValue:'all',
+           dateValue:[]
         }
     }
 
@@ -111,14 +112,14 @@ export default class MyCommentsList extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                var { comments } = data;
-                this.setState({comments,allComments:comments,isLoading:false});
+                data = sortByDate(data,'date');
+                this.setState({ data, currentData:data, isLoading:false});
             })       
     }
 
     handleDelete(data){
-        var { comments } = data;
-        this.setState({comments,value:'all'});
+        var data = sortByDate(data,'date');
+        this.setState({data, currentData:data, selectValue:'all', dateValue:[]});
     }
 
     handleListVisible(boolean,commentid){
@@ -129,80 +130,90 @@ export default class MyCommentsList extends React.Component{
         this.setState({visible:boolean,commentid, parentcommentid})
     }
 
-    _updateComments(data, value){
-        this.setState({comments:data,value});
+    _updateComments(data, selectValue, dateValue){
+        this.setState({currentData:data, selectValue, dateValue});
     }
 
     render(){
         var { history, socket, onCheckLogin } = this.props;
-        var  { comments, allComments, visible, text, commentid, parentcommentid, listVisible, isLoading, value } = this.state;
+        var  { data, currentData, visible, commentid, parentcommentid, listVisible, isLoading, selectValue, dateValue } = this.state;
         
         return(
-            <div style={{padding:'20px',borderRadius:'4px',backgroundColor:'#f7f7f7'}}>
-                {
-                    isLoading
-                    ?
-                    <Spin/>
-                    :
-                    allComments.length
-                    ?
-                    <div> 
-                        <SelectContainer data={comments} onSelect={this._updateComments.bind(this)} value={value} text="评论"/>                       
-                        {
-                            comments && comments.length
-                            ?
-                            <div className="commentsContainer">
+            <div>
+                
+                <div>
+                    {
+                        isLoading
+                        ?
+                        <Spin/>
+                        :
+                        data.length
+                        ?
+                        <div> 
+                            <SelectContainer 
+                                currentData={currentData} 
+                                data={data} 
+                                onSelect={this._updateComments.bind(this)} 
+                                selectValue={selectValue}
+                                dateValue={dateValue} 
+                                text="评论"
+                            />
+                            <div style={{padding:'20px',borderRadius:'4px',backgroundColor:'#f7f7f7'}}>                     
                             {
-                                 comments.map((item,index)=>(
-                                    <CommentComponent 
-                                        socket={socket} 
-                                        history={history}
-                                        key={index} 
-                                        isSub={true}
-                                        comment={item}
-                                        onShowList={this.handleListVisible.bind(this)}
-                                        onDelete={this.handleModalVisible.bind(this)}
-                                        onCheckLogin={onCheckLogin}
-                                        forUser={true}
-                                    />
-                                ))
+                                currentData && currentData.length
+                                ?
+                                <div className="commentsContainer">
+                                {
+                                     currentData.map((item,index)=>(
+                                        <CommentComponent 
+                                            socket={socket} 
+                                            history={history}
+                                            key={index} 
+                                            isSub={true}
+                                            comment={item}
+                                            onShowList={this.handleListVisible.bind(this)}
+                                            onDelete={this.handleModalVisible.bind(this)}
+                                            onCheckLogin={onCheckLogin}
+                                            forUser={true}
+                                        />
+                                    ))
+                                }
+                                </div>
+                                :
+                                <div style={{padding:'30px 0'}}>{`还没有发布过任何${selectValue=='all'?'':translateType(selectValue)}评论!`}</div>
                             }
-                            </div>
-                            :
-                            <div style={{padding:'30px 0'}}>{`还没有发布过任何${value=='all'?'':translateType(value)}评论!`}</div>
-                        }
-                         
-                        {/*<span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共发布${comments.length}条评论`}</span> */}
-                        
-                    </div>
-                    :
-                    <span>还没有发布过任何评论!</span>
-                }
-                {
-                    visible
-                    ?
-                    <DeleteModal 
-                        visible={visible} 
-                        onVisible={this.handleModalVisible.bind(this)} 
-                        deleteId={commentid} 
-                        onDelete={this.handleDelete.bind(this)}
-                        deleteType="Comment"
-                        parentcommentid={parentcommentid}
-                    />
-                    :
-                    null
-                }
-                {
-                    listVisible
-                    ?
-                    <Modal visible={listVisible} footer={null} onCancel={()=>this.handleListVisible(false)} destroyOnClose={true}>
-                        <ListContent commentid={commentid} onCheckLogin={onCheckLogin} socket={socket}/>
-                    </Modal>
-                    :
-                    null                   
-                }
-            </div>
-                   
+                            </div> 
+                            
+                            
+                        </div>
+                        :
+                        <span>还没有发布过任何评论!</span>
+                    }
+                    {
+                        visible
+                        ?
+                        <DeleteModal 
+                            visible={visible} 
+                            onVisible={this.handleModalVisible.bind(this)} 
+                            deleteId={commentid} 
+                            onDelete={this.handleDelete.bind(this)}
+                            deleteType="Comment"
+                            parentcommentid={parentcommentid}
+                        />
+                        :
+                        null
+                    }
+                    {
+                        listVisible
+                        ?
+                        <Modal visible={listVisible} footer={null} onCancel={()=>this.handleListVisible(false)} destroyOnClose={true}>
+                            <ListContent commentid={commentid} onCheckLogin={onCheckLogin} socket={socket}/>
+                        </Modal>
+                        :
+                        null                   
+                    }
+                </div>
+            </div>      
         )
     }
 }

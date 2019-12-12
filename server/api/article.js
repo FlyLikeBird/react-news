@@ -227,28 +227,16 @@ router.get('/getArticleTitle',(req,res)=>{
 router.get('/getArticleList',(req,res)=>{
   var { type, count } = req.query;
   type = util.translateTag(type);
-  //console.log(type);
-  //console.log(count);
   count = Number(count);
   Article.find({'type':type})
           .limit(count)
           .exec((err,articles)=>{
-              
               var data = articles.map(item=>{
-                var obj = {};
-                obj.articleId = item.articleId,
-                obj.type = item.type;
-                obj.thumbnails = item.thumbnails;
-                obj.newstime = item.newstime;
-                obj.auth = item.auth;
-                obj.title = item.title;
-                obj.content = item.content;
-                return obj;
+                item['content'] = selectContentByUniquekey(item.content);
+                return item;
               })
-             
               util.responseClient(res,200,0,'ok',data);
-
-          })
+          });
 })
 
 router.get('/getArticleContent',(req,res)=>{

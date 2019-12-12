@@ -66,13 +66,10 @@ router.get('/share',(req,res)=>{
     var { userid, text, value, contentId, actionId, onModel, commentid, composeAction, isActionPage  } = req.query;
     var date = new Date().toString();
     //  如果text存在，说明转发的是评论，如果为空，说明直接转发的文章或话题
-
     if (!value){
         value = `转发${util.translateType(onModel)}`
-    } 
-    
-    //util.responseClient(res,200,0,'ok');
-    
+    }     
+    //util.responseClient(res,200,0,'ok');   
     var action = new Action({
         user:userid,
         contentId,
@@ -87,7 +84,7 @@ router.get('/share',(req,res)=>{
         .then(()=>{
             if ( isActionPage ){
                 Action.updateOne({_id:actionId},{$push:{shareBy:action._id}},(err, result)=>{
-                    getUserOrSingleActions(userid, res);
+                    getUserOrSingleActions( res, userid);
                 })
             } else if ( commentid ) {
             //  如是转发的评论则更新该条评论的shareBy字段
@@ -95,7 +92,7 @@ router.get('/share',(req,res)=>{
                 //  如转发话题更新该话题的shareBy
             }  else if ( onModel =='Topic') {
                 Topic.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
-                    userPromise.getAllOrUserTopics(res, null, contentId);
+                    userPromise.getTopicContent(res, contentId);
                 })               
                 //  如转发新闻更新该新闻的shareBy
             }   else if ( onModel == 'Article') {

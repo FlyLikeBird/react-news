@@ -64,14 +64,11 @@ export default class TopicListItem extends React.Component {
         }
     }
 
-    _updateItem(data){
-        this.setState({item:data&&data[0]});
-    }
-
     handleShare(){
         var { onVisible, onCheckLogin } = this.props;
+        var { item } = this.state;
         if (onCheckLogin()){
-            if( onVisible )  onVisible(true, this._updateItem.bind(this))
+            if( onVisible )  onVisible(true, item);
         }    
     }
 
@@ -80,19 +77,19 @@ export default class TopicListItem extends React.Component {
         var { forSimple, forDetail } = this.props;
         if (forSimple) return ;
         // 保证更新该话题的comments字段
-        if (forDetail) {
+        if ( forDetail ) {
             this.setState({item:newProps.data});
-        } else if (this.props.data._id != newProps.data._id){
-            this.setState({item:newItem.data})
+        } else if ( this.props.data._id != newProps.data._id) {
+            this.setState({item:newProps.data});
         }    
     }
 
     componentDidMount(){    
-        var { forDetail, forSimple, uniquekey, data } = this.props;
-        var { follows } = data;
+        var { data } = this.props;
+        var { follows } = data;        
         var userid = localStorage.getItem('userid');
         var isFollowed = follows.map(item=>item.user._id).includes(userid) ? true : false;
-        this.setState({item:data, isFollowed});        
+        this.setState({item:data, isFollowed });           
     }
 
     handleChangeIcon(type,visible){
@@ -114,7 +111,7 @@ export default class TopicListItem extends React.Component {
     render(){
         var {  inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
         var {   isFollowed, item, followIcon, shareIcon } = this.state;
-        var {  privacy, user, _id, tags, images, follows, shareBy, replies, title, description, view } = item;
+        var {  privacy, user, _id, tags, images, follows, replies, shareBy, title, description, view } = item;
         
 
         return (

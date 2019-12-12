@@ -14,6 +14,7 @@ import MessageContainer from '../../message_container/message_container';
 import CollectContainer from '../../collectComponent';
 import UpdateContainer from '../../update_list/update_list';
 import FollowContainer from './pc_usercenter_follow';
+import HistoryContainer from './pc_usercenter_history';
 
 export default class PCUserCenterContainer extends React.Component{
 
@@ -97,7 +98,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 isSelf
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="history" />浏览记录</span>} key="history">
-                                    <NewsList text="没有任何浏览记录" data={userHistorys} history={history} hastime={true} hasImg={true} forUser={true} />                               
+                                    <HistoryContainer text="暂时没有浏览任何文章" data={userHistorys} history={history} hastime={true} hasImg={true} forUser={true} />                               
                                 </TabPane>
                                 :
                                 null

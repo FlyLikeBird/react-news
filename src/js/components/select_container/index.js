@@ -6,46 +6,57 @@ const { RangePicker } = DatePicker;
 import style from './style.css';
 
 export default class SelectContainer extends React.Component{
+    
     constructor(){
         super();
-        this.state={
-           allComments:[]
+        this.state = {
+            prevData:[],
+            lock:false  // 保证setState({prevData:currentData})只执行一次
         }
-    }
-    
-    componentDidMount(){
-        var { data } = this.props;
-        this.setState({allComments:data});
     }
 
     handleSelectChange(value){
-        var { data, onSelect } = this.props;
-        var { allComments } = this.state;
+        var { currentData, data, onSelect } = this.props;
         if ( value ==='all') {
-            if ( onSelect ) onSelect(allComments, value);
+            if ( onSelect ) onSelect(data, value);
         } else {
-            var arr = allComments.filter(item=>item.onModel===value);
+            var arr = data.filter(item=>item.onModel===value);
             if ( onSelect ) onSelect(arr, value);
-        }     
-
+        }   
+        this.setState({dateValue:[],lock:false});  
     }
 
     handleDateChange(date,datestring){
-        console.log(date);
-        console.log(datestring);
-        //this.setState({startDate:datestring[0],endDate:datestring[1]});
+        var { currentData, onSelect, selectValue } = this.props;
+        var { prevData, lock } = this.state;
+        if (!lock){
+            this.setState({prevData:currentData, lock:true});
+        }
+        if ( date.length && datestring && datestring[0]) {
+            var startTime = Date.parse(datestring[0]);
+            var endTime = Date.parse(datestring[1]);           
+            var arr = currentData.filter(item=>{
+                var commentTime = Date.parse(item.date);
+                return commentTime >= startTime && commentTime <= endTime;
+            }) ;
+            
+            if ( onSelect ) onSelect(arr, selectValue, date);
+        } else {
+            // 取消日期筛选
+            if (onSelect) onSelect(prevData, selectValue, []);
+        }     
     }
 
     render(){
-        var { text, data, value } = this.props;
+        var { text, currentData, selectValue, dateValue } = this.props;
         const dropdownStyle = {
           width:'160px',
           fontSize:'12px'
         };
         return(
             <div className={style["select-container"]}>
-                <span className={style.text}>共发布<span className={style.num}>{ data.length}</span>{`条${value=='all'?'':translateType(value)}${text}`}</span>
-                <Select className={style['user-select']} onChange={this.handleSelectChange.bind(this)} dropdownStyle={dropdownStyle} size="small" defaultValue={value}  dropdownMatchSelectWidth={false}>
+                <span className={style.text}>共发布<span className={style.num}>{ currentData.length}</span>{`条${selectValue=='all'?'':translateType(selectValue)}${text}`}</span>
+                <Select className={style['user-select']} onChange={this.handleSelectChange.bind(this)} dropdownStyle={dropdownStyle} size="small" value={selectValue} dropdownMatchSelectWidth={false}>
                     <Select.Option value="all">全部评论</Select.Option>
                     <Select.Option value="Article">新闻评论</Select.Option>
                     <Select.Option value="Topic">话题评论</Select.Option>
@@ -54,6 +65,7 @@ export default class SelectContainer extends React.Component{
                 <RangePicker 
                     className={style["user-date-picker"]} 
                     size="small" 
+                    value={dateValue}
                     onChange={this.handleDateChange.bind(this)} 
                     placeholder={['开始日期', '结束日期']}
                     /> 

@@ -1,10 +1,18 @@
 import React from 'react';
 import { Button, Icon, Popover } from 'antd';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
-
+import TopicItemPopover from './topic_item_popover';
 import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
 export default class TopicListInnerItem extends React.Component {
   
+  constructor(){
+      super();
+      this.state = {
+          followIcon:'caret-left',
+          shareIcon:'caret-left' 
+      }
+  }
+
   handleGotoDetail(id){
       var { noLink, history } = this.props;
       if (!noLink && history) {
@@ -12,9 +20,26 @@ export default class TopicListInnerItem extends React.Component {
       }
   }
 
+  handleChangeIcon(type,visible){
+        if (visible===true){
+            if (type=='follow') {
+                this.setState({followIcon:'caret-down'})
+            } else {
+                this.setState({shareIcon:'caret-down'})
+            }
+        } else {
+            if ( type =='follow'){
+                this.setState({followIcon:'caret-left'})
+            } else {
+                this.setState({shareIcon:'caret-left'})
+            }
+        }
+  }
+
   render(){
     var { data, hasImg, forSimple } = this.props;
-    var { date, view, description, follows, images, shareBy, tags, _id, title, user } = data;
+    var { followIcon, shareIcon } = this.state;
+    var { date, view, description, follows, images, shareBy, replies, tags, _id, title, user } = data;
   
     return (
 
@@ -46,14 +71,14 @@ export default class TopicListInnerItem extends React.Component {
                                      
                         <div style={{display:'flex',alignItems:'center'}}>
                             <span className="text">{`发布时间: ${formatDate(parseDate(date))}`}</span>
-                            <span className="text">
-                                发起人: 
+                            <span className="text">发起人: </span>
+                               
                                 <Popover content={<CommentPopoverUserAvatar user={user?user.username:''}/>}>
                                       <span className='avatar-container'>
                                           <img src={user?user.userImage:''} />
                                       </span>
                                 </Popover>
-                            </span>
+                            
                         </div>
                          
                         <div style={{display:'flex',alignItems:'center'}}>

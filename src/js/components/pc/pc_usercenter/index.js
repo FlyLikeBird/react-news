@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge } from 'antd';
 
-import PCUserAvatar from './pc_userAvatar.js';
+import PCUserAvatar from '../pc_avatar';
 import PCUserCenterContainer from './pc_usercenter_container';
 
 export default class PCUserCenter extends React.Component{
@@ -27,7 +27,7 @@ export default class PCUserCenter extends React.Component{
 				//console.log(data);
 				var user = json.data;
 				//console.log(responseData);
-				var { userFollows, userFans, userHistorys,  } = user;				
+				var { userFollows, userFans, userHistorys  } = user;				
 				this.setState({user, userFollows, userFans, userHistorys, isSelf,isLoading:false})
 		})
 
@@ -64,7 +64,7 @@ export default class PCUserCenter extends React.Component{
 							:
 							<Row>
 								<Col span={8}>
-									<PCUserAvatar user={user}/>
+									<PCUserAvatar user={user} isSelf={isSelf}/>
 								</Col>
 								<Col span={16} style={{position:'relative',textAlign:'left'}}>									
 									<PCUserCenterContainer 

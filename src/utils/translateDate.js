@@ -88,10 +88,10 @@ export function formatContent(content){
     return data; 
 }
 
-export function sortByDate(arr){
+export function sortByDate( arr, name){
   arr.sort((a,b)=>{
-    var time1 = Date.parse(a.date);
-    var time2 = Date.parse(b.date);
+    var time1 = Date.parse(a[name]);
+    var time2 = Date.parse(b[name]);
     return time2 - time1
   })
   return arr; 

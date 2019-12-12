@@ -1,14 +1,15 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
-
+import Sidebar from '../../side_bar';
 import TagItem from './tag_item';
+import AutoCarousel from '../../autoCarousel';
 
 export default class PCTagIndex extends React.Component {
     
     constructor(props) {
       super();
       this.state = {
-        tag:'',
+        isLoading:true,
         data:[]
       }
       
@@ -19,7 +20,7 @@ export default class PCTagIndex extends React.Component {
         .then(response=>response.json())
         .then(json=>{
           var data = json.data;
-          this.setState({data})
+          this.setState({data, isLoading:false})
         })
     }
     
@@ -27,7 +28,7 @@ export default class PCTagIndex extends React.Component {
       var prevTag = this.props.match.params.tag;
       var newTag = newProps.match.params.tag;
       if ( prevTag != newTag){
-          this.setState({data:[]});
+          this.setState({isLoading:true});
           this._loadArticleList(newTag);
       }
     }
@@ -38,24 +39,31 @@ export default class PCTagIndex extends React.Component {
     }
 
     render() {
-        console.log(this.props);
-        var { data } = this.state;
+        var { history } = this.props;
+        var { data, isLoading } = this.state;
         return (
             <Row style={{paddingTop:'30px'}}>
                 <Col span={2}></Col>
-                <Col span={5}>
-                    {/*<PCNewsBlock type="top" count={20} width="100%" title="相关新闻" /> */}  
-                </Col>
-                <Col span={15}>
+                <Col span={5}><Sidebar /></Col>
+                <Col span={15} style={{paddingLeft:'50px'}}>
                     
                     {
+                        isLoading
+                        ?
+                        <Spin/>
+                        :
                         data.length
                         ?
-                        data.map((item,key)=>(
-                            <TagItem item={item} key={key} />
-                        ))
+                        <div>
+                            <div style={{height:'150px',marginBottom:'50px'}}><AutoCarousel count={4} history={history}/></div>
+                            {
+                                data.map((item,key)=>(
+                                    <TagItem item={item} key={key} history={history}/>
+                                ))
+                            }                        
+                        </div>
                         :
-                        <Spin/>
+                        null
                     }
                 
                 </Col>

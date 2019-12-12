@@ -1,0 +1,90 @@
+.container {
+    box-shadow: 1px 4px 6px rgba(10,10,10,.1);
+    transition: all 0.3s ;
+    border:none;
+    text-align:left;
+    border-radius:4px;
+    font-size:12px;
+}
+
+.container .avatar-container {
+    width:30px;
+    height:30px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right:20px;
+}
+
+.container .avatar-container img{
+    width:100%;
+    height:100%;
+}
+
+.container .info-container {
+    flex:1;
+}
+
+.container .info-container .follow {
+    display:flex;
+    margin:20px 0;
+}
+
+.container .info-container .follow>div {
+    flex:1;
+}
+
+.container .user-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100px;
+    background-color: rgba(24, 144, 255, 0.2);
+    border-radius: 10px;
+    transform: scale(0.9);
+    transform-origin: left;
+}
+
+.container .user-level .num {
+    width: 16px;
+    height: 16px;
+    line-height:16px;
+    text-align:center;
+    display: inline-block;
+    background-color: #1890ff;
+    border-radius: 50%;
+    color:#fff;
+    margin-left: 2px;
+    margin-right:6px;
+}
+
+.container .text {
+    display:inline-block;
+    transform:scale(0.9);
+    transform-origin: left;
+}
+
+.container .fontStyle {
+    color:rgba(0, 0, 0, 0.85);
+    font-weight:500;
+}
+
+.container .action {
+    display:flex;
+    height:40px;
+    border-top: 1px solid #e8e8e8;
+}
+
+.container .action>div {
+    flex:1;
+    background-color: #fafafa;
+    cursor:pointer;
+    line-height: 40px;
+    text-align: center;
+    transition:all 0.3s;
+}
+
+.container .action>div:hover {
+    background-color:#f1f1f1;
+}
+
+

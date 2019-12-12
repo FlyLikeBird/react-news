@@ -13,24 +13,37 @@ export default class PCNewsContainer extends React.Component {
 		super();
 		this.state = {
 			newsList:[],
-			topList:[],
+			topicList:[],
 			isLoading:true
 		}
 	}
 
 	componentDidMount(){
-		fetch(`/api/article/getArticleTitle?type=yule&count=10`)
+		var promise1 = new Promise((resolve, reject)=>{
+			fetch(`/api/article/getArticleTitle?type=yule&count=10`)
 			.then(response=>response.json())
 			.then(json=>{
 				var { data } = json;
-				this.setState({newsList:data, isLoading:false})
+				resolve(data);
 			})
-
+		});
+		var promise2 = new Promise((resolve, reject)=>{
+			fetch(`/api/topic/getTopicList?count=10`)
+			.then(response=>response.json())
+			.then(json=>{
+				var { data } = json;
+				resolve(data);
+			})
+		});
+		Promise.all([promise1,promise2])
+			.then(([newsList, topicList])=>{
+				this.setState({newsList, topicList, isLoading:false});
+			})
 	}
 
 	render() {
 		var { history } = this.props;
-		var { newsList, topList, isLoading } = this.state;
+		var { newsList, topicList, isLoading } = this.state;
 		return(
 
 			<section style={{paddingTop:'30px'}}>
@@ -51,10 +64,10 @@ export default class PCNewsContainer extends React.Component {
 									:
 									<div style={{display:'flex'}}>
 										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-											<PCNewsBlock title="本周热门新闻" data={newsList}/>
+											<PCNewsBlock title="本周热门新闻" data={newsList} hasTitle={true}/>
 										</div>
 										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-											<PCNewsBlock type="yule" title="本周热门话题" forTopic/>
+											<PCNewsBlock title="本周热门话题" data={topicList} hasTitle={true} forTopic/>
 										</div>
 									</div>
 								}

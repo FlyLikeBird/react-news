@@ -48,8 +48,10 @@ function changeArticlesContents(){
 
 function _singleArticleDoc(id){
     var arr = [];
-    var filename = config.uploadPath+'/thumbnails/img'+Math.floor(Math.random()*168)+'.jpeg';
-    arr.push(filename);
+    for(var i=0;i<3;i++){
+        var filename = config.uploadPath+'/thumbnails/img'+Math.floor(Math.random()*168)+'.jpeg';
+        arr.push(filename);
+    }    
     Article.updateOne({_id:id},{$set:{thumbnails:arr}},(err,result)=>{
       //console.log(result);
     })

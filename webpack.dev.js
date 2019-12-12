@@ -125,11 +125,7 @@ module.exports = {
             chunks:['index']
             
         }),
-        new HtmlWebpackPlugin({
-            filename:'login.html',
-            template:'./src/login.template.html',
-            chunks:['login']
-        }),
+        
         new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
         new MiniCssExtractPlugin({

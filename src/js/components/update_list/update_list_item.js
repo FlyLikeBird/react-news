@@ -161,7 +161,7 @@ export default class UpdateItem extends React.Component{
 
         var { translateData, finalText, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
         var { data, history, socket, loaction, forSimple, noAction, isSelf } = this.props;
-        var { onModel, composeAction, images, user, text, value, _id, isCreated, contentId, date } = data;
+        var { onModel, composeAction, images, user, text, replies, value, _id, isCreated, contentId, date } = data;
         const menu = (
             <Menu>
               <Menu.Item key="0">
@@ -289,7 +289,7 @@ export default class UpdateItem extends React.Component{
                         <span onClick={this.handleGotoDetail.bind(this,_id)}>
                             <span className="text">
                                 <Icon type="edit" />回复
-                                <span className="num">0</span>
+                                <span className="num">{replies}</span>
                             </span>
                         </span>
                               

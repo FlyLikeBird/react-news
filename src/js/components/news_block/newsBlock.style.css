@@ -1,0 +1,197 @@
+.news-list-container {
+    padding:4px;
+    font-size:12px;
+    text-align:left;
+    transition:all 0.3s ease-in;
+}
+
+/*transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1); */
+.news-list-container .title-container {
+    padding:10px 0;
+    min-height:0;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-list-container .title-container .motion{
+    animation:cardHeaderIcon 5s infinite;
+}
+
+.news-list-container .title {
+    font-weight:500;
+    font-size:16px;
+    color:rgba(0, 0, 0, 0.85);
+}
+
+.news-list-container .button {
+    display:inline-block;
+    background-color:#1890ff;
+    border-radius:16px;
+    color:#fff;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.645, .045, .355, 1);
+}
+
+.news-list-container .button:hover {
+    background-color:#40a9ff;
+}
+
+.news-list-container .button a{
+    color:#fff;
+    display:inline-block;
+    transform:scale(0.8);
+}
+
+.news-list-container .button a i{
+    margin-left:4px;
+}
+
+.news-list-container ul {
+    padding:0;
+    list-style: none;
+}
+
+.news-list-container ul .news-item {
+    padding:4px 0;
+}
+
+.news-list-container .news-item>div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.news-list-container .order-num{
+    transform-origin: left;
+    transform:scale(0.8);
+    color: #fff;
+    display: inline-block;
+    padding: 1px 4px;
+    height: 16px;
+    line-height: 16px;    
+    text-align: center;
+    width: 20px;
+    border-radius: 4px;
+    background-color: rgb(226, 85, 85);
+    
+}
+
+
+.news-list-container .ant-card-head-title i.motion {
+    color:rgb(226, 85, 85);
+    margin-right:4px;
+    animation:cardHeaderIcon 8s ease infinite;
+}
+
+
+.news-list-container ul a:hover {
+    text-decoration: underline;
+}
+
+.news-list-container .topic-item{   
+    padding:4px 0;
+}
+
+.news-list-container .topic-item>div{   
+    display: flex;
+    align-items: center;
+    background-color: rgba(24, 144, 255, 0.1);
+    color: rgba(27, 28, 29, 0.65);
+    border-radius: 14px;
+    font-size: 12px;
+    min-width:0;
+}
+
+.news-list-container .topic-item>div:hover{
+    background-color: rgba(24, 144, 255, 0.4);
+    cursor:pointer;
+    color:#fff;
+}
+
+.news-list-container .topic-item span.icon{
+    background-color:#1890ff;
+    width:20px;
+    border-radius:50%;
+    display:inline-block;
+    text-align: center;
+    margin:0 8px 0 2px;
+    transform:scale(0.8);
+    
+}
+
+.news-list-container .topic-item .text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    flex: 1;
+    margin-right:20px;
+    font-size:12px;
+    transform:scale(0.9);
+}
+
+.news-list-container .topic-item span.icon i{
+    color:#fff;
+    
+}
+
+.news-list-container .news-item a  {
+    color:#666;
+}
+
+@keyframes cardHeaderIcon{
+    0% {
+        
+        transform:rotate(0deg) scale(0);
+        -ms-transform:rotate(0deg) scale(0);     
+        -moz-transform:rotate(0deg) scale(0);    
+        -webkit-transform:rotate(0deg)scale(0);
+        -o-transform:rotate(0deg) scale(0);  
+    }
+    10%{
+        transform:rotate(360deg) scale(1);
+        -ms-transform:rotate(360deg) scale(1);     
+        -moz-transform:rotate(360deg) scale(1);    
+        -webkit-transform:rotate(360deg)scale(1);
+        -o-transform:rotate(360deg) scale(1);
+    }
+    30% {
+        
+        transform:rotate(0deg) scale(0.8);
+        -ms-transform:rotate(0deg) scale(0.8);     
+        -moz-transform:rotate(0deg) scale(0.8);    
+        -webkit-transform:rotate(0deg) scale(0.8);
+        -o-transform:rotate(0deg) scale(0.8);  
+    }
+    50% {
+        
+        transform:rotate(-30deg) scale(1);
+        -ms-transform:rotate(-30deg) scale(1);     
+        -moz-transform:rotate(-30deg) scale(1);    
+        -webkit-transform:rotate(-30deg) scale(1);
+        -o-transform:rotate(-30deg) scale(1);  
+    }
+    70% {
+        
+        transform:rotate(30deg) scale(0.8);
+        -ms-transform:rotate(30deg) scale(0.8);     
+        -moz-transform:rotate(30deg) scale(0.8);    
+        -webkit-transform:rotate(30deg) scale(0.8);
+        -o-transform:rotate(30deg) scale(0.8);  
+    }
+    90% {
+        
+        transform:rotate(-30deg) scale(1);
+        -ms-transform:rotate(-30deg) scale(1);     
+        -moz-transform:rotate(-30deg) scale(1);    
+        -webkit-transform:rotate(-30deg) scale(1);
+        -o-transform:rotate(-30deg) scale(1);  
+    }
+    
+}  
+
+
+
+
+
