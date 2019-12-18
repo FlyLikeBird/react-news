@@ -47,6 +47,10 @@ export default class PCActionContainer extends React.Component{
         }
     }
 
+    _updateItem(data){
+        this.setState({data});
+    }
+
     render(){
         var uniquekey = this.props.match.params.id;       
         var { history, location, socket, onCheckLogin, onSetScrollTop } = this.props;
@@ -70,6 +74,7 @@ export default class PCActionContainer extends React.Component{
                                         data={data} 
                                         history={history} 
                                         forSimple={true}
+                                        forDetail={true}
                                         socket={socket}
                                         onCheckLogin={onCheckLogin} 
                                         onShareVisible={this.handleShareVisible.bind(this)}
@@ -81,8 +86,9 @@ export default class PCActionContainer extends React.Component{
                                             socket={socket}
                                             onCheckLogin={onCheckLogin} 
                                             uniquekey={uniquekey} 
-                                            onSetScrollTop={onSetScrollTop} 
-                                            commentType="Topic" 
+                                            onSetScrollTop={onSetScrollTop}
+                                            onUpdateItemComments = {this._updateItem.bind(this)} 
+                                            commentType="Action" 
                                             warnMsg="还没有人发表过看法呢!请分享您的想法吧" 
                                         />
                                     </div>

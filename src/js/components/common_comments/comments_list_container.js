@@ -33,7 +33,7 @@ export default class CommentsListContainer extends React.Component{
     var { uniquekey, location, onSetReplies } = this.props;
     var userid = localStorage.getItem('userid');
     var finalPageNum = num;
-    var commentid, parentcommentid, forTrack ;
+    var commentid, parentcommentid ;
     var isSub = false;
     if ( location && location.search ){
         var pattern = /(\w+)=(.*?)&/g;
@@ -134,7 +134,10 @@ render(){
   }
 
   return (
-      <div>                  
+      <div>
+        <div style={{margin:'30px 0'}}>
+            <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/> 
+        </div>                  
         {
             comments.length 
             ?
@@ -211,9 +214,7 @@ render(){
           :
           null
         }
-        <div style={{margin:'30px 0'}}>
-            <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/> 
-        </div>
+        
       </div>
       
       

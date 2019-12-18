@@ -7,8 +7,8 @@ var Collect = require('../../models/Collect');
 var CollectItem = require('../../models/CollectItem');
 var Article = require('../../models/Article');
 
-function getUserOrSingleCollect(res, userid, collectId){
-    var option = collectId ? { _id:collectId} : userid ? { user:userid} : {};
+function getUserOrSingleCollect(res, userid, collectId, multiCollects){
+    var option = multiCollects ? {_id:{$in:multiCollects}} : collectId ? { _id:collectId} : userid ? { user:userid} : {};
     Collect.find(option)
         .populate({
             path:'collectItem',
@@ -27,7 +27,7 @@ function getUserOrSingleCollect(res, userid, collectId){
             populate:{ path:'user', select:'username userImage'},
             select:'value date user'
         })
-        .populate({ path:'followedBy'})
+        .populate({ path:'followedBy.user', select:'username userImage'})
         .then(collects=>{
             util.responseClient(res, 200, 0, 'ok', collects);
         })
@@ -78,36 +78,22 @@ router.get('/addIntoCollect',(req,res)=>{
 router.get('/followCollect',(req,res)=>{
     var { userid, collectId, unFollow } = req.query;
     var date = new Date().toString();
-    var operation = '$push';
-    var option = {
-        userid,
-        addtime:date
-    }
-    if (unFollow){
-      operation = '$pull';
-      option = {userid}
-    }
-
-    User.updateOne({_id:userid},{[operation]:{userCollect:collectId}},(err,result)=>{
+    var operation = unFollow ? '$pull' : '$push';
+    var option = unFollow ? {user:userid} : { user:userid, date};
+    User.updateOne({_id:userid},{[operation]:{userCollects:collectId}},(err,result)=>{
         Collect.updateOne({_id:collectId},{[operation]:{followedBy:option}},(err,result)=>{
-            Collect.findOne({_id:collectId},(err,collect)=>{
-                util.responseClient(res,200,0,'ok',collect.followedBy);           
-            }) 
+            console.log(result);
+            getUserOrSingleCollect(res, null, collectId); 
         })
     })
-  
-    
 })
 
 router.get('/getFollowedCollect',(req,res)=>{
     var { userid } = req.query;
-    var promise = new Promise((resolve,reject)=>{
-        userPromise.getFollowedCollect(userid, resolve)
+    User.findOne({_id:userid},(err,user)=>{
+        var userCollects = user.userCollects;
+        getUserOrSingleCollect(res, null, null, userCollects);
     });
-    promise.then(data=>{
-
-        util.responseClient(res,200,0,'ok',data);
-    })
 })
 
 router.get('/removeCollect',(req,res)=>{

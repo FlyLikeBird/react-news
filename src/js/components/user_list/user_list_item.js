@@ -48,7 +48,7 @@ export default class UserListItem extends React.Component{
 
   render(){
     var { item, expand } = this.props;
-    var  { username, description, level, userImage, description, userFans, userFollows, isLogined, _id } = item;
+    var  { username, description, level, userImage, userFans, userFollows, isLogined, _id } = item;
     var { isFollowed } = this.state;
   
     const content = (
@@ -109,7 +109,7 @@ export default class UserListItem extends React.Component{
                       <span className="user-level out"><Icon type="disconnect" style={{marginRight:'4px'}}/>离线</span>
                   } 
               </div>          
-              <div><span className="ant-text">{description}</span></div>
+              <div className="text-container"><span className="ant-text">{description}</span></div>
          </div>
          {
           expand
@@ -138,7 +138,7 @@ export default class UserListItem extends React.Component{
            ?
            <div className="user-action-container">        
              <Dropdown overlay={menu} >
-                <span style={{color:'#1890ff'}}>
+                <span style={{color:'#1890ff',display:'inline-block',transform:'scale(0.9)'}}>
                   更多操作<Icon type="down" />
                 </span>
              </Dropdown>

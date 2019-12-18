@@ -50,11 +50,11 @@ export default class PCNewsContainer extends React.Component {
 				<Row>
 					<Col span={2}></Col>
 					<Col span={15} className="container">
-						{/*
-						<div style={{height:'300px'}} className="leftContainer">
+						
+						<div style={{height:'300px',marginBottom:'50px'}} className="leftContainer">
 							<AutoCarousel history={history} count={4}/>
 						</div>
-						*/}
+						
 						<div>
 							<div style={{width:'64%',float:'left'}}>
 								{

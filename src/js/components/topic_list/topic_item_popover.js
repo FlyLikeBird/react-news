@@ -8,13 +8,20 @@ const desc = ['肺都气炸了', '一肚子槽要吐', '一般无感', '心情�
 export default class TopicItemPopover extends React.Component{  
     
     handleClick(id){
-        var { history } = this.props;
-        history.push(`/usercenter/${id}`);
+        var { history, forShare } = this.props;
+        console.log(history);
+        if (history){
+            if (forShare){
+                history.push(`/action/${id}`)
+            } else {
+                history.push(`/usercenter/${id}`)
+            }
+        }
     }
 
     render(){
         var { data } = this.props;
-        var { text, forRate } = this.props; 
+        var { text, forShare, forRate } = this.props; 
         //console.log(data);
         return(
             <div>
@@ -25,7 +32,7 @@ export default class TopicItemPopover extends React.Component{
                         {
                             data.map((item,index)=>(
                                 
-                                <li className='topic-shareBy' key={index} onClick={this.handleClick.bind(this,item._id)}>
+                                <li className='topic-shareBy' key={index} onClick={this.handleClick.bind(this, forShare ? item._id : item.user._id)}>
                                     
                                     <span className='topic-shareBy-avatar'><img src={item.user.userImage?item.user.userImage:''} /></span>
                                     <div>

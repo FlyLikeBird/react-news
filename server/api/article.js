@@ -93,15 +93,11 @@ function selectImgByUniquekey(content){
 
 
 router.get('/search',(req,res)=>{
-  var { words, pageNum, type, orderBy, start, end, userid } = req.query;
-  var total = 0;
-  //console.log(type);
+  var { words, pageNum, orderBy, start, end } = req.query;
+  var data={total:0};
   var skip = (pageNum -1) > 0 ? (pageNum-1)*20 : 0;
-
-  let orderOption;
-  //console.log(orderBy);
-  switch(orderBy){
-    
+  var orderOption;
+  switch(orderBy){   
     case 'time':
       orderOption = {
         'newstime':1
@@ -122,27 +118,21 @@ router.get('/search',(req,res)=>{
       orderOption = {
         'articleFever':-1
       }
-  }
-  
-  
+  } 
   var _filter ;
-
   if (start && end){
-
     if (words.match(/\s+/g)){
-
       var multiWords = words.split(/\s+/);
       _filter = {
         $and:[
           {'newstime':{$gt:start,$lt:end}},
           {$or:[]}
         ]
-      }
+      };
 
       for(var i=0,len=multiWords.length;i<len;i++){
         _filter['$and'][1]['$or'].push({content:{$regex:new RegExp(multiWords[i],'g')}});
       }
-
 
     } else {
 
@@ -155,62 +145,38 @@ router.get('/search',(req,res)=>{
 
     }
   } else {
-
     if(words.match(/\s+/g)){
         var multiWords = words.split(/\s+/);
-        _filter = {
-          $or:[
-    
-          ]
-        }
+        _filter = { $or:[]}
         for(var i=0,len=multiWords.length;i<len;i++){
           _filter['$or'].push({content:{$regex:new RegExp(multiWords[i],'g')}})
         }
-        //console.log(_filter);
     } else {
-      _filter = {
-        content:{$regex:new RegExp(words,'g')}
-      }
+        _filter = { content:{$regex:new RegExp(words,'g')} }
     }
   }
-  
-  if (type==='news'){
-     var promise = new Promise((resolve,reject)=>{
-         Article.count(_filter,(err,doc)=>{total=doc;resolve()});
-     });
-     promise.then(()=>{
-       Article.find(_filter)
-       .sort(orderOption)
-       .skip(skip)
-       .limit(20)
-       .exec((err,articles)=>{ 
-         var result = {},data=[];    
-         result.total = total;
-         data = articles.map(item=>{
-            var obj={};
-            obj.articleId = item.articleId;
-            obj.title = item.title;
-            obj.newstime = item.newstime;
-            obj.auth = item.auth;
-            obj.type = item.type;
-            obj.content = selectWords(item.content,words);
-            return obj;
-         })
-         result.data = data;
-         util.responseClient(res,200,0,'ok',result);
-       })
-     })
-
-  } else if (type == 'user'){
-    User.find({'username':{$regex:new RegExp(words)}},{username:1},(err,users)=>{
-        util.responseClient(res, 200, 0, 'ok', users);
-    })
-  } else if (type =='topic'){
-
-  }
-  
+  Article.count(_filter)
+      .then(count=>{
+          data.total = count;
+          Article.find(_filter)
+              .sort(orderOption)
+              .skip(skip)
+              .limit(20)
+              .exec((err, collects)=>{ 
+                  var articles = collects.map(item=>{
+                     var obj={};
+                     obj.title = item.title;
+                     obj.newstime = item.newstime;
+                     obj.auth = item.auth;
+                     obj.type = item.type;
+                     obj.content = selectWords(item.content,words);
+                     return obj;
+                  })
+                  data.data = articles;
+                  util.responseClient(res,200,0,'ok',data);
+              })
+      })
 })
-
 
 router.get('/getArticleTitle',(req,res)=>{
   var { type, count } = req.query;
@@ -228,7 +194,7 @@ router.get('/getArticleList',(req,res)=>{
   var { type, count } = req.query;
   type = util.translateTag(type);
   count = Number(count);
-  Article.find({'type':type})
+  Article.find({'type':type},{shareBy:0,viewUsers:0})
           .limit(count)
           .exec((err,articles)=>{
               var data = articles.map(item=>{

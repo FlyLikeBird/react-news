@@ -142,7 +142,7 @@ router.post('/upload',upload.array('images'),(req,res)=>{
     })  
 })
 
-function getAllOrUserTopics(res, userid, topicId, someTopics){
+function getAllOrUserTopics(res, userid, topicId, someTopics, resolve){
     var option = someTopics ? { _id:{$in:someTopics}} : topicId ? {_id:topicId} : userid ? {user:userid} : {privacy:0};
     Topic.find(option)
         .populate({path:'user', select:'username userImage'})
@@ -158,8 +158,12 @@ function getAllOrUserTopics(res, userid, topicId, someTopics){
         })
         // 话题按生成时间排序
         .sort({_id:-1})
-        .then(topics=>{           
-            util.responseClient(res, 200, 0, 'ok', topics);                
+        .then(topics=>{ 
+            if (resolve && !res) {
+                resolve(topics);
+            } else {
+                util.responseClient(res, 200, 0, 'ok', topics);
+            }                           
         })
 }
 
@@ -283,4 +287,76 @@ router.get('/getUserFollowTopic',(req,res)=>{
     })
 })
 
+router.get('/search',(req,res)=>{
+    var { words, pageNum, orderBy, start, end } = req.query;
+    var data={total:0}, _filter;
+    var skip = (pageNum -1) > 0 ? (pageNum-1)*20 : 0;
+    var orderOption;
+    switch(orderBy){   
+        case 'time':
+          orderOption = { date:1}
+          break;
+        case 'timeInvert':
+          orderOption = { date:-1}
+          break;
+        case 'hotInvert':
+          orderOption = { view:1}
+          break;
+        case 'hot':
+          orderOption = { view:-1}
+    } 
+
+  if (start && end){
+    if (words.match(/\s+/g)){
+      var multiWords = words.split(/\s+/);
+      _filter = {
+        $and:[
+          {'date':{$gt:start,$lt:end}},
+          {$or:[]}
+        ]
+      };
+      for(var i=0,len=multiWords.length;i<len;i++){
+        _filter['$and'][1]['$or'].push({description:{$regex:new RegExp(multiWords[i],'g')}});
+      }
+
+    } else {
+
+      _filter = {
+        $and:[
+          {description:{$regex:{$regex:new RegExp(words,'g')}}},
+          {'date':{$gt:start,$lt:end}}
+        ]
+      }
+
+    }
+  } else {
+    if(words.match(/\s+/g)){
+        var multiWords = words.split(/\s+/);
+        _filter = { $or:[]};
+        for(var i=0,len=multiWords.length;i<len;i++){
+          _filter['$or'].push({description:{$regex:new RegExp(multiWords[i],'g')}})
+        }
+    } else {
+        _filter = { description:{$regex:new RegExp(words,'g')} }
+    }
+  }
+  Topic.count(_filter)
+      .then(count=>{
+          data.total = count;
+          Topic.find(_filter)
+              .sort(orderOption)
+              .skip(skip)
+              .limit(20)
+              .exec((err, topics)=>{ 
+                  var topicIds = topics.map(item=>item._id);
+                  var promise = new Promise((resolve, reject)=>{
+                        getAllOrUserTopics(null, null, null, topicIds, resolve);
+                  });
+                  promise.then(topics=>{
+                        data.data = topics;
+                        util.responseClient(res,200,0,'ok',data);
+                  })                  
+              })
+      })
+})
 module.exports = router;

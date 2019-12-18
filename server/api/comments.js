@@ -69,18 +69,7 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
 
   comment.save(function(err){   
       var onModel = comment.onModel;
-      if ( onModel =='Topic'){
-          Topic.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-              getComments(null, comment._id, res, onModel, uniquekey);
-          })
-      }  else if (onModel=='Action') {
-          Action.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-              getComments(null, comment._id, res, onModel, uniquekey);
-          })
-      } else if (onModel=='Article'){
-          getComments(null, comment._id, res, null, uniquekey);
-      }
-      
+      getComments(null, comment._id, res, onModel, uniquekey);
       User.findOne({_id:userid},(err,user)=>{
           var prevLevel = user.level;
           prevLevel += 5;
@@ -119,20 +108,9 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
 
     comment.save()
         .then(()=>{
-            Comment.updateOne({_id:parentcommentid},{$push:{replies:comment._id}},(err,result)=>{              
-                
+            Comment.updateOne({_id:parentcommentid},{$push:{replies:comment._id}},(err,result)=>{                              
                 var onModel = comment.onModel;
-                if ( onModel =='Topic'){
-                    Topic.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-                        getComments(true, parentcommentid, res, onModel, uniquekey);
-                    })
-                }  else if (onModel=='Action') {
-                    Action.updateOne({_id:uniquekey},{$inc:{replies:1}},(err,result)=>{
-                        getComments(true, parentcommentid, res, onModel, uniquekey);
-                    })
-                } else if (onModel=='Article'){
-                    getComments(true, parentcommentid, res, null, uniquekey);
-                }
+                getComments(true, parentcommentid, res, onModel, uniquekey);              
             })
         })
     
@@ -205,10 +183,18 @@ function getComments( forOneComment, commentid, res, onModel, related, pageNum=1
           .limit(10)
           .then(comments=>{           
               data.comments = comments;
-              if (!onModel) {
+              if (!onModel || onModel =='Article') {
+                  console.log('a');
                  util.responseClient(res,200,0,'ok',data);
               } else if ( onModel=='Topic' ) {
-                 userPromise.getTopicContent(res, related, data);
+                  console.log('b');
+                  Topic.updateOne({_id:related},{$inc:{replies:1}},(err,result)=>{
+                      userPromise.getTopicContent(res, related, data);
+                  });                
+              } else if ( onModel=='Action') {
+                 Action.updateOne({_id:related},{$inc:{replies:1}},(err,result)=>{
+                      userPromise.getActionContent(res, related, data);
+                 })
               }
                         
           })
@@ -315,8 +301,27 @@ function getUserComments(userid, res){
               { path:'fromUser',select:'username userImage'},
               { path:'tags',select:'tag'},
               { path:'user', select:'username userImage'},
+              { path:'likeUsers.user', select:'username userImage'},
+              { path:'dislikeUsers.user', select:'username userImage'},
               { path:'follows.user', select:'username userImage'},
-              { path:'shareBy',populate:{path:'user',select:'username userImage'}, select:'user date value'}
+              { path:'shareBy',populate:{path:'user',select:'username userImage'}, select:'user date value'},
+              {
+                  path:'contentId',
+                  populate:[
+                      {path:'follows.user', select:'username userImage'},
+                      {path:'shareBy', populate:{path:'user', select:'username userImage'}, select:'user date value' },
+                      {path:'tags', select:'tag'},
+                      {
+                          path:'contentId',
+                          populate:[
+                              { path:'user', select:'username userImage'},
+                              { path:'tags', select:'tag'},
+                              { path:'follows.user', select:'username userImage'},
+                              { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'}
+                          ]
+                      }
+                  ]
+              }
           ]                 
         })
         .sort({date:-1})

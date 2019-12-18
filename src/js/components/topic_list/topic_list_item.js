@@ -1,7 +1,7 @@
 import React from 'react';
 import { message, Popover, Icon, Button } from 'antd';
 import TopicItemPopover from './topic_item_popover';
-import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import CommentPopoverUserAvatar from '../popover_user_avatar';
 import ImgContainer from '../img_container';
 
 export default class TopicListItem extends React.Component {
@@ -28,6 +28,35 @@ export default class TopicListItem extends React.Component {
                     this.setState({item:data && data[0],isFollowed:!isFollowed});                    
                 })
         } 
+    }
+
+    markKeyWords(content){
+        var { location, forSearch } = this.props;
+        var result = '';
+        if (!forSearch){
+            return result = content;
+        } 
+        if (location && content) {         
+          var words = location.search.match(/\?words=(.*)/)[1];      
+          if (!words.match(/\s+/g)){
+              //  单个关键词
+              result = content.replace(new RegExp('('+words+')','g'),match=>'<span style="color:#1890ff">'+match+'</span>');
+              
+          } else {
+              //  多个关键词
+              var multiWords = '';
+              words = words.split(/\s+/);
+              for(var i=0,len=words.length;i<len;i++){
+                multiWords += words[i] + '|'
+              }
+              multiWords = multiWords.substring(0,multiWords.length-1);
+              //console.log(multiWords);
+              result = content.replace(new RegExp('('+multiWords+')','g'),match=>'<span style="color:#1890ff">'+match+'</span>');
+            
+          }
+          
+        } 
+        return result;
     }
 
     handleRemove(id, e){
@@ -58,8 +87,9 @@ export default class TopicListItem extends React.Component {
     }
 
     handleClick(id){
-        var { forSimple, forDetail, history } = this.props;
-        if ( !forDetail ) {
+        var { forSimple, forDetail, noLink, history } = this.props;
+        if (noLink) return;
+        if ( history ) {
             history.push(`/topic/${id}`);
         }
     }
@@ -109,7 +139,7 @@ export default class TopicListItem extends React.Component {
     }
 
     render(){
-        var {  inline, columns, forSimple, forUser, forDetail, forIndex, forPreview } = this.props;
+        var {  inline, columns, forSimple, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
         var {   isFollowed, item, followIcon, shareIcon } = this.state;
         var {  privacy, user, _id, tags, images, follows, replies, shareBy, title, description, view } = item;
         
@@ -117,7 +147,7 @@ export default class TopicListItem extends React.Component {
         return (
             <div 
                 style={{width:100/columns + '%'}} 
-                className={inline?'topic-card-container inline':forSimple?'topic-card-container simple' : 'topic-card-container'}>
+                className={inline?'topic-card-container inline':forSimple?'topic-card-container simple' : forSearch ? 'topic-card-container forSearch' : 'topic-card-container'}>
                     
                     {
                         forSimple
@@ -183,7 +213,7 @@ export default class TopicListItem extends React.Component {
                             }
                         </div>
                     
-                        <div className='desc'>{description}</div>
+                        <div className='desc' dangerouslySetInnerHTML={{__html:this.markKeyWords(description)}}></div>
                         <div>
                             {    
                                 images && images.length
@@ -253,8 +283,8 @@ export default class TopicListItem extends React.Component {
                         null
                         //  关注话题页面
                         :
-                        <div className='topic-card-extra'>                           
-                            <div>
+                        <div className='topic-card-extra' >                           
+                            <div onClick={this.handleClick.bind(this, _id)}>
                                 <span className="text"><Icon type="arrow-right" />前往话题</span>
                             </div>                   
                         </div>

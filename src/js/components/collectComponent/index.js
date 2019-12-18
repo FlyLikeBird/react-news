@@ -29,32 +29,48 @@ export default class CollectContainer extends React.Component {
         }
     }
     
+    _checkIsCollected(data){
+        var { uniquekey } = this.props;
+        var userid = localStorage.getItem('userid');
+        var arr = data.map(item=>{
+                    var contentIds = item.collectItem.map(item=>item.contentId._id);
+                    var follows = item.followedBy.map(item=>item.user._id);
+                    item['isCollected'] = contentIds.includes(uniquekey) ? true : false;
+                    item['collectedByUser'] = follows.includes(userid) ? true : false;                    
+                    return item;
+                });
+        return arr;
+    }
+
     componentDidMount(){
         var { uniquekey, user } = this.props;
-        fetch(`/api/collect/getUserCollect?userid=${user}`)
+        var promise1 = new Promise((resolve, reject)=>{
+            fetch(`/api/collect/getUserCollect?userid=${user}`)
             .then(response=>response.json())
             .then(json=>{
                 var data= json.data;
-                data = data.map(item=>{
-                    var contentIds = item.collectItem.map(item=>item.contentId._id);
-                    if ( contentIds.includes(uniquekey)){
-                        item['isCollected'] = true;
-                    } else {
-                        item['isCollected'] = false;
-                    }
-                    return item;
-                })
-                this.setState({userCollect:data, isLoading:false})
+                data = this._checkIsCollected(data);
+                resolve(data);
             });
+        });
+        var promise2 = new Promise((resolve, reject)=>{
+            fetch(`/api/collect/getFollowedCollect?userid=${user}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    data = this._checkIsCollected(data);
+                    resolve(data);
+                })
+        });
+        Promise.all([promise1, promise2])
+            .then(([userCollect, followedCollect])=>{
+                this.setState({userCollect, followedCollect, isLoading:false});
+            })
+        
     }
 
     handleCollectShow(){
         this.setState({show:!this.state.show})
-    }
-
-    
-    handleUpdateCollection(data){
-        this.setState({createCollect:data})
     }
 
     handleUpdateUserCollect(data){
@@ -68,31 +84,6 @@ export default class CollectContainer extends React.Component {
     handleShareVisible(boolean, collectItem, updateItem){
         this._updateItem = updateItem;
         this.setState({shareVisible:boolean, collectItem});
-    }
-
-
-    handleChange(activeKey){
-        var { match } = this.props;
-        var userid = '';
-        if( match && match.params.id ){
-            userid = match.params.id;
-        }
-        if(activeKey==1){
-            fetch(`/api/collect/getFollowedCollect?userid=${userid}`)
-                .then(response=>response.json())
-                .then(json=>{
-                    var data = json.data;
-                    var localUser = localStorage.getItem('userid');
-                    data = data.map(item=>{
-                        var follows = item.followedBy.map(item=>item.userid);
-                        if (follows.includes(localUser)){
-                            item['userCollected'] = true;
-                        }
-                        return item;
-                    })
-                    this.setState({followedCollect:data});
-                })
-        }
     }
 
     handleDelete(){
@@ -113,7 +104,7 @@ export default class CollectContainer extends React.Component {
 
     render(){
         var { show, isLoading, userCollect, followedCollect, value, visible, shareVisible, collectItem, deleteId } = this.state;
-        var { isSelf, uniquekey, onModel, forUser } = this.props;
+        var { isSelf, uniquekey, onModel, history, forUser } = this.props;
         
         return(
             
@@ -134,7 +125,7 @@ export default class CollectContainer extends React.Component {
                     ?
                     <Spin/>
                     :
-                    <Tabs defaultActiveKey="0" onChange={this.handleChange.bind(this)}>
+                    <Tabs defaultActiveKey="0">
                         <TabPane tab={isSelf ? "我创建的":"TA创建的"} key="0">
                             {
                                 userCollect.length
@@ -145,9 +136,9 @@ export default class CollectContainer extends React.Component {
                                         key={index}
                                         forUser={forUser}
                                         isSelf={isSelf}
+                                        history={history}
                                         uniquekey={uniquekey}
                                         onModel={onModel}
-                                        onAddCollect={this.handleUpdateCollection.bind(this)} 
                                         onVisible={this.handleModalVisible.bind(this)}
                                         onShareVisible={this.handleShareVisible.bind(this)}
                                     />
@@ -168,15 +159,13 @@ export default class CollectContainer extends React.Component {
                                         <CollectItem  
                                             data={item} 
                                             forUser={forUser}
-                                            forCollect={true} 
                                             key={index}
-                                            isSelf={isSelf}
+                                            history={history}
+                                            isSelf={false}
                                             uniquekey={uniquekey}
-                                            onModel={onModel} 
-                                            onAddCollect={this.handleUpdateCollection.bind(this)} 
-                                            
+                                            onModel={onModel}                                             
                                             onVisible={this.handleModalVisible.bind(this)}
-                                            
+                                            onShareVisible={this.handleShareVisible.bind(this)}                                           
                                         />
                                     ))
                                     :
@@ -213,7 +202,7 @@ export default class CollectContainer extends React.Component {
                         onModel="Collect"
                         uniquekey={collectItem._id}    
                         onVisible={this.handleShareVisible.bind(this)} 
-                        onUpdateItem={this._updateItem}
+                        onUpdateShareBy={this._updateItem}
                         isSelf={isSelf}
                     />
                     :

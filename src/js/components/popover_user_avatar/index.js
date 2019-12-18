@@ -90,13 +90,13 @@ export default class CommentPopoverUserAvatar extends React.Component{
     
     const followContent = followStatus === 0 
                           ?
-                          <div onClick={this.handleAddFollow.bind(this,_id)}><Icon type="plus" />关注</div>
+                          <div onClick={this.handleAddFollow.bind(this,_id)}><span className={style.text}><Icon type="plus" />关注</span></div>
                           :
                           followStatus === 1
                           ?
-                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleRemoveFollow.bind(this,_id)}><Icon type="check" />已关注</div>          
+                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleRemoveFollow.bind(this,_id)}><span className={style.text}><Icon type="check" />已关注</span></div>          
                           :
-                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleAddFollow.bind(this,_id)}><Icon type="plus" />互相关注</div>
+                          <div style={{backgroundColor:'#eaeaea',color:'#3e3d3d'}} onClick={this.handleAddFollow.bind(this,_id)}><span className={style.text}><Icon type="plus" />互相关注</span></div>
     return (
       
       <div className={style.container}>
@@ -126,18 +126,16 @@ export default class CommentPopoverUserAvatar extends React.Component{
                       {
                           isSelf
                           ?
-                          <div className={style['user-action']}>
-                          
+                          <div className={style['user-action']}>                         
                             <div>
-                              <Link to={`/usercenter/${_id}`}><Icon type="idcard"/>我的空间</Link>
-                            </div>
-            
+                              <Link to={`/usercenter/${_id}`}><span className={style.text}><Icon type="idcard"/>我的空间</span></Link>
+                            </div>           
                           </div>
                           :
                           <div className={style['user-action']}>
                             { followContent }
                             <div>
-                              <Link to={`/usercenter/${_id}`}><Icon type="idcard"/>TA的空间</Link>
+                              <Link to={`/usercenter/${_id}`}><span className={style.text}><Icon type="idcard"/>TA的空间</span></Link>
                             </div>
             
                           </div>

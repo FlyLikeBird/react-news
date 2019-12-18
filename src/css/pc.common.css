@@ -697,55 +697,12 @@ section .leftContainer {
 }
 
 
-/*
-    搜索组件样式
-*/
 
-.search-container {
-    width:300px;
-    font-size:12px;
-}
-
-.search-container .tags {
-    margin:10px 0;
-}
-
-.search-container .tags .button {
-    color:#1890ff;
-    cursor: pointer;
-    float:right;
-}
-
-.search-container .tags ul {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
-.search-container .tags ul li{
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #f7f7f7;
-    margin-right: 4px;
-    margin-top: 4px;
-    border-radius: 14px;
-    cursor: pointer;
-}
-
-.search-container .search-input {
-    transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-    width:100px;
-}
-
-.search-container .search-input.click {
-    width:300px;
-}
 /*
 
     用户列表样式
 
 */
-
 
 .user-list .user-list-item {
     position:relative;
@@ -771,6 +728,12 @@ section .leftContainer {
     height:100%;
 }
 
+.user-list .user-list-item .text-container {
+    width:300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .user-list .user-level {
     display:inline-flex;
@@ -781,6 +744,19 @@ section .leftContainer {
     border-radius:10px;
     transform:scale(0.7);
     transform-origin:left;
+}
+
+.user-list .user-level .num {
+    width: 16px;
+    height: 16px;
+    line-height:16px;
+    text-align:center;
+    display: inline-block;
+    background-color: #1890ff;
+    border-radius: 50%;
+    color:#fff;
+    margin-left: 2px;
+    margin-right:6px;
 }
 
 .user-list .user-level i {
@@ -1206,10 +1182,25 @@ section .leftContainer {
     border-bottom:none;
     background-color:#f7f7f7;
     border-radius:4px;
+    padding:10px 20px;
 }
 
 .collect-container.forSimple .news.forSimple{
     background-color:#fff;
+}
+
+.collect-container.forSimple .news.forSimple .news-body{
+    margin:0px 0px 0 20px;
+}
+
+.collect-container.forSimple .news.forSimple .avatar-container{
+    width:20px;
+    height:20px;
+}
+
+.collect-container.forSimple .news.forSimple .tags-container>span{
+    background-color: #f7f7f7;
+    color: #404142;
 }
 
 .collect-container .collect-header {
@@ -1312,6 +1303,7 @@ section .leftContainer {
 
 .action.forSimple {
     margin-bottom:0;
+    padding:10px 0;
 }
 
 .action .action-head {
@@ -1384,8 +1376,8 @@ section .leftContainer {
     cursor:pointer;
 }
 
-.action.forDetail .user-action {
-    background-color:#f7f7f7;
+.action.forSimple .user-action {
+
 }
 
 .action .user-action>span {
@@ -1427,11 +1419,17 @@ section .leftContainer {
 
 .inner-action .news.forSimple {
     background-color:#fff;
+    padding:20px;
 }
 
 .inner-action .topic-card-container.simple {
     background-color:#fff;
 }
+
+.inner-action .collect-container.forSimple {
+    background-color:#fff;
+}
+
 
 .inner-action .title {
     font-weight:600;
@@ -1498,6 +1496,7 @@ section .leftContainer {
     flex: 1;
     margin: 0px 40px 0 20px;
     min-width: 0px;
+    white-space:nowrap;
 }
 
 .news .news-content {
@@ -1776,6 +1775,10 @@ section .leftContainer {
     background-color: #f7f7f7;
 }
 
+.topic-card-container.forSearch {
+    margin:10px 0;
+}
+
 .action.forDetail .topic-card-container.simple {
     background-color:#fff;
 }
@@ -2017,6 +2020,11 @@ section .leftContainer {
 
 .ant-progress .ant-progress-inner {
     box-shadow: inset 2px 1px 2px rgba(0,0,0,.2);
+}
+
+
+.ant-popover .ant-popover-content .ant-popover-inner-content {
+    padding:0;
 }
 
 @keyframes selectedComment {

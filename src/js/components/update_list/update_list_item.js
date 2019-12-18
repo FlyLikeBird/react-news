@@ -1,7 +1,7 @@
 import React from 'react';
 import { Upload, Form, Button, Input, Select, Radio, Icon, Modal, Card, Popover, Menu, Dropdown  } from 'antd';
 
-import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import CommentPopoverUserAvatar from '../popover_user_avatar';
 import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 import CommentsListContainer  from '../common_comments/comments_list_container';
 import TopicItemPopover from '../topic_list/topic_item_popover';
@@ -16,12 +16,10 @@ var isAllowed = true;
 export default class UpdateItem extends React.Component{  
     constructor(){
         super();
-        this.state = {          
+        this.state = { 
+            item:{},         
             isLiked:false,
             isdisLiked:false,
-            likeUsers:[],
-            dislikeUsers:[],
-            shareBy:[],
             finalText:'',
             translateData:[],
             visible:false,
@@ -59,16 +57,17 @@ export default class UpdateItem extends React.Component{
         }
         
         var isLiked = likeUsers.map(item=>item.user._id).includes(userid),isdisLiked = dislikeUsers.map(item=>item.user._id).includes(userid);
-        this.setState({likeUsers,dislikeUsers,shareBy,isLiked,isdisLiked});  
+        this.setState({item:data,isLiked,isdisLiked});  
     }
 
     componentWillReceiveProps(newProps){
-        if (this.props.data._id != newProps.data._id){
+        var { forDetail } = this.props;
+        if ( forDetail || this.props.data._id != newProps.data._id ) {
             this._loadItemData(newProps);
-        }     
+        }   
     }
 
-    componentDidMount(){
+    componentWillMount(){
         this._loadItemData(this.props);
     }
 
@@ -80,15 +79,14 @@ export default class UpdateItem extends React.Component{
                 .then(response=>response.json())
                 .then(json=>{ 
                     var data = json.data;
-                    var { likeUsers, dislikeUsers } = data;
                     if (action == 'like' && !Boolean(isCancel)) {
-                      this.setState({isLiked:true,likeUsers});
+                      this.setState({isLiked:true,item:data&&data[0]});
                     } else if (action == 'like' && Boolean(isCancel)){
-                      this.setState({isLiked:false,likeUsers})
+                      this.setState({isLiked:false,item:data&&data[0]})
                     } else if (action == 'dislike' && !Boolean(isCancel)){
-                      this.setState({isdisLiked:true,dislikeUsers})
+                      this.setState({isdisLiked:true,item:data&&data[0]})
                     } else if (action == 'dislike' && Boolean(isCancel)){
-                      this.setState({isdisLiked:false,dislikeUsers})
+                      this.setState({isdisLiked:false,item:data&&data[0]})
                     }
                 })
         
@@ -159,9 +157,9 @@ export default class UpdateItem extends React.Component{
 
     render(){
 
-        var { translateData, finalText, isLiked, isdisLiked, likeUsers, dislikeUsers, shareBy, likeIconType, dislikeIconType, shareByIconType, visible, replies } = this.state;
-        var { data, history, socket, loaction, forSimple, noAction, isSelf } = this.props;
-        var { onModel, composeAction, images, user, text, replies, value, _id, isCreated, contentId, date } = data;
+        var { item, translateData, finalText, isLiked, isdisLiked, likeIconType, dislikeIconType, shareByIconType, visible } = this.state;
+        var { history, socket, loaction, forSimple, noAction, noLink, isSelf } = this.props;
+        var { onModel, composeAction, images, user, text, likeUsers, dislikeUsers, shareBy, replies, value, _id, isCreated, contentId, date } = item;
         const menu = (
             <Menu>
               <Menu.Item key="0">
@@ -240,11 +238,11 @@ export default class UpdateItem extends React.Component{
                             :
                             onModel === 'Action'  //  说明包含嵌套的动态 -- 二级动态
                             ?
-                            <UpdateInnerItem  data={contentId} history={history} />  
+                            <UpdateInnerItem  data={contentId} history={history} noLink={noLink}/>  
                             :  //  说明包含新闻或者话题 -- 一级动态
                             onModel === 'Article'
                             ?
-                            <NewsListItem data={contentId} hasImg={true} forSimple={true} noLink={true}/>
+                            <div style={{backgroundColor:'#f7f7f7',padding:'20px'}}><NewsListItem data={contentId} hasImg={true} forSimple={true} noLink={true}/></div>
                             :
                             onModel === 'Topic'
                             ?
@@ -252,7 +250,7 @@ export default class UpdateItem extends React.Component{
                             :
                             onModel === 'Collect'
                             ?
-                            <CollectItem data={contentId} forSimple={true}/>
+                            <CollectItem data={contentId} forSimple={true} history={history}/>
                             :
                             null
                             
@@ -265,7 +263,7 @@ export default class UpdateItem extends React.Component{
                     null
                     :
                     <div className="user-action">                                
-                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} text="赞"/>}>
+                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover history={history} data={likeUsers} text="赞"/>}>
                             <span onClick={this.handleUserAction.bind(this,_id,'like',isLiked?'true':'')} ref={span=>this.likeDom=span}>
                                 <span className="text">
                                     <Icon type="like" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>
@@ -275,7 +273,7 @@ export default class UpdateItem extends React.Component{
                                 </span>
                             </span>
                         </Popover>
-                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} text="踩"/>}>    
+                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover history={history} data={dislikeUsers} text="踩"/>}>    
                             <span onClick={this.handleUserAction.bind(this,_id,'dislike',isdisLiked?'true':'')}  ref={span=>this.dislikeDom=span}>
                                 <span className="text">
                                     <Icon type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />
@@ -293,7 +291,7 @@ export default class UpdateItem extends React.Component{
                             </span>
                         </span>
                               
-                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} text="转发"/>}>
+                        <Popover autoAdjustOverflow={false} content={<TopicItemPopover history={history} data={shareBy} forShare={true} text="转发"/>}>
                             <span onClick={this.handleShareVisible.bind(this,_id)}>
                                 <span className="text">
                                     <Icon type="export" />转发

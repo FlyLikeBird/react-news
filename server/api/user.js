@@ -208,7 +208,7 @@ router.get('/checkusername',(req,res)=>{
 
 router.get('/addFollow',(req,res)=>{
 	let { userid, followId } = req.query;
-	User.updateOne({_id:userid},{$push:{userFollow:followId}},(err,result)=>{
+	User.updateOne({_id:userid},{$push:{userFollows:followId}},(err,result)=>{
 		User.updateOne({_id:followId},{$push:{userFans:userid}},(err,result)=>{
 			util.responseClient(res,200,0,'ok');
 		})
@@ -218,7 +218,7 @@ router.get('/addFollow',(req,res)=>{
 
 router.get('/removeFollow',(req,res)=>{
 	let { userid, followId } = req.query;
-	User.updateOne({_id:userid},{$pull:{userFollow:followId}},(err,result)=>{
+	User.updateOne({_id:userid},{$pull:{userFollows:followId}},(err,result)=>{
 		User.updateOne({_id:followId},{$pull:{userFans:userid}},(err,result)=>{
 			util.responseClient(res,200,0,'ok');
 		})
@@ -322,15 +322,22 @@ router.get('/getCommonUsers',(req,res)=>{
 					result.push(item);
 				}
 			});
-			var promise = new Promise((resolve,reject)=>{
-				userPromise.getUserFollows(result,resolve);
-			});
-			promise.then(data=>{
-				util.responseClient(res,200,0,'ok',data);
-			})
+			User.find({_id:{$in:result}},{username:1, userImage:1, userFollows:1, userFans:1, level:1, description:1})
+				.then(users=>{
+					util.responseClient(res, 200, 0, 'ok', users);
+				})
 		})
 	})
 })
 
+router.get('/search',(req,res)=>{
+    var { words, pageNum, orderBy, start, end } = req.query;
+    var data={total:0}, _filter;
+  	User.find({'username':{$regex:new RegExp(words)}},{ username:1, level:1, userImage:1, description:1, userFans:1, userFollows:1},(err,users)=>{
+        data.data = users;
+        util.responseClient(res, 200, 0, 'ok', data);
+    })
+          
+})
 
 module.exports = router

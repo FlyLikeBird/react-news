@@ -63,9 +63,7 @@ class LoginForm extends React.Component {
       
   }
 
-  handleCheckUsername(rule,value,callback){
-      const { getFieldValue } = this.props.form;
-       
+  handleCheckUsername(rule,value,callback){    
       if (value && value.match(/\s+/)){
         callback('用户名不能包含空格等格式字符！');
       } else {

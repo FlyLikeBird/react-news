@@ -5,7 +5,7 @@ import TopicListItem from '../topic_list/topic_list_item';
 import NewsListItem  from '../news_list/news_list_item';
 import UpdateItem from '../update_list/update_list_item';
 import CollectItem from '../collectComponent/collect_item';
-import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import CommentPopoverUserAvatar from '../popover_user_avatar';
 import { parseDate, formatDate, translateType, formatContent } from '../../../utils/translateDate';
 
 const { TextArea } = Input;
@@ -104,7 +104,7 @@ export default class ShareModal extends React.Component{
                         {   
                             onModel === 'Action'
                             ?
-                            <UpdateItem data={item} forSimple={true} noAction={true}/>
+                            <UpdateItem data={item} forSimple={true} noAction={true} noLink={true}/>
                             : 
                             <div>                      
                                 {

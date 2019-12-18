@@ -3,18 +3,57 @@
     width:100%;
     height:100%;
     text-align:center;
+    position:relative;
 }
 
 .auto-carousel .bg {
     width:100%;
     height:100%; 
-    position:relative;   
+    position:relative;
+}
+
+.auto-carousel .bg .bg-item {
+    width:100%;
+    height:100%; 
+    position:absolute;   
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
     border-radius:4px;
     text-align:center;
     cursor: pointer;
+    transform:translateY(-400px);
+    opacity:0;
+}
+
+.auto-carousel .bg .bg-item.selected {
+    opacity:1;
+    transform:translateY(0);
+}
+
+.auto-carousel .bg .bg-item.fadeOut {
+    animation:fadeOut 1s ease-in;
+}
+
+.auto-carousel .bg .bg-item.fadeIn {
+    animation:fadeIn 1s ease-out;
+
+}
+
+.auto-carousel .bg .bg-item:nth-child(1) {
+    z-index:10;
+}
+
+.auto-carousel .bg .bg-item:nth-child(2) {
+    z-index:9;
+}
+
+.auto-carousel .bg .bg-item:nth-child(3) {
+    z-index:8;
+}
+
+.auto-carousel .bg .bg-item:nth-child(4) {
+    z-index:7;
 }
 
 .auto-carousel .text-container {
@@ -33,12 +72,48 @@
     padding: 2px 6px;
 }
 
+@keyframes fadeOut {
+    0% {
+        transform:scaleX(1) scaleY(1) translateY(0);
+        transform-origin: top;
+        opacity:1;
+    }
+    30% {
+        transform:scaleX(1.2) scaleY(1) translateY(-400px);
+        transform-origin: top;
+        opacity:0.7;
+    }
+    100%{
+        transform:scaleX(0.8) scaleY(0.5) translateY(-400px);
+        transform-origin: top;
+        opacity:0;
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        transform:scaleX(1) scaleY(1) translateY(-400px);
+        opacity:0;
+        transform-origin: bottom;
+    }
+    30% {
+        transform:scaleX(1.2) scaleY(0.8) translateY(0);
+        opacity:0.5;
+        transform-origin: bottom;
+    }
+    100%{
+        transform:scaleX(1) scaleY(1) translateY(0);
+        opacity:1;
+        transform-origin: bottom;
+    }
+}
 
 .auto-carousel .img-container {
     display:flex;
     position:absolute;
     bottom:-60px;
     width:100%;
+    z-index:100;
 }
 
 .auto-carousel .img-container>div {
@@ -78,25 +153,3 @@
     }
 }
 
-.auto-carousel .dot-container {
-    position:absolute;
-    bottom:10px;
-    left:50%;
-    margin-left:-60px;
-    display:flex;
-    width:120px;
-    height:2px;
-}
-
-.auto-carousel .dot-container .dot{
-    flex:1;
-    opacity:0.8;
-    background-color:#fff;
-    border-radius:2px;
-    margin:0 2px;
-}
-
-.auto-carousel .dot-container .dot.selected{
-    flex:8;
-    opacity:1;
-}

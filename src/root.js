@@ -43,15 +43,18 @@ export default class Root extends React.Component {
           socket.on('connect',()=>{
              socket.emit('user-login',userid);
              socket.on('receive-message',(msg)=>{
-                console.log(msg);
+                //console.log(msg);
                 this.setState({msg,socket,user,visible:false});
              });          
           })     
       } 
   }
 
-  handleLoginOut(){
+  handleLoginOut(isUserPage){
         var { socket, user } = this.state;
+        if (isUserPage){
+            window.location.href = '/';
+        }
         if(socket && user){
           socket.emit('user-loginout',user.userid);
           socket.close();

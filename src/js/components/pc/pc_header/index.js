@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Row, Col, Menu, Icon, Dropdown, Tabs, message, Form, Input, Button, CheckBox, Modal, Popover, Badge } from 'antd';
 
-import SearchInput from '../pc_search/pc_search_input';
+import SearchInput from '../../search_container/pc_search_input';
 import imgURL from '../../../../images/logo.png';
 
 const SubMenu = Menu.SubMenu;
@@ -25,18 +25,18 @@ class PCHeader extends React.Component {
       this.setState({current:e.key})
     }
  
-
     render() {
         var { current } = this.state;
-        var  { msg, user, onLoginVisible, onLoginOut } = this.props;
-        var hasLogined = user && user.userid ? true : false;    
+        var  { msg, user, location, onLoginVisible, onLoginOut, onUpdateSearchHistory } = this.props;
+        var hasLogined = user && user.userid ? true : false;
+        var isUserPage = location.pathname && location.pathname.match(/\/usercenter\/+/) ? true : false;
         var menu =  hasLogined ?                   
                       <Menu>
                         <Menu.Item>
                           <Link to={`/usercenter/${user.userid}`}><Icon type="home" />个人中心</Link>
                         </Menu.Item>
                         <Menu.Item>
-                          <span onClick={()=>onLoginOut()}><Icon type="logout" />退出登录</span>
+                          <span onClick={()=>onLoginOut(isUserPage)}><Icon type="logout" />退出登录</span>
                         </Menu.Item>
                       </Menu>
                       :
@@ -67,7 +67,7 @@ class PCHeader extends React.Component {
                               <Menu.Item key="junshi"><Link to="/tag/junshi"><Icon type="video-camera" /><span className="text">军事</span></Link></Menu.Item>
                             </Menu> 
                             <div className="search">
-                              <SearchInput {...this.props}/> 
+                              <SearchInput {...this.props} onUpdateSearchHistory={onUpdateSearchHistory}/> 
                               <Popover content={
                                     <div style={{width:'200px',height:'200px',backgroundColor:'#000'}}>
     

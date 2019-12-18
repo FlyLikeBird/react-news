@@ -37,7 +37,8 @@ export default class NewsListItem extends React.Component {
 
   handleGotoDetail(id){
       var { noLink, history } = this.props;
-      if (!noLink && history) {
+      if (noLink) return;
+      if ( history) {
           history.push(`/details/${id}`)
       }
   }

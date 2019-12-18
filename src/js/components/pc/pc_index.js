@@ -64,7 +64,8 @@ export default class PCRouter extends React.Component {
           scrollFunc:null,
           allowReload:true,
           reloading:false,
-          isFixed:false
+          isFixed:false,
+          searchHistory:[]
       }
       
     }
@@ -115,16 +116,37 @@ export default class PCRouter extends React.Component {
         }       
     }
     
+    _updateSearchHistory(title, remove){
+        var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];             
+        if (remove){
+            localStorage.removeItem('searchHistory');
+            this.setState({searchHistory:[]});
+        } else {
+            if (title){
+                var pattern = /(^\s*)|(\s*$)/g;
+                var title = title.replace(pattern,'');
+                if (!searchHistory.map(item=>item.title).includes(title)){
+                    searchHistory.push({title})
+                }             
+                localStorage.setItem('searchHistory',JSON.stringify(searchHistory));
+            }      
+            this.setState({searchHistory});
+        }
+        
+    }
+
+    componentWillMount(){
+        this._updateSearchHistory()
+    }
+
     render(){
         var { msg, socket, user, onLoginVisible, onCheckLogin } = this.props;
-        var { scrollFunc, allowReload, reloading, isFixed } = this.state;
+        var { scrollFunc, allowReload, reloading, isFixed, searchHistory } = this.state;
         
-        return (
-                       
-                <Router>
-                    
+        return (                      
+                <Router>                    
                     <div ref={container=>this.container=container} onScroll={scrollFunc} style={{height:'100%',overflowX:'hidden',overflowY:'scroll'}}>
-                        <PCHeader {...this.props}/>
+                        <PCHeader {...this.props} searchHistory={searchHistory} onUpdateSearchHistory={this._updateSearchHistory.bind(this)}/>
                         <Switch>
                           <Route exact path="/" component={PCNewsContainer} />                          
                           <Route exact path="/usercenter/:id" render={(props)=>{
@@ -172,6 +194,7 @@ export default class PCRouter extends React.Component {
                           />
                           <Route exact path="/search" render={props=>{
                               props.socket = socket;
+                              props.onUpdateSearchHistory = this._updateSearchHistory.bind(this);
                               return <PCSearchIndex {...props}/>
                           }}
                           /> 
@@ -180,8 +203,7 @@ export default class PCRouter extends React.Component {
                           
                         </Switch>
                         <PCFooter />
-                    </div> 
-                    
+                    </div>                    
                 </Router> 
             
         )

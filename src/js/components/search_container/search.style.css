@@ -1,0 +1,57 @@
+/*
+    搜索组件样式
+*/
+
+.search-container {
+    width:400px;
+    font-size:12px;
+    padding:20px;
+}
+
+.search-container .tags {
+    margin:20px 0;
+}
+
+.search-container .tags .button {
+    color:#1890ff;
+    cursor: pointer;
+    float:right;
+}
+
+.search-container .text {
+    display:inline-block;
+    transform:scale(0.9);
+    transform-origin: left;
+}
+
+.search-container .tags ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.search-container .tags ul li{
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: #ebf5fd;
+    color: #0c3f6d;
+    margin-right: 4px;
+    margin-top: 4px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-container .tags ul li:hover{
+    background-color: rgba(133, 190, 243, 0.8);
+    color: #fff;
+}
+
+.search-container .search-input {
+    transition: all 0.3s;
+    width:100px;
+}
+
+.search-container .search-input.click {
+    width:100%;
+}

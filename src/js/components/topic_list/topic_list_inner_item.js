@@ -2,7 +2,8 @@ import React from 'react';
 import { Button, Icon, Popover } from 'antd';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
 import TopicItemPopover from './topic_item_popover';
-import CommentPopoverUserAvatar from '../common_comments/comment_popover_useravatar';
+import CommentPopoverUserAvatar from '../popover_user_avatar';
+import config from '../../../../config/config.js';
 export default class TopicListInnerItem extends React.Component {
   
   constructor(){
@@ -44,14 +45,14 @@ export default class TopicListInnerItem extends React.Component {
     return (
 
         
-              <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
+              <div onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
                   
                   {
                       images && images.length
                       ? 
                       <div className="news-img" style={{backgroundImage:`url(${images[0]})`}}></div>
                       : 
-                      <div className="news-img"><div className="default-topic-bg"><span className="icon"><Icon type="number"/></span></div></div>
+                      <div className="news-img" style={{backgroundImage:`url(${config.uploadPath+'/defaultTopicBg.jpg'})`}}></div>
                   }
                    <div className="news-body">
                         <div className="news-title">

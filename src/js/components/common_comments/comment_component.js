@@ -7,6 +7,7 @@ import CommentComponentButton from './comment_component_button';
 import CommentPopoverUserAvatar from '../popover_user_avatar';
 import NewsListItem from '../news_list/news_list_item';
 import TopicListItem  from '../topic_list/topic_list_item';
+import UpdateInnerItem from '../update_list/inner_update_item';
 import ImgContainer from '../img_container';
 import { parseDate, formatDate, getElementTop, formatContent } from '../../../utils/translateDate';
 const { Meta } = Card;
@@ -193,6 +194,10 @@ export default class CommentComponent extends React.Component{
                       forUser && onModel == 'Topic'
                       ?
                       <TopicListItem data={related} forSimple={true} history={history}/>
+                      :
+                      forUser && onModel == 'Action'
+                      ?
+                      <UpdateInnerItem data={related} history={history} forComment={true}/>
                       :
                       null
                     }                

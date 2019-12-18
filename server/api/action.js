@@ -100,7 +100,9 @@ router.get('/share',(req,res)=>{
             } else if ( onModel =='Action') {
                 getShareBy(Action, contentId, action._id, res);
             } else if ( onModel == 'Collect') {
-                getShareBy(Collect, contentId, action._id, res);
+                Collect.updateOne({_id:contentId},{$push:{shareBy:action._id}},(err,result)=>{
+                    userPromise.getCollectContent(res, contentId);
+                })
             }
             
         })        
@@ -127,9 +129,19 @@ function getUserOrSingleActions( res, userid, actionId){
                 { path:'tags',select:'tag'},
                 { path:'follows.user', select:'username userImage'},
                 { path:'user', select:'username userImage'},
+                { path:'followedBy.user', select:'username userImage'},
                 {
                     path:'collectItem',
-                    populate:{ path:'contentId'}
+                    populate:{ 
+                        path:'contentId',
+                        populate:[
+                            { path:'follows.user', select:'username userImage'},
+                            { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'},
+                            { path:'user', select:'username userImage'},
+                            { path:'tags', select:'tag'}
+
+                        ]
+                    }
                 },
                 {
                     path:'shareBy',
@@ -143,13 +155,26 @@ function getUserOrSingleActions( res, userid, actionId){
                         { path:'user', select:'username userImage'},
                         { path:'tags', select:'tag'},
                         { path:'follows.user', select:'username userImage'},
-                        { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'}
+                        { path:'followedBy.user', select:'username userImage'},
+                        { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'},
+                        {
+                            path:'collectItem',
+                            populate:{ 
+                                path:'contentId',
+                                populate:[
+                                    { path:'follows.user', select:'username userImage'},
+                                    { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'},
+                                    { path:'user', select:'username userImage'},
+                                    { path:'tags', select:'tag'}
+        
+                                ]
+                            }
+                        },
                     ]
                 }
             ]
                  
         })
-        .sort({_id:-1})
         .then(actions=>{
             util.responseClient(res, 200, 0, 'ok', actions);
         })
@@ -185,20 +210,13 @@ function _operateAction( action, id, isCancel, userid, res ){
     var operate = isCancel ? '$pull':'$push';
     var option = isCancel ? {user:userid} : {user:userid,date};
     Action.updateOne({_id:id},{[operate]:{[action+'Users']:option}},(err,result)=>{
-        Action.findOne({_id:id},{likeUsers:1, dislikeUsers:1})
-            .populate({ path:'likeUsers.user', select:'username userImage'})
-            .populate({ path:'dislikeUsers.user', select:'username userImage'})
-            .then(doc=>{
-                util.responseClient(res, 200, 0, 'ok', doc);
-            })
-         
+        getUserOrSingleActions(res, null, id);         
     })
 }
 
 router.get('/operate',(req,res)=>{
     var { action, id, userid, isCancel } = req.query; 
     _operateAction(action,id,isCancel,userid, res);
-    
 })
 
 

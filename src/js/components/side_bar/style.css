@@ -20,6 +20,7 @@
     display: flex;
     align-items: center;
     justify-content: center; 
+    transition: all 0.3s;
 }
 
 .side-bar .bg i{
@@ -35,5 +36,5 @@
 }
 
 .side-bar .bg:hover {
-    transform:scale(1.5);
+    transform:scale(1.3);
 }

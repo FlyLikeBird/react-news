@@ -1,88 +1,32 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
-
 import style from './autoCarousel.style.css';
-
+var tempArr = [];
 export default class AutoCarousel extends React.Component {
     
     constructor(){
         super();
+        this.bgDom = {};
         this.state = {
-            currentIndex:0,
+            thumbnailIndex:0,
+            bgIndex:0,
+            prevIndex:0,
             isLoading:true,
-            images:[]
+            data:[]
         }
     }
 
-    _fetchImg(url){
-        return new Promise((resolve,reject)=>{
-            fetch(url,{method:'get',responseType: 'blob'})
-                .then(response=>response.blob())
-                .then(blob=>{
-                    //console.log(blob);
-                    resolve(blob);
-                })
-        })
-    }
-
-    _readImgAsDataURL(blob,resolve){
-        var reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onload = function(){
-            resolve(reader.result);
-        }
-    }
     
-    _fetchAllImages(fetchImages, resolve){
-        var allPromises = fetchImages.map(url=>{
-            return this._fetchImg(url);
-        });
-        Promise.all(allPromises)
-            .then(readableImgs=>{
-                var images = [],readPromises=[];
-                for(var i=0,len=readableImgs.length;i<len;i++){
-                   (function(i,readImg){
-                        var promise = new Promise((resolve,reject)=>{
-                            readImg(readableImgs[i],resolve);
-                        });
-                        readPromises.push(promise);
-                   })(i,this._readImgAsDataURL)
-                }
-                Promise.all(readPromises)
-                    .then(images=>{
-                        resolve(images);
-                    })
-
-            })
-    }
-    
-
     componentDidMount(){
         var { count } = this.props;      
         var typeArr = ['shehui','guonei','guoji','yule','keji'];
         var type = typeArr[Math.floor(Math.random()*(typeArr.length))];
-        fetch(`/api/article/getArticleList?type=${type}&count=${count}`)
+        fetch(`/api/article/getArticleTitle?type=${type}&count=${count}`)
             .then(response=>response.json())
             .then(json=>{
-                var data = json.data, fetchImages = [];
-                var container = this.container;
-                if (container){
-                    var width = (container.offsetWidth)/count   
-                }
-                for(var i=0,len=data.length;i<len;i++){
-                    fetchImages.push(data[i].thumbnails[0]);
-                }
-                var promise = new Promise((resolve,reject)=>{
-                    this._fetchAllImages(fetchImages,resolve);
-                })
-                promise.then(imgBlob=>{
-                    data = data.map((item,index)=>{
-                        item.thumbnails[0] = imgBlob[index]
-                        return item;
-                    })
-                    this.setState({images:data,isLoading:false});
-                    //this._setTimer();
-                })
+                var data = json.data;
+                this.setState({data, isLoading:false});
+                //this._setTimer();
                 
             })
     }
@@ -108,10 +52,52 @@ export default class AutoCarousel extends React.Component {
     }
 
     handleMouseOver(index,e){
-        var inner = e.toElement || e.relatedTarget;
-        clearInterval(this.timer);        
-        //this.setState({currentIndex:index});
+        var { triggering } = this.state;
+        var target = e.currentTarget;
+        var inner = e.fromElement || e.relatedTarget;  
+        if (!target.contains(inner)) {
+            var { thumbnailIndex } = this.state;
+            if ( thumbnailIndex != index){
+                if (Object.keys(this.bgDom).length){                       
+                    //  利用this.state.prevIndex 保存上一个dom索引
+                    this.setState({thumbnailIndex:index, prevIndex:index});
+                    this._setMotion(index);                                                                    
+                }
+            }       
+        }        
+    }
+
+    _clearMotion(){
+        var keys = Object.keys(this.bgDom);
+        for(var i=0,len=keys.length;i<len;i++){
+            var dom = this.bgDom[keys[i]];
+            dom.classList.remove(style['fadeOut']);
+            dom.classList.remove(style['fadeIn']);
+        }
+    }
+    
+    _setMotion(index){        
+        var { bgIndex, prevIndex } = this.state;
+        var nextIndex = index;
+        var prevDom = this.bgDom[prevIndex];
+        var nextDom = this.bgDom[nextIndex];
+        var currentDom = this.bgDom[bgIndex];
+        var nextDom = this.bgDom[nextIndex];
+        this._clearMotion();
         
+        currentDom.classList.remove(style['selected']);
+        prevDom.classList.add(style['fadeOut']);
+        nextDom.classList.add(style['fadeIn']);
+        
+        // 当频繁触发monmouseover事件时，取消上一次的mouseover事件
+        clearTimeout(this.handTimer);
+        this.handTimer = setTimeout(()=>{           
+            prevDom.classList.remove(style['fadeOut']);                   
+            nextDom.classList.remove(style['fadeIn']);
+            nextDom.classList.add(style['selected']);
+            this.setState({bgIndex:index});
+        },1000);
+           
     }
 
     handleMouseOut(e){
@@ -119,15 +105,15 @@ export default class AutoCarousel extends React.Component {
     }
 
     componentWillUnmount(){
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
+        
+        this.bgDom = null;
         
     }
    
     render() {
-        var { currentIndex, isLoading, images } = this.state;
-        var { size } = this.props;
+        
+        var { thumbnailIndex, bgIndex, isLoading, data } = this.state;
+        console.log(bgIndex);
         return(
 
             <div ref={container=>this.container = container} className={style['auto-carousel']}>
@@ -136,39 +122,45 @@ export default class AutoCarousel extends React.Component {
                     ?
                     <Spin />
                     :
-                    <div className={style.bg} onClick={this.handleClick.bind(this,images[currentIndex].articleId)} style={{backgroundImage:`url(${images[currentIndex].thumbnails[0]})`}}>
-                        {
-                            size == 'small'
-                            ?
-                            <div className={style['dot-container']}>
-                                {
-                                    images.map((item,index)=>(
-                                        <span key={index} className={currentIndex==index?style.dot+' '+style.selected : style.dot}></span>
-                                    ))
-                                }
-                            </div>
-                            :
-                            <div className={style["img-container"]}>
-                                {
-                                    images.map((item,index)=>(
-                                        <div 
-                                            style={{backgroundImage:`url(${item.thumbnails[0]})`}}
-                                            className={currentIndex==index?style['selected']:''}
-                                            onClick={this.handleClick.bind(this,item._id)}    
-                                            onMouseOver={this.handleMouseOver.bind(this,index)}
-                                            onMouseOut={this.handleMouseOut.bind(this)}
-                                            key={index} 
-                                            
-                                        >
-                                            <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                        }
-                        
-                    </div>
+                    data && data.length 
+                    ?
+                    <div style={{height:'100%'}}>
+                        <div className={style.bg}>
+                            {
+                                data.map((item,index)=>(
+                                    <div 
+                                        key={index} 
+                                        ref={ dom=>{if(this.bgDom) this.bgDom[index]=dom} } 
+                                        className={ index==bgIndex ? `${style['bg-item']} ${style['selected']}` : style['bg-item']}
+                                        //className={style['bg-item']}
+                                        style={{backgroundImage:`url(${item.thumbnails[0]})`}}
+                                    ></div>
+                                    
+                                ))
+                            }
+                        </div>
+                        <div className={style["img-container"]}>
+                            {
+                                data.map((item,index)=>(
+                                    <div 
+                                        style={{backgroundImage:`url(${item.thumbnails[0]})`}}
+                                        className={ thumbnailIndex==index?style['selected']:''}
+                                        onClick={this.handleClick.bind(this,item._id)}    
+                                        onMouseOver={this.handleMouseOver.bind(this,index)}
+                                        onMouseOut={this.handleMouseOut.bind(this)}
+                                        key={index} 
+                                        
+                                    >
+                                        <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
+                                    </div>
+                                ))
+                            }
+                        </div>
                     
+                    </div>
+                    :
+                    null
+                                  
                 }
                 
                 

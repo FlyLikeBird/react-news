@@ -94,7 +94,6 @@ export default class SearchInput extends React.Component {
     render() {
         var { iconType, visible, searchList } = this.state;
         
-
         return (
             <Popover 
               //trigger="click" 

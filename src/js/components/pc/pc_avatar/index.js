@@ -65,7 +65,8 @@ export default class PCUserAvatar extends React.Component {
 
   
   handleChangeImgUrl(imgUrl){
-    this.setState({imgUrl})
+    this.setState({imgUrl});
+    localStorage.setItem('avatar',imgUrl);
   }
 
   componentWillUnmount(){

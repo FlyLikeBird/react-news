@@ -78,7 +78,7 @@ export default class PCUserCenterContainer extends React.Component{
                                 null
                             }                            
                             <TabPane tab={<span><Icon type="book" />{isSelf?"我的收藏":"TA的收藏"}</span>} key="collect">
-                                <CollectContainer isSelf={isSelf} match={match} forUser={true} user={user._id}/>
+                                <CollectContainer history={history} isSelf={isSelf} match={match} forUser={true} user={user._id}/>
                             </TabPane>
                             
                             <TabPane tab={<span><Icon type="message" />{isSelf?"我的话题":"TA的话题"}</span>} key="topic">

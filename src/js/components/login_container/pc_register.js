@@ -32,56 +32,41 @@ class RegisterForm extends React.Component {
 
   handleUsername(fieldName){     
       const { form } = this.props;
-
-      let username = form.getFieldValue(fieldName);
-     
-      form.validateFields([fieldName],{force:true},(err,values)=>{
-         if(!err){
-
-            fetch.get('/api/usr/checkusername?username='+username)
-            .then(response=>{
-
-              let data = response.data;
-              if (response && data.code == 1) {
-                // 用户已存在，非法的用户名
-                //console.log(data);
-                form.setFields({
-                  [fieldName]:{
-                    value:username,
-                    errors:[new Error(data.message)]
-                  }
-                });              
+      var username = form.getFieldValue(fieldName);
+      fetch('/api/usr/checkusername?username='+username)
+          .then(response=>response.json())
+          .then(json=>{
+              var { data, code, message } = json;
+              if ( code ===1){
+                  form.setFields({
+                      [fieldName]:{
+                        value:username,
+                        errors:[new Error(message)]
+                      }
+                  }); 
               } else {
-                form.setFields({
-                  [fieldName]:{
-                    value:username,
-                    errors:null
-                  }
-                })              
+                  form.setFields({
+                      [fieldName]:{
+                        value:username,
+                        errors:null
+                      }
+                  }) 
               }
-            })
-         } else {
-            console.log(err);
-         }
-          
-      })     
+          })   
     }
-
 
    validateToConfirmPassword(rule,value,callback){
       const form = this.props.form;
       if (value && value.match(/^\s+$/)){
         callback('密码不能包含空格等格式字符!')
       }
-      //console.log(callback);
       callback()
     }
 
     validateToFirstPassword(rule,value,callback){
       const form = this.props.form;
       if (value && value !== form.getFieldValue('r_password')) {
-        callback('两次密码输入不一致！')
-        
+        callback('两次密码输入不一致！')      
       } else {
         callback();
       }

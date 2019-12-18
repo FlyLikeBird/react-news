@@ -124,7 +124,6 @@ export default class CommentComponentButton extends React.Component{
   }
 
   handleGotoDetail(commentid,parentcommentid){
-
     var { history, related, onModel } = this.props;
     fetch(`/api/comment/getCommentPagenum?commentid=${commentid}&parentcommentid=${parentcommentid}&uniquekey=${related._id}`)
       .then(response=>response.json())
@@ -132,9 +131,12 @@ export default class CommentComponentButton extends React.Component{
           var pageNum = json.data;
           if (history){                          
               if (onModel == 'Article') {                  
-                  history.push(`/details/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)                 
+                  history.push(`/details/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}`)                 
               } else if (onModel =='Topic'){
-                  history.push(`/topic/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}&forTrack=${true}&`)
+                  history.push(`/topic/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}`)
+              } else if (onModel =='Action') {
+                  history.push(`/action/${related._id}?pageNum=${pageNum}&commentid=${commentid}&parentcommentid=${parentcommentid}`)
+
               }
               
           }

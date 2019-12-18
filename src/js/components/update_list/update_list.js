@@ -3,7 +3,7 @@ import React from 'react';
 import { Upload, Form, Button, Input, Select, Radio, Icon, Spin, Modal, Card  } from 'antd';
 import DeleteModal from '../deleteModal';
 import ShareModal from '../shareModal';
-import { formatContent } from '../../../utils/translateDate';
+import { formatContent, sortByDate } from '../../../utils/translateDate';
 
 import UpdateItem from './update_list_item';
 const { Meta } = Card;
@@ -34,6 +34,7 @@ export default class UpdateContainer extends React.Component{
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
+                data = sortByDate(data,'date');
                 this.setState({userActions:data,isLoading:false});
             })
     }
@@ -42,7 +43,8 @@ export default class UpdateContainer extends React.Component{
         this.setState({visible:boolean,deleteId})
     }
 
-    handleUpdateAction(data){     
+    handleUpdateAction(data){  
+        var data = sortByDate(data,'date');   
         this.setState({userActions:data})      
     }
 
@@ -128,7 +130,7 @@ export default class UpdateContainer extends React.Component{
                         }
                     </div>                    
                     :
-                    <div style={{padding:'10px 0',fontSize:'12px'}}>你还没有发布过任何动态!</div>
+                    <div style={{padding:'10px 0',fontSize:'12px'}}>还没有发布过任何动态!</div>
 
                 }
                 {

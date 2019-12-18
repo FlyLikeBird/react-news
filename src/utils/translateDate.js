@@ -53,7 +53,9 @@ export function translateType(type){
         case 'msg':
             str = '消息';
             break;
-
+        case 'User':
+            str = '用户';
+            break;
     }
     return str;
 }

@@ -15,7 +15,7 @@ module.exports = new mongoose.Schema({
     defaultCollect:{type:Boolean,default:false},
     // 0 公开的 1 关注的人可见 2 私密,仅自己可见  
     privacy:{type:Number,default:0},
-    followedBy:[{user:{type:Schema.Types.ObjectId, ref:'User'},addtime:String}],
+    followedBy:[{user:{type:Schema.Types.ObjectId, ref:'User'},date:String}],
     shareBy:[{type:Schema.Types.ObjectId, ref:'Action'}]
    
 });

@@ -20,6 +20,80 @@ function selectImgByUniquekey(content){
   return multiImg;
 }
 
+function getCollectContent(res, collectId){   
+    Collect.findOne({_id:collectId})
+        .populate({
+            path:'collectItem',
+            populate:{ 
+                path:'contentId',
+                populate:[
+                    { path:'tags', select:'tag'},
+                    { path:'follows.user', select:'username userImage'},
+                    { path:'user', select:'username userImage'},
+                    { path:'shareBy', populate:{path:'user', select:'username userImage'}, select:'date value user'}
+                ]
+            }
+        })
+        .populate({
+            path:'shareBy',
+            populate:{ path:'user', select:'username userImage'},
+            select:'value date user'
+        })
+        .populate({ path:'followedBy.user'})
+        .then(doc=>{
+            util.responseClient(res, 200, 0, 'ok', doc);
+        })
+}
+
+function getActionContent( res, actionId, data){
+    Action.findOne({_id:actionId})
+        .populate({ path:'likeUsers.user', select:'username userImage'})
+        .populate({ path:'dislikeUsers.user', select:'username userImage'})
+        .populate({
+            path:'shareBy',
+            populate:{path:'user',select:'username userImage'},
+            select:'value date user'
+        })
+        .populate({path:'user', select:'username userImage'})
+        .populate({
+            path:'contentId',
+            populate:[
+                { path:'fromUser',select:'username userImage'},
+                { path:'tags',select:'tag'},
+                { path:'follows.user', select:'username userImage'},
+                { path:'user', select:'username userImage'},
+                {
+                    path:'collectItem',
+                    populate:{ path:'contentId'}
+                },
+                {
+                    path:'shareBy',
+                    populate:{path:'user', select:'username userImage'},
+                    select:'value date user'
+                },
+                //  填充内部动态的所需的字段
+                {
+                    path:'contentId',
+                    populate:[
+                        { path:'user', select:'username userImage'},
+                        { path:'tags', select:'tag'},
+                        { path:'follows.user', select:'username userImage'},
+                        { path:'shareBy', populate:{ path:'user', select:'username userImage'}, select:'value date user'}
+                    ]
+                }
+            ]                 
+        })
+        .then(doc=>{
+            var result ;
+            if (data){
+                result = data;
+                result.doc = doc;
+            } else {
+                result = doc;
+            }
+            util.responseClient(res, 200, 0, 'ok', result);
+        })
+}
 
 function getTopicContent(res, topicId, data){
     Topic.findOne({_id:topicId})
@@ -48,5 +122,7 @@ function getTopicContent(res, topicId, data){
 }
 
 module.exports = {
-    getTopicContent
+    getTopicContent,
+    getActionContent,
+    getCollectContent
 }

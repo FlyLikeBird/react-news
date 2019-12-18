@@ -1,18 +1,16 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
 
-import style from './style.css';
+import style from './autoCarousel.style.css';
 
 export default class AutoCarousel extends React.Component {
     
     constructor(){
         super();
         this.state = {
-            width:0,
             currentIndex:0,
             isLoading:true,
             images:[]
-
         }
     }
 
@@ -34,10 +32,9 @@ export default class AutoCarousel extends React.Component {
             resolve(reader.result);
         }
     }
-    /*
-    componentDidMount(){
-        var { data } = this.props;
-        var allPromises = data.map(url=>{
+    
+    _fetchAllImages(fetchImages, resolve){
+        var allPromises = fetchImages.map(url=>{
             return this._fetchImg(url);
         });
         Promise.all(allPromises)
@@ -53,50 +50,56 @@ export default class AutoCarousel extends React.Component {
                 }
                 Promise.all(readPromises)
                     .then(images=>{
-                        //console.log(images);
-                        this.setState({isLoading:false,images})
+                        resolve(images);
                     })
 
             })
-        if (data.length){
-            var container = this.container;
-            if (container){
-                var width = (container.offsetWidth)/(data.length)   
-                this.setState({width})
-            }
-            this._setTimer();
-            
-        }        
     }
-    */
+    
 
     componentDidMount(){
-        var { count } = this.props;
-        
+        var { count } = this.props;      
         var typeArr = ['shehui','guonei','guoji','yule','keji'];
         var type = typeArr[Math.floor(Math.random()*(typeArr.length))];
         fetch(`/api/article/getArticleList?type=${type}&count=${count}`)
             .then(response=>response.json())
             .then(json=>{
-                var data = json.data;
+                var data = json.data, fetchImages = [];
                 var container = this.container;
                 if (container){
                     var width = (container.offsetWidth)/count   
                 }
-                this.setState({images:data,width,isLoading:false});
+                for(var i=0,len=data.length;i<len;i++){
+                    fetchImages.push(data[i].thumbnails[0]);
+                }
+                var promise = new Promise((resolve,reject)=>{
+                    this._fetchAllImages(fetchImages,resolve);
+                })
+                promise.then(imgBlob=>{
+                    data = data.map((item,index)=>{
+                        item.thumbnails[0] = imgBlob[index]
+                        return item;
+                    })
+                    this.setState({images:data,isLoading:false});
+                    this._setTimer();
+                })
+                
             })
     }
 
-    handleClick(){
-
+    handleClick(id){
+        var { history } = this.props;
+        if (history){
+            history.push(`/details/${id}`);
+        }
     }
 
     _setTimer(){
-        var { data } = this.props;
+        var { count } = this.props;
         this.timer = setInterval(()=>{
                 var { currentIndex } = this.state;
                 ++currentIndex;
-                if ( currentIndex < data.length ) {                   
+                if ( currentIndex < count ) {                   
                     this.setState({currentIndex:currentIndex})
                 } else {
                     this.setState({currentIndex:0})
@@ -118,13 +121,14 @@ export default class AutoCarousel extends React.Component {
     componentWillUnmount(){
         if (this.timer) {
             clearInterval(this.timer);
+            this.timer = null;
         }
         
     }
    
     render() {
-        var { width, currentIndex, isLoading, images } = this.state;
-        //var { data } = this.props;
+        var { currentIndex, isLoading, images } = this.state;
+        var { size } = this.props;
         return(
 
             <div ref={container=>this.container = container} className={style['auto-carousel']}>
@@ -133,27 +137,37 @@ export default class AutoCarousel extends React.Component {
                     ?
                     <Spin />
                     :
-                    <div className={style.bg}>
-                        <img src={images[currentIndex].thumbnails[0]} />
+                    <div className={style.bg} onClick={this.handleClick.bind(this,images[currentIndex].articleId)} style={{backgroundImage:`url(${images[currentIndex].thumbnails[0]})`}}>
                         {
-                            images.map((item,index)=>(
-                                <div 
-                                    className={index===currentIndex?style.float+' '+style.selected:style.float}
-                                    onClick={this.handleClick.bind(this)}
-
-                                    onMouseOver={this.handleMouseOver.bind(this,index)}
-                                    onMouseOut={this.handleMouseOut.bind(this)}
-                                    key={index} 
-                                    style={{
-                                        width:width,
-                                        left:index*width
-                                    }}
-                                >
-                                    <img id={`img${index}`} src={item.thumbnails[0]} />
-                                    <span className={style.text}>{item.title}</span>
-                                </div>
-                            ))
+                            size == 'small'
+                            ?
+                            <div className={style['dot-container']}>
+                                {
+                                    images.map((item,index)=>(
+                                        <span key={index} className={currentIndex==index?style.dot+' '+style.selected : style.dot}></span>
+                                    ))
+                                }
+                            </div>
+                            :
+                            <div className={style["img-container"]}>
+                                {
+                                    images.map((item,index)=>(
+                                        <div 
+                                            style={{backgroundImage:`url(${item.thumbnails[0]})`}}
+                                            className={currentIndex==index?style['selected']:''}
+                                            onClick={this.handleClick.bind(this,item._id)}    
+                                            onMouseOver={this.handleMouseOver.bind(this,index)}
+                                            onMouseOut={this.handleMouseOut.bind(this)}
+                                            key={index} 
+                                            
+                                        >
+                                            <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
+                                        </div>
+                                    ))
+                                }
+                            </div>
                         }
+                        
                     </div>
                     
                 }
