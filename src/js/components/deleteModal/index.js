@@ -8,18 +8,8 @@ export default class DeleteModal extends React.Component{
   handleDelete(deleteId){
     var { deleteType, onVisible, deleteId, onDelete, parentcommentid, socket } = this.props;
     var userid = localStorage.getItem('userid');
-    if ( deleteType === 'news'){
-        fetch(`/api/usr/removeHistory?userid=${userid}&uniquekey=${deleteId}`)
-        .then(response=>response.json())
-        .then(data=>{
-            if (onDelete){
-                onDelete();
-                if (onVisible){
-                    onVisible(false);
-                }
-            }
-        })
-    } else if ( deleteType === 'Action'){
+
+    if ( deleteType === 'Action'){
         fetch(`/api/action/delete?id=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{
@@ -30,7 +20,7 @@ export default class DeleteModal extends React.Component{
                 }
             }
         })
-    } else if ( deleteType === 'topic'){
+    } else if ( deleteType === 'Topic'){
         fetch(`/api/topic/removeTopic?topicId=${deleteId}`)
         .then(response=>response.json())
         .then(data=>{

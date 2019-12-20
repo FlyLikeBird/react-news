@@ -8,10 +8,10 @@ const TabPane = Tabs.TabPane;
 
 const { Meta } = Card;
 
-import UserList from '../../user_list/user_list';
-import NewsList from '../../news_list/news_list';
 import MessageContainer from '../../message_container/message_container';
 import CollectContainer from '../../collectComponent';
+import PCUsercenterTopic from './pc_usercenter_topic'; 
+import MyCommentsList from './pc_usercenter_mycommentslist';
 import UpdateContainer from '../../update_list/update_list';
 import FollowContainer from './pc_usercenter_follow';
 import HistoryContainer from './pc_usercenter_history';
@@ -22,25 +22,10 @@ export default class PCUserCenterContainer extends React.Component{
         super();
         this.state = {
             loadChart:false,
-            loadUserComment:false,
-            loadUserTopic:false,
-            UserComment:()=>null,
-            UserTopic:()=>{},
             UserChart:()=>{}
         }
     }
 
-    handleChangeTabs(activeKey){
-        if (activeKey==='topic'){
-            import('./pc_usercenter_topic').then(UserTopic=>{
-                this.setState({UserTopic:UserTopic.default,loadUserTopic:true})
-            })
-        } else if (activeKey ==='comment'){
-            import('./pc_usercenter_mycommentslist').then(UserComment=>{
-                this.setState({UserComment:UserComment.default,loadUserComment:true})
-            })
-        }
-    }
 
     loadChartSource(){
         var { loadChart } = this.state;
@@ -52,13 +37,13 @@ export default class PCUserCenterContainer extends React.Component{
     }
 
     render(){
-        var { loadChart, loadUserComment, loadUserTopic, UserComment, UserTopic, UserChart } = this.state;
+        var { loadChart, UserChart } = this.state;
         var { user, userFollows, userFans, userHistorys, socket, history, match, isSelf, msg, onCheckLogin } = this.props;
         
         return(
 
                 <div>
-                    <Tabs onChange={this.handleChangeTabs.bind(this)} className="usercenter-tabs" style={{paddingLeft:'10px'}} defaultActiveKey="action" tabPosition="left">
+                    <Tabs className="usercenter-tabs" style={{paddingLeft:'10px'}} defaultActiveKey="action" tabPosition="left">
                             <TabPane tab={<span><Icon type="share-alt" />{isSelf?"我的动态":"TA的动态"}</span>} key="action" className="background-color">
                                 <UpdateContainer match={match} history={history} socket={socket} isSelf={isSelf} onCheckLogin={onCheckLogin}/>
                             </TabPane>
@@ -82,13 +67,13 @@ export default class PCUserCenterContainer extends React.Component{
                             </TabPane>
                             
                             <TabPane tab={<span><Icon type="message" />{isSelf?"我的话题":"TA的话题"}</span>} key="topic">
-                                { loadUserTopic && <UserTopic history={history}/> }
+                                <PCUsercenterTopic history={history} user={user._id} isSelf={isSelf}/> 
                             </TabPane>
                             {
                                 isSelf 
                                 ?
                                 <TabPane className="background-color" tab={<span><Icon type="file-search" />我的评论</span>} key="comment">
-                                    <UserComment socket={socket} history={history} onCheckLogin={onCheckLogin} />
+                                    <MyCommentsList socket={socket} history={history} onCheckLogin={onCheckLogin} />
                                 </TabPane>
                                 :
                                 null

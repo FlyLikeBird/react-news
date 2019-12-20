@@ -5,7 +5,7 @@
 .search-container {
     width:400px;
     font-size:12px;
-    padding:20px;
+    padding:10px;
 }
 
 .search-container .tags {
@@ -47,11 +47,11 @@
     color: #fff;
 }
 
-.search-container .search-input {
+.search-container .search-input input{
     transition: all 0.3s;
     width:100px;
 }
 
-.search-container .search-input.click {
+.search-container .search-input input.click{
     width:100%;
 }

@@ -139,7 +139,7 @@ export default class TopicListItem extends React.Component {
     }
 
     render(){
-        var {  inline, columns, forSimple, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
+        var {  inline, columns, forSimple, isSelf, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
         var {   isFollowed, item, followIcon, shareIcon } = this.state;
         var {  privacy, user, _id, tags, images, follows, replies, shareBy, title, description, view } = item;
         
@@ -147,7 +147,7 @@ export default class TopicListItem extends React.Component {
         return (
             <div 
                 style={{width:100/columns + '%'}} 
-                className={inline?'topic-card-container inline':forSimple?'topic-card-container simple' : forSearch ? 'topic-card-container forSearch' : 'topic-card-container'}>
+                className={inline?'topic-card-container inline':forSimple?'topic-card-container simple' : forSearch ? 'topic-card-container forSearch' : forUser ? 'topic-card-container forUser' : 'topic-card-container'}>
                     
                     {
                         forSimple
@@ -240,7 +240,7 @@ export default class TopicListItem extends React.Component {
                             </div>                   
                         </div>
                         :
-                        forUser
+                        forUser && isSelf
                         ?
                         <div className='topic-card-extra'>                            
                             <div onClick={this.handleEdit.bind(this,_id)}>
@@ -278,7 +278,7 @@ export default class TopicListItem extends React.Component {
                             </div>
                         </div>
                         :
-                        forSimple
+                        forSimple || forPreview
                         ?
                         null
                         //  关注话题页面

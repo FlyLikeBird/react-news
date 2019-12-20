@@ -51,19 +51,37 @@ export default class CommentPopoverUserAvatar extends React.Component{
   }
 
   handleAddFollow(id){
-    fetch(`/api/usr/addFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({followStatus:1});
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/addFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({followStatus:1});
+        })
+    }
+    
   }
 
   handleRemoveFollow(id){
-    fetch(`/api/usr/removeFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({followStatus:0})
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/removeFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({followStatus:0})
+          })
+    }
+    
+  }
+
+  handleGotoUsercenter(id){
+    var { history, onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid && history){
+        history.push(`/usercenter/${userid}`);
+    }
   }
 
   render(){
@@ -127,15 +145,15 @@ export default class CommentPopoverUserAvatar extends React.Component{
                           isSelf
                           ?
                           <div className={style['user-action']}>                         
-                            <div>
-                              <Link to={`/usercenter/${_id}`}><span className={style.text}><Icon type="idcard"/>我的空间</span></Link>
+                            <div onClick={this.handleGotoUsercenter.bind(this,_id)}>
+                              <span className={style.text}><Icon type="idcard"/>我的空间</span>
                             </div>           
                           </div>
                           :
                           <div className={style['user-action']}>
                             { followContent }
-                            <div>
-                              <Link to={`/usercenter/${_id}`}><span className={style.text}><Icon type="idcard"/>TA的空间</span></Link>
+                            <div onClick={this.handleGotoUsercenter.bind(this,_id)}>
+                              <span className={style.text}><Icon type="idcard"/>TA的空间</span>
                             </div>
             
                           </div>

@@ -1,18 +1,9 @@
 import React from 'react';
-
 import { Menu, Icon, Tabs, Row, Col, Upload, Modal, Card, List, Spin, Badge, Button } from 'antd';
 import TopicList from '../../topic_list/topic_list';
 import DeleteModal from '../../deleteModal';
 import TopicForm from '../../topic_form';
-
-const SubMenu = Menu.SubMenu;
-const MenuItemGroup = Menu.ItemGroup;
-
-
 const TabPane = Tabs.TabPane;
-
-const { Meta } = Card;
-
 
 export default class PCUsercenterTopic extends React.Component{
     constructor(){
@@ -24,27 +15,33 @@ export default class PCUsercenterTopic extends React.Component{
             deleteId:'',
             visible:false,
             editItem:{},
-            onEditItem:'',
             isLoading:true,
             showForm:false
         }
     }
 
     componentDidMount(){
-        var userid = localStorage.getItem('userid');
-        fetch(`/api/topic/getUserTopic?userid=${userid}`)
-            .then(response=>response.json())
-            .then(json=>{
-                var topicList = json.data;
-                fetch(`/api/topic/getUserFollowTopic?userid=${userid}`)
-                    .then(response=>response.json())
-                    .then(json=>{
-                        var followTopic = json.data;
-                        this.setState({topicList,followTopic,isLoading:false});
-                    })
-                
+        var { user } = this.props;
+        var promise1 = new Promise((resolve, reject)=>{
+            fetch(`/api/topic/getUserTopic?userid=${user}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    resolve(data);
+                })
+        });
+        var promise2 = new Promise((resolve, reject)=>{
+            fetch(`/api/topic/getUserFollowTopic?userid=${user}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    resolve(data);
+                })
+        });
+        Promise.all([promise1, promise2])
+            .then(([topicList, followTopic])=>{
+                this.setState({topicList, followTopic, isLoading:false});
             })
-        
     }
     
     handleModalVisible(boolean,deleteId){
@@ -52,8 +49,8 @@ export default class PCUsercenterTopic extends React.Component{
     }
 
     handleEditVisible(boolean,item,_onEditTopicItem){
-        console.log(item);
-        this.setState({editVisible:boolean,editItem:item,onEditItem:_onEditTopicItem})
+        this._onEditTopicItem = _onEditTopicItem;
+        this.setState({editVisible:boolean,editItem:item})
     }
 
     handleDelete(){
@@ -76,54 +73,62 @@ export default class PCUsercenterTopic extends React.Component{
 
     handleFormShow(){
         var { showForm } = this.state;
-        this.setState({showForm:!showForm})
+        this.setState({showForm:!showForm});
     }
 
+    componentWillUnmount(){
+        this._onEditTopicItem = null;
+    }
+    
     render(){
-        var { history } = this.props;
-        var { topicList, followTopic, deleteId, visible, editVisible, editItem, onEditItem, isLoading, showForm } = this.state;
+        var { history, isSelf } = this.props;
+        var { topicList, followTopic, deleteId, visible, editVisible, editItem, isLoading, showForm } = this.state;
 
         return(
                     <div style={{textAlign:'left'}}>
-                        <div>
-                            <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this)}>创建话题</Button>
-                            <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)}/>                              
-                        </div>
+                        {
+                            isSelf
+                            ?
+                            <div>
+                                <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this)}>创建话题</Button>                               
+                                <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)}/>                                                         
+                            </div>
+                            :
+                            null
+                        }
                         
-                        <Tabs defaultActiveKey="0" >                                
-                                <TabPane tab="创建的话题" key="0"> 
-                                    {
-                                        isLoading
-                                        ?
-                                        <Spin/>
-                                        :
+                        {
+                            isLoading
+                            ?
+                            <Spin/>
+                            :
+                            <Tabs defaultActiveKey="0" >                                
+                                <TabPane tab={ isSelf ? "我创建的话题":"TA创建的话题"} key="0">                                    
                                         <TopicList 
                                             data={topicList} 
-                                            forUser={true} 
+                                            forUser={true}
+                                            isSelf={isSelf} 
                                             onVisible={this.handleModalVisible.bind(this)}
                                             onEditVisible={this.handleEditVisible.bind(this)} 
                                             text="还没有创建过话题" 
                                             history={history}
-                                        />
-                                    }                                   
-                                    
-                                </TabPane>
-                                
-                                <TabPane tab="关注的话题" key="1">
-                                    <TopicList data={followTopic} text="还没有关注任何话题" history={history}/>
-                                </TabPane>
-                               
-                        </Tabs>
+                                        />                                    
+                                </TabPane>                                
+                                <TabPane tab={ isSelf ? "我关注的话题":"TA关注的话题"} key="1">
+                                    <TopicList data={followTopic} text="还没有关注任何话题" history={history} forUser={true} isSelf={false}/>
+                                </TabPane>                               
+                            </Tabs>
+                        }
+                        
                         <Modal visible={editVisible} footer={null} onCancel={()=>this.handleEditVisible(false,{})} destroyOnClose={true}>
-                            <TopicForm visible={editVisible} forEdit={true} item={editItem} onCloseModal={this.handleEditVisible.bind(this)} onEditTopicItem={onEditItem}/>
+                            <TopicForm visible={editVisible} forEdit={true} item={editItem} onCloseModal={this.handleEditVisible.bind(this)} onEditTopicItem={this._onEditTopicItem}/>
                         </Modal>
                         <DeleteModal 
                             visible={visible} 
                             onVisible={this.handleModalVisible.bind(this)} 
                             deleteId={deleteId} 
                             onDelete={this.handleDelete.bind(this)}
-                            deleteType="topic"
-    
+                            deleteType="Topic"
                         />
                     </div>
                        

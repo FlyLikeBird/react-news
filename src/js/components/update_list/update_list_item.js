@@ -158,7 +158,7 @@ export default class UpdateItem extends React.Component{
     render(){
 
         var { item, translateData, finalText, isLiked, isdisLiked, likeIconType, dislikeIconType, shareByIconType, visible } = this.state;
-        var { history, socket, loaction, forSimple, noAction, noLink, isSelf } = this.props;
+        var { history, onCheckLogin, socket, loaction, forSimple, noAction, noLink, isSelf } = this.props;
         var { onModel, composeAction, images, user, text, likeUsers, dislikeUsers, shareBy, replies, value, _id, isCreated, contentId, date } = item;
         const menu = (
             <Menu>
@@ -210,7 +210,7 @@ export default class UpdateItem extends React.Component{
                                         {
                                             item.user
                                             ?
-                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} />}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
+                                            <Popover placement="bottom" content={<CommentPopoverUserAvatar user={item.user} history={history} onCheckLogin={onCheckLogin}/>}><span style={{color:'#1890ff'}}>{`@${item.user}`}</span></Popover>
                                             :
                                             null
                                         }
@@ -236,6 +236,10 @@ export default class UpdateItem extends React.Component{
                                 }                               
                             </div>
                             :
+                            !contentId
+                            ?
+                            <div style={{padding:'10px 20px',backgroundColor:'#f7f7f7'}}>该资源已经被删除!</div>
+                            :
                             onModel === 'Action'  //  说明包含嵌套的动态 -- 二级动态
                             ?
                             <UpdateInnerItem  data={contentId} history={history} noLink={noLink}/>  
@@ -250,7 +254,7 @@ export default class UpdateItem extends React.Component{
                             :
                             onModel === 'Collect'
                             ?
-                            <CollectItem data={contentId} forSimple={true} history={history}/>
+                            <CollectItem data={contentId} forSimple={true} history={history} />
                             :
                             null
                             

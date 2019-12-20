@@ -218,14 +218,20 @@ router.get('/followTopic',(req,res)=>{
 
 router.get('/removeTopic',(req,res)=>{
     var { topicId } = req.query;
-    Topic.deleteOne({_id:topicId},(err,result)=>{
-        util.responseClient(res,200,0,'ok');
+    Topic.findOne({_id:topicId},(err,topic)=>{
+        var tags = topic.tags;
+        Tag.updateMany({_id:{$in:tags}},{$pull:{content:topicId}},(err,result)=>{
+            Topic.deleteOne({_id:topicId},(err,result)=>{
+                util.responseClient(res, 200, 0, 'ok');
+            })
+        })
     })
 })
 
 router.post('/edit',upload.array('images'),(req,res)=>{
     var { title, description, tags, privacy, deleteImage, userid, topicId } = req.body;
     var images = [];
+    tags = tags ? tags.map ? tags : [tags] : [];
     if (!deleteImage){
         deleteImage = [];
     } 
@@ -266,24 +272,8 @@ router.post('/edit',upload.array('images'),(req,res)=>{
 router.get('/getUserFollowTopic',(req,res)=>{
     var { userid } = req.query;
     User.findOne({_id:userid},(err,user)=>{
-        var followTopic = user.userTopic;
-        Topic.find({_id:{$in:followTopic}},(err,topics)=>{
-            var allPromises = [];
-            for(var i=0,len=topics.length;i<len;i++){
-                (function(i){                    
-                    var topic = topics[i];
-                    var promise = new Promise((resolve,reject)=>{
-                        getTopic(topic,resolve);
-                    });
-                    allPromises.push(promise)
-                })(i)
-            }
-
-            Promise.all(allPromises)
-            .then(data=>{
-                util.responseClient(res,200,0,'ok',sort(data));
-            })
-        })
+        var followTopics = user.userTopics;
+        getAllOrUserTopics(res, null, null, followTopics);
     })
 })
 

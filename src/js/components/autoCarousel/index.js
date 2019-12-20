@@ -11,6 +11,7 @@ export default class AutoCarousel extends React.Component {
             thumbnailIndex:0,
             bgIndex:0,
             prevIndex:0,
+            circle:false,
             isLoading:true,
             data:[]
         }
@@ -26,7 +27,7 @@ export default class AutoCarousel extends React.Component {
             .then(json=>{
                 var data = json.data;
                 this.setState({data, isLoading:false});
-                //this._setTimer();
+                this._setTimer();
                 
             })
     }
@@ -40,21 +41,23 @@ export default class AutoCarousel extends React.Component {
 
     _setTimer(){
         var { count } = this.props;
-        this.timer = setInterval(()=>{
-                var { currentIndex } = this.state;
-                ++currentIndex;
-                if ( currentIndex < count ) {                   
-                    this.setState({currentIndex:currentIndex})
+        this.autoTimer = setInterval(()=>{
+                var { thumbnailIndex, circle } = this.state;
+                var prevIndex = thumbnailIndex;
+                if (thumbnailIndex < count-1){
+                    thumbnailIndex++;
                 } else {
-                    this.setState({currentIndex:0})
+                    thumbnailIndex = 0;
                 }
+                this.setState({thumbnailIndex, prevIndex});
+                this._setMotion(thumbnailIndex);
             },3000)
     }
 
     handleMouseOver(index,e){
-        var { triggering } = this.state;
         var target = e.currentTarget;
-        var inner = e.fromElement || e.relatedTarget;  
+        var inner = e.fromElement || e.relatedTarget; 
+        clearInterval(this.autoTimer); 
         if (!target.contains(inner)) {
             var { thumbnailIndex } = this.state;
             if ( thumbnailIndex != index){
@@ -76,8 +79,10 @@ export default class AutoCarousel extends React.Component {
         }
     }
     
-    _setMotion(index){        
+    _setMotion(index){      
         var { bgIndex, prevIndex } = this.state;
+        //console.log('prevIndex',prevIndex);
+        //console.log('nextIndex',index);
         var nextIndex = index;
         var prevDom = this.bgDom[prevIndex];
         var nextDom = this.bgDom[nextIndex];
@@ -96,24 +101,24 @@ export default class AutoCarousel extends React.Component {
             nextDom.classList.remove(style['fadeIn']);
             nextDom.classList.add(style['selected']);
             this.setState({bgIndex:index});
-        },1000);
+        },1500);
            
     }
 
     handleMouseOut(e){
-        //this._setTimer()
+        this._setTimer();
     }
 
-    componentWillUnmount(){
-        
+    componentWillUnmount(){      
         this.bgDom = null;
-        
+        this.handTimer = null;
+        clearInterval(this.autoTimer);
+        this.autoTimer = null;      
     }
    
     render() {
         
         var { thumbnailIndex, bgIndex, isLoading, data } = this.state;
-        console.log(bgIndex);
         return(
 
             <div ref={container=>this.container = container} className={style['auto-carousel']}>
@@ -132,7 +137,6 @@ export default class AutoCarousel extends React.Component {
                                         key={index} 
                                         ref={ dom=>{if(this.bgDom) this.bgDom[index]=dom} } 
                                         className={ index==bgIndex ? `${style['bg-item']} ${style['selected']}` : style['bg-item']}
-                                        //className={style['bg-item']}
                                         style={{backgroundImage:`url(${item.thumbnails[0]})`}}
                                     ></div>
                                     

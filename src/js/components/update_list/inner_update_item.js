@@ -29,7 +29,9 @@ export default class UpdateInnerItem extends React.Component{
         return(
             
             <div className="inner-action" onClick={this.handleClick.bind(this)}>
-                
+                {
+
+                }
                 <span className="title">{`@${user.username}:`}</span>
                 <div>
                     <span style={{display:'inline-block',padding:'4px 0'}}>

@@ -137,7 +137,7 @@ export default class CommentComponent extends React.Component{
       <div>
           <div ref={comment=>this.commentDom = comment} className={forUser?'comment user':selected ? 'comment selected' :'comment'}>      
                     <div className="comment-user-info">
-                        <Popover autoAdjustOverflow={false} placement="top" content={<CommentPopoverUserAvatar user={fromUser.username}/>}>
+                        <Popover autoAdjustOverflow={false} placement="right" content={<CommentPopoverUserAvatar user={fromUser.username} onCheckLogin={onCheckLogin} history={history}/>}>
                             <Badge className="avatar-container" count={ forMsg ? msgRead ? 0 : 1 : 0}><img src={fromUser.userImage} /></Badge>
                         </Popover>
                         <div>
@@ -155,7 +155,7 @@ export default class CommentComponent extends React.Component{
                                     {
                                         item.user
                                         ?
-                                        <Popover autoAdjustOverflow={false} placement="top" content={<CommentPopoverUserAvatar user={item.user}/>}><span className="popover-content">{`@${item.user}`}</span></Popover>
+                                        <Popover autoAdjustOverflow={false} placement="top" content={<CommentPopoverUserAvatar user={item.user} history={history} onCheckLogin={onCheckLogin}/>}><span className="popover-content">{`@${item.user}`}</span></Popover>
                                         :
                                         null
                                     }

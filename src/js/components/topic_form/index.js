@@ -18,7 +18,6 @@ function getBase64(file){
 
 function checkRepeatTags(tag,tags){
     var result = false;
-    
     tags.map(item=>{
         if(item === tag){
             result = true;
@@ -212,12 +211,12 @@ class TopicForm extends React.Component{
 
     handleSelect(value,e){
         var { setFields, getFieldValue } = this.props.form;
-        var { tags } = this.state;
-        tags = tags.map(item=>item.tag);
+        var { allTags } = this.state;
+        allTags = allTags.map(item=>item.tag);
         setTimeout(()=>{
             var selectedTags = getFieldValue('tag');
             //console.log(selectedTags);
-            if (checkRepeatTags(value,tags)){
+            if (checkRepeatTags(value,allTags)){
                 setFields({
                     tag:{
                         value:selectedTags,
@@ -282,24 +281,21 @@ class TopicForm extends React.Component{
     handleTopicPreview(){
         var { form } = this.props;
         var { getFieldsValue } = form;
-        var { title, description,  tag } = getFieldsValue(['title','description','images','tag']);        
-        var { fileList, tags, radioValue } = this.state;
-        
-        var images = [],allPromise = [];
-        if (tag) {
-            tag = tag.map(item=>{
-                var str = '';
-                for(var i=0,len=tags.length;i<len;i++){
-                    if (item == tags[i]._id){
-                        str = tags[i].tag;
+        var { title, description,  tag } = getFieldsValue(['title','description','tag']);        
+        var { fileList, allTags, radioValue } = this.state;      
+        var images = [], tags=[], allPromise = [];
+        console.log(tag);
+        if (tag && tag.length){
+            tag.map(item=>{
+                for(var i=0,len=allTags.length;i<len;i++){
+                    if (allTags[i]._id==item){
+                        tags.push({tag:allTags[i].tag});
                         break;
                     }
                 }
-                return str;
-            });
-        } else {
-            tag = []
-        }
+            })
+        } 
+        console.log(tags);
         for(var i=0,len=fileList.length;i<len;i++){
             var promise = getBase64(fileList[i].originFileObj);
             allPromise.push(promise);
@@ -313,13 +309,13 @@ class TopicForm extends React.Component{
                         title,
                         description,
                         images,
-                        tag,
-                        sponsor:localStorage.getItem('username'),
+                        tags,
+                        user:{username:localStorage.getItem('username'), userImage:localStorage.getItem('avatar')},
                         privacy:radioValue,
                         view:0,
                         follows:[],
                         shareBy:[],
-                        content:[]
+                        replies:0
                 };
                 this.setState({previewItem:obj,topicPreview:true})
             })
@@ -526,7 +522,6 @@ class TopicForm extends React.Component{
                             ?
                             <Form.Item {...tailFormItemLayout}>
                                 <Button type="primary" onClick={this.handleEdit.bind(this,item._id)} style={{marginRight:'4px'}}>修改</Button>
-                                <Button type="primary" onClick={this.handleTopicPreview.bind(this)} style={{marginRight:'4px'}}>预览</Button>
                                 <Button onClick={()=>onCloseModal(false,{})}>取消</Button>
                             </Form.Item>
                             :
@@ -545,7 +540,7 @@ class TopicForm extends React.Component{
                     <img alt="example"  src={previewImage} />
                 </Modal>
                 <Modal visible={topicPreview} footer={null} onCancel={()=>this.setState({topicPreview:false})}>
-                    <TopicListItem item={previewItem} forPreview={true} />
+                    <TopicListItem data={previewItem} forPreview={true} />
                 </Modal>
             </div>
                        

@@ -1,29 +1,27 @@
 import React from 'react';
-
 import { Upload, Form, Button, Input, Select, Radio, Icon, Spin, Modal, Card  } from 'antd';
 import DeleteModal from '../deleteModal';
 import ShareModal from '../shareModal';
-import { formatContent, sortByDate } from '../../../utils/translateDate';
-
 import UpdateItem from './update_list_item';
-const { Meta } = Card;
-const { Option } = Select;
-const { TextArea } = Input;
+import TopicForm from '../topic_form';
+import SelectContainer from '../select_container';
+import { formatContent, sortByDate, translateType } from '../../../utils/translateDate';
 
 export default class UpdateContainer extends React.Component{
     constructor(){
         super();
         this.state={
             userActions:[],
+            currentData:[],
             visible:false,
             shareVisible:false,
             deleteId:0,
             actionInfo:{},
             actionId:'',
             showForm:false,
-            TopicForm:null,
-            loaded:false,
-            isLoading:true        
+            isLoading:true ,
+            selectValue:'all',
+            dateValue:[]       
         }
     }
 
@@ -35,7 +33,7 @@ export default class UpdateContainer extends React.Component{
             .then(json=>{
                 var data = json.data;
                 data = sortByDate(data,'date');
-                this.setState({userActions:data,isLoading:false});
+                this.setState({userActions:data, currentData:data, isLoading:false});
             })
     }
     
@@ -45,7 +43,7 @@ export default class UpdateContainer extends React.Component{
 
     handleUpdateAction(data){  
         var data = sortByDate(data,'date');   
-        this.setState({userActions:data})      
+        this.setState({userActions:data, currentData:data, selectValue:'all', dateValue:[]});      
     }
 
     handleShareVisible(boolean, data, _updateShareBy){
@@ -69,28 +67,25 @@ export default class UpdateContainer extends React.Component{
             }
         }
         data.splice(deleteIndex,1)
-        this.setState({userActions:data})
+        this.setState({userActions:data, currentData:data, selectValue:'all', dateValue:[]});
     }
 
     componentWillUnmount(){
-        if (this._updateShareBy) this._updateShareBy = null;     
+        this._updateShareBy = null;     
     }
 
-    handleFormShow(loaded){
+    handleFormShow(){
         var { showForm } = this.state;
-        if ( !loaded ){
-            import('../topic_form').then(TopicForm=>{
-                this.setState({TopicForm:TopicForm.default,loaded:true})
-                return ;
-            })
-        }
         this.setState({showForm:!showForm});
     }
 
-    
+    _filterActions(data, selectValue, dateValue ){
+        this.setState({currentData:data, selectValue, dateValue});
+    }
+
     render(){
         var { history, socket, onCheckLogin, isSelf } = this.props;
-        var { userActions, visible, deleteId, actionInfo, actionId, shareVisible, showForm, TopicForm, loaded, isLoading } = this.state;
+        var { userActions, currentData, visible, deleteId, actionInfo, actionId, shareVisible, showForm, isLoading, selectValue, dateValue } = this.state;
 
         return(
             
@@ -98,12 +93,12 @@ export default class UpdateContainer extends React.Component{
                 {
                     isSelf
                     ?
-                    <Button type="primary" style={{fontSize:'12px',marginBottom:'20px'}} onClick={this.handleFormShow.bind(this,loaded)}>发布动态</Button>
+                    <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this)}>发布动态</Button>
                     :
                     null
                 }
                 
-                { TopicForm && <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateAction.bind(this)} forAction={true}/> }
+                    <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateAction.bind(this)} forAction={true}/> 
                 {
                     
                     isLoading
@@ -112,22 +107,36 @@ export default class UpdateContainer extends React.Component{
                     :
                     userActions.length
                     ?
-                    <div style={{backgroundColor:'#f7f7f7',padding:'10px 20px 20px 20px',borderRadius:'4px'}}>
-                        <span style={{display:'inline-block',transform:'scale(0.7)',padding:'4px 0',transformOrigin:'left'}}>{`共${userActions.length}条动态`}</span>
-                        {
-                            userActions.map((item,index)=>(
-                                <UpdateItem 
-                                    key={index} 
-                                    data={item} 
-                                    history={history} 
-                                    isSelf={isSelf}
-                                    socket={socket}
-                                    onCheckLogin={onCheckLogin} 
-                                    onVisible={this.handleModalVisible.bind(this)}
-                                    onShareVisible={this.handleShareVisible.bind(this)}
-                                />
-                            ))
-                        }
+                    <div>
+                        <SelectContainer
+                            forAction={true} 
+                            currentData={currentData} 
+                            data={userActions} 
+                            onSelect={this._filterActions.bind(this)} 
+                            selectValue={selectValue}
+                            dateValue={dateValue} 
+                            text="动态"
+                        />
+                        <div style={{backgroundColor:'#f7f7f7',padding:'20px',borderRadius:'4px'}}>                       
+                            {   
+                                currentData && currentData.length 
+                                ?
+                                currentData.map((item,index)=>(
+                                    <UpdateItem 
+                                        key={index} 
+                                        data={item} 
+                                        history={history} 
+                                        isSelf={isSelf}
+                                        socket={socket}
+                                        onCheckLogin={onCheckLogin} 
+                                        onVisible={this.handleModalVisible.bind(this)}
+                                        onShareVisible={this.handleShareVisible.bind(this)}
+                                    />
+                                ))
+                                :
+                                <div style={{padding:'30px 0'}}>{`${selectValue =='Self'?'还没有发布过动态!':`还没有转发过${translateType(selectValue)}`}`}</div>
+                            }
+                        </div>
                     </div>                    
                     :
                     <div style={{padding:'10px 0',fontSize:'12px'}}>还没有发布过任何动态!</div>

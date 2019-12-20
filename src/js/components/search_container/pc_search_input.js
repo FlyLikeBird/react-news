@@ -25,17 +25,18 @@ export default class SearchInput extends React.Component {
       var { history, onUpdateSearchHistory } = this.props;       
       history.push(`/search?words=${title}`);
       if (onUpdateSearchHistory) onUpdateSearchHistory(title);
-      this._closeSearchInput();
+      //this._closeSearchInput();
     }
 
+    /*
     handleButtonMouseOver(){
-        this.setState({visible:true,iconType:'close'});
+        this.setState({visible:true});
     }
 
     _closeSearchInput(){
-        this.setState({visible:false, iconType:'search'});
+        this.setState({visible:false});
     }
-
+    
     handleMouseOut(e){
       e.stopPropagation();
       var target = e.currentTarget;
@@ -45,37 +46,33 @@ export default class SearchInput extends React.Component {
           if (this.input) this.input.classList.remove('click');
       }
     }
-
+    */
     handleVisibleChange(visible){
-        console.log(visible);
+        //console.log(visible);
         if (visible){          
             setTimeout(()=>{  
-                var searchContainer = document.getElementsByClassName(style['search-container'])[0];
-                var spanDom = searchContainer.getElementsByClassName(style['search-input'])[0];
+                var spanDom = document.getElementsByClassName(style['search-input'])[0];
                 var input = spanDom.childNodes[0];
-                this.input = input;  
-                this.spanDom = spanDom;                   
+                this.input = input;                   
                 if (input && input.focus){
                     input.focus();
-                    spanDom.classList.add(style['click']);
+                    input.classList.add(style['click']);
                 }
             },200)
             
         } else {
             setTimeout(()=>{
                 var input = this.input;
-                var spanDom = this.spanDom;
                 if (input && input.blur){
                     input.blur();
-                    spanDom.classList.remove(style['click']);
+                    input.classList.remove(style['click']);
                 }
-            },500)
+            },200)
         }
     }
 
     componentWillUnmount(){
         this.input = null;
-        this.spanDom = null;
     }
 
     render() {
@@ -84,13 +81,13 @@ export default class SearchInput extends React.Component {
         return (
             <Popover  
               //visible={visible}
-              trigger="click"
+              //trigger="click"
               autoAdjustOverflow={false}
               placement="bottom"
               onVisibleChange={this.handleVisibleChange.bind(this)}
               content={
-                <div className={style["search-container"]} onMouseOut={this.handleMouseOut.bind(this)}>
-                    <SearchComponent {...this.props} onClose={this._closeSearchInput.bind(this)} onUpdateSearchHistory={onUpdateSearchHistory} />
+                <div className={style["search-container"]}>
+                    <SearchComponent {...this.props} onUpdateSearchHistory={onUpdateSearchHistory} />
                     <div>
                       <div className={style["tags"]}>
                           <span className={style.text}>热门搜索</span>

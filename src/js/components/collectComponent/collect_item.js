@@ -194,16 +194,12 @@ export default class CollectItem extends React.Component {
                             </div>
                         </div>
                         {
-                            forUser
+                            forUser || forSimple
                             ?
                             null
                             :
                             <div>
                                 {
-                                    forSimple
-                                    ?
-                                    null
-                                    :
                                     isCollected
                                     ?
                                     <Button size="small" className="button" onClick={this.handleRemoveContent.bind(this,_id, uniquekey)} shape="circle" icon="check"/> 
@@ -215,10 +211,11 @@ export default class CollectItem extends React.Component {
                             
                         }
                         
-                        {
+                        {   
+
                             forUser
                             ?
-                            defaultCollect
+                            defaultCollect || forSimple
                             ?
                             null
                             :

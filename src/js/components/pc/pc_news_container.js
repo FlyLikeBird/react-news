@@ -49,7 +49,7 @@ export default class PCNewsContainer extends React.Component {
 			<section style={{paddingTop:'30px'}}>
 				<Row>
 					<Col span={2}></Col>
-					<Col span={15} className="container">
+					<Col span={15} style={{paddingRight:'30px'}}>
 						
 						<div style={{height:'300px',marginBottom:'50px'}} className="leftContainer">
 							<AutoCarousel history={history} count={4}/>
@@ -81,7 +81,7 @@ export default class PCNewsContainer extends React.Component {
 						</div>
 						
 					</Col>
-					<Col span={5} style={{marginLeft:'20px'}}>
+					<Col span={5}>
 						<Tabs className="tabs_product">
 							<TabPane tab=" React 产品" key="1">
 								<PCProduct/>
@@ -94,14 +94,14 @@ export default class PCNewsContainer extends React.Component {
 				<Row>
 					<Col span={2}></Col>
 					<Col span={20}>
-						{/*
+						
 						<PCNewsImageBlock iconType="home" count={16} type="guonei"  cardTitle="国内新闻"  columns={6}/>																	
 						<PCNewsImageBlock iconType="global" count={16} type="guoji"  cardTitle="国际新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="notification" count={16} type="shehui"  cardTitle="社会新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="mobile" count={16} type="keji"  cardTitle="科技新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="mobile" count={16} type="junshi"  cardTitle="军事新闻" columns={6}/>
 						<PCNewsImageBlock iconType="rocket" count={16} type="tiyu"  cardTitle="体育新闻"  columns={6}/>
-						*/}
+					
 					</Col>
 					<Col span={2}></Col>
 

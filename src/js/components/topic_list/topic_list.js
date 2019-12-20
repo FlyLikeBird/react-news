@@ -95,7 +95,7 @@ export default class TopicList extends React.Component{
     
     render(){
 
-        var { data, inline, columns, history, location, forUser, forDetail, forSearch, forIndex, onVisible, onEditVisible, text } = this.props;
+        var { data, inline, columns, history, location, isSelf, forUser, forDetail, forSearch, forIndex, onVisible, onEditVisible, text } = this.props;
         
         return(
             <div ref={card=>this.cardContainer=card} style={{position:'relative'}}>
@@ -115,6 +115,7 @@ export default class TopicList extends React.Component{
                             forDetail={forDetail}
                             forIndex={forIndex}
                             forUser={forUser}
+                            isSelf={isSelf}
                             forSearch={forSearch}
                             onVisible={onVisible}
                             onEditVisible={onEditVisible}

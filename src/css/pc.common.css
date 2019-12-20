@@ -1654,10 +1654,6 @@ section .leftContainer {
     消息列表样式
 */
 
-.message-container.ant-collapse>.ant-collapse-item>.ant-collapse-header {
-    padding:10px 20px;
-}
-
 .message-container .ant-collapse-header i{
     margin-right:4px;
 }
@@ -1723,11 +1719,6 @@ section .leftContainer {
     margin-right:4px;
 }
 
-.ant-form .ant-form-item {
-    margin:4px 0;
-}
-
-
 /*
 
     @选择框样式
@@ -1776,6 +1767,10 @@ section .leftContainer {
 }
 
 .topic-card-container.forSearch {
+    margin:10px 0;
+}
+
+.topic-card-container.forUser {
     margin:10px 0;
 }
 
@@ -2021,11 +2016,11 @@ section .leftContainer {
 .ant-progress .ant-progress-inner {
     box-shadow: inset 2px 1px 2px rgba(0,0,0,.2);
 }
-
-
-.ant-popover .ant-popover-content .ant-popover-inner-content {
-    padding:0;
+/*
+.ant-form .ant-form-item {
+    margin:4px 0;
 }
+*/
 
 @keyframes selectedComment {
     0% {

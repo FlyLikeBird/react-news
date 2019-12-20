@@ -242,6 +242,8 @@ router.get('/delete',(req,res)=>{
                 Action.updateOne({_id:contentId},{$pull:{shareBy:id}},(err, result)=>{
                     util.responseClient(res, 200, 0, 'ok');
                 })
+            } else {
+                util.responseClient(res, 200, 0, 'ok');
             }
         })
         

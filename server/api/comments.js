@@ -181,13 +181,12 @@ function getComments( forOneComment, commentid, res, onModel, related, pageNum=1
           .sort(orderOption)
           .skip(skip)
           .limit(10)
-          .then(comments=>{           
+          .then(comments=>{ 
+              console.log(comments);          
               data.comments = comments;
               if (!onModel || onModel =='Article') {
-                  console.log('a');
                  util.responseClient(res,200,0,'ok',data);
               } else if ( onModel=='Topic' ) {
-                  console.log('b');
                   Topic.updateOne({_id:related},{$inc:{replies:1}},(err,result)=>{
                       userPromise.getTopicContent(res, related, data);
                   });                

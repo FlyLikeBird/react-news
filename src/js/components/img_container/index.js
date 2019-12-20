@@ -46,8 +46,13 @@ export default class ImgContainer extends React.Component{
     componentWillReceiveProps(newProps){
         var { single } = this.props;
         if (single){
-            this.setState({img:newProps.bg})
+            this.setState({img:newProps.bg});
+            return;
+        } 
+        if (this.props.bg != newProps.bg){
+            this.setState({img:newProps.bg});
         }
+
     }
 
     handleMouseOver(e){
