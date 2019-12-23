@@ -85,8 +85,6 @@ io.on('connection',(socket)=>{
 });
 
 
-
-
 mongoose.connect(dbUrl, function (err) {
     if (err) {
         console.log(err, "数据库连接失败");

@@ -111,7 +111,7 @@ router.post('/upload',upload.array('images'),(req,res)=>{
     if(req.files){
         req.files.forEach(item=>{
             var obj = {};
-            obj.filename  = config.uploadPath + '/topic/'+item.filename;
+            obj.filename  = '/static/topic/'+item.filename;
             obj.originalname = item.originalname;
             obj.originalpath = item.destination;
             images.push(obj);
@@ -238,7 +238,7 @@ router.post('/edit',upload.array('images'),(req,res)=>{
     if(req.files){        
         req.files.forEach(item=>{
             var obj = {};
-            obj.filename  = config.uploadPath + '/topic/'+item.filename;
+            obj.filename  = '/static/topic/'+item.filename;
             obj.originalname = item.originalname;
             obj.originalpath = item.destination;
             images.push(obj);

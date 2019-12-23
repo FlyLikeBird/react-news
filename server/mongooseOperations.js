@@ -53,7 +53,7 @@ function changeArticlesContents(){
 function _singleArticleDoc(id){
     var arr = [];
     for(var i=0;i<3;i++){
-        var filename = config.uploadPath+'/thumbnails/img'+Math.floor(Math.random()*168)+'.jpeg';
+        var filename = 'http://renshanhang.site/img'+Math.floor(Math.random()*168)+'.jpeg';
         arr.push(filename);
     }    
     Article.updateOne({_id:id},{$set:{thumbnails:arr}},(err,result)=>{

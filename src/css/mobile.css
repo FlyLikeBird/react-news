@@ -1,16 +1,8 @@
-.mobile-header {
-    height:50px;
-    background-color:#1890ff;
-    display:flex;
-    align-items: center;
-    justify-content: space-between;
-    padding:0 10px;
-    color:#fff;
-}
 
 .mobile-header .logo-container {
 
 }
+
 .mobile-header .img-container {
     width:30px;
     height:30px;
@@ -22,3 +14,14 @@
     background-size: cover;
 }
 
+.ant-carousel .slick-slide {
+  text-align: center;
+  height: 160px;
+  line-height: 160px;
+  background: #364d79;
+  overflow: hidden;
+}
+
+.ant-carousel .slick-slide h3 {
+  color: #fff;
+}

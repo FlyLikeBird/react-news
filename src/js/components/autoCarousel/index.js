@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
 import style from './autoCarousel.style.css';
-var tempArr = [];
+
 export default class AutoCarousel extends React.Component {
     
     constructor(){
@@ -111,13 +111,14 @@ export default class AutoCarousel extends React.Component {
 
     componentWillUnmount(){      
         this.bgDom = null;
-        this.handTimer = null;
         clearInterval(this.autoTimer);
-        this.autoTimer = null;      
+        clearTimeout(this.handTimer);
+        this.autoTimer = null;  
+        this.handTimer = null;    
     }
    
     render() {
-        
+        var { forMobile } = this.props;
         var { thumbnailIndex, bgIndex, isLoading, data } = this.state;
         return(
 
@@ -143,23 +144,26 @@ export default class AutoCarousel extends React.Component {
                                 ))
                             }
                         </div>
-                        <div className={style["img-container"]}>
-                            {
-                                data.map((item,index)=>(
-                                    <div 
-                                        style={{backgroundImage:`url(${item.thumbnails[0]})`}}
-                                        className={ thumbnailIndex==index?style['selected']:''}
-                                        onClick={this.handleClick.bind(this,item._id)}    
-                                        onMouseOver={this.handleMouseOver.bind(this,index)}
-                                        onMouseOut={this.handleMouseOut.bind(this)}
-                                        key={index} 
-                                        
-                                    >
-                                        <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
-                                    </div>
-                                ))
-                            }
-                        </div>
+
+                            <div className={style["img-container"]}>
+                                {
+                                    data.map((item,index)=>(
+                                        <div 
+                                            style={{backgroundImage:`url(${item.thumbnails[0]})`}}
+                                            className={ thumbnailIndex==index?style['selected']:''}
+                                            onClick={this.handleClick.bind(this,item._id)}    
+                                            onMouseOver={this.handleMouseOver.bind(this,index)}
+                                            onMouseOut={this.handleMouseOut.bind(this)}
+                                            key={index} 
+                                            
+                                        >
+                                            <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                       
+                        
                     
                     </div>
                     :

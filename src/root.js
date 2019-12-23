@@ -91,9 +91,11 @@ export default class Root extends React.Component {
               <MediaQuery query='(min-device-width:640px)'>
                   <PCRouter {...this.state} onLoginVisible={this._setLoginVisible.bind(this)} onLoginOut={this.handleLoginOut.bind(this)} onCheckLogin={this._checkUserLogin.bind(this)}/>
               </MediaQuery>
+              
               <MediaQuery query='(max-device-width:640px)'>
                   <MobileRouter {...this.state}/>
-              </MediaQuery>               
+              </MediaQuery>  
+                         
               {
                   visible
                   ?

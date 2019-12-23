@@ -42,17 +42,17 @@ const PCNewsDetail = Loadable({
 
 const PCActionDetail = Loadable({
   loader:()=>import('./pc_action'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 })
 
 const PCSearchIndex = Loadable({
   loader:()=>import('./pc_search/pc_search_index'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 })
 
 const PCTopNews = Loadable({
   loader:()=>import('./pc_topnews'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 });
 
 import '../../../css/pc.common.css';
@@ -165,7 +165,10 @@ export default class PCRouter extends React.Component {
                             }} 
                           />
                           
-                          <Route exact path="/topicIndex" component={PCTopicIndex} />
+                          <Route exact path="/topicIndex" render={props=>{
+                              props.onCheckLogin = onCheckLogin;
+                              return <PCTopicIndex {...props} />
+                            }}/>
                           <Route exact path="/topic/:id" render={props=>{
                             props.onSetScrollTop = this._setScrollTop.bind(this);
                             props.onCheckLogin = onCheckLogin;

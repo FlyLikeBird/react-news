@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Loadable from 'react-loadable';
 
-import AutoCarousel from '../autoCarousel';
 import NewsList from '../news_list/news_list';
+import MobileFooter from './mobile_footer';
 import { Menu, Spin } from 'antd';
 
-export default class MobileNewsContainer extends React.Component {
+export default class MobileIndex extends React.Component {
     
     constructor(){
         super();
@@ -16,41 +16,24 @@ export default class MobileNewsContainer extends React.Component {
         }
 
     }
-    componentDidMount(){
-        console.log('hello');
-        fetch('/api/article/getArticleList?type=yule&count=20')
-        .then(response=>response.json())
-        .then(json=>{
-            var data = json.data;
-            this.setState({newsList:data,isLoading:false});       
-        })
-    }
-
+    
     render(){
         
         var { isLoading, newsList } = this.state;
         console.log(newsList);
         return (
                    
-                <div>
+                <div style={{overflowY:'scroll',overflowX:'hidden',height:'100%'}}>
                     <div style={{height:'200px'}}>
-                        <AutoCarousel count={4} size="small"/>
+                        
                     </div>
-                    
-                        {
-                            isLoading
-                            ?
-                            <Spin/>
-                            :
-                            <NewsList data={newsList} hasImg={true}/>
-                        }
-                    
-               
                     <div>
-                        <span>hot news</span>
-                        <span>hot topics </span>
+                        <div>新闻中心</div>
+                        <div>话题中心</div>
                     </div>
-
+                        
+                    <MobileFooter />
+                    
                 </div>
             
         )

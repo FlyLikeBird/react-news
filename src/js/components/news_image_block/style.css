@@ -70,6 +70,7 @@
     background-color:#fff;
     border-radius:4px;
     box-shadow: 1px 1px 1px rgba(222, 222, 222, 1);
+    transition:all 0.3s;
 }
 
 .imgNewsList .imageblock a:hover {

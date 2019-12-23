@@ -139,7 +139,7 @@ export default class TopicListItem extends React.Component {
     }
 
     render(){
-        var {  inline, columns, forSimple, isSelf, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
+        var {  inline, columns, forSimple, isSelf, onCheckLogin, history, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
         var {   isFollowed, item, followIcon, shareIcon } = this.state;
         var {  privacy, user, _id, tags, images, follows, replies, shareBy, title, description, view } = item;
         
@@ -165,7 +165,7 @@ export default class TopicListItem extends React.Component {
                             :
                             <div className='user-container'>
                                 发起人：                          
-                                <Popover content={<CommentPopoverUserAvatar user={user?user.username:''}/>}>
+                                <Popover content={<CommentPopoverUserAvatar history={history} onCheckLogin={onCheckLogin} user={user?user.username:''}/>}>
                                     <span className='avatar-container'>
                                         <img src={user?user.userImage:''} />
                                     </span>

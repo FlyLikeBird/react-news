@@ -102,7 +102,7 @@ router.get('/register',(req,res)=>{
 				password:secret.encrypt('1989'),
 				registerTime:date,
 				loginTime:date,
-				userImage:config.uploadPath + '/logo.png'
+				userImage:'/static/logo.png'
 			});
 			managerUser.save()
 				.then(()=>{
@@ -228,7 +228,7 @@ router.get('/removeFollow',(req,res)=>{
 
 router.post('/upload',upload.single('file'),(req,res)=>{	
 	var { userid } = req.body;
-	var imgUrl = config.uploadPath+'/userAvatar/'+req.file.filename;
+	var imgUrl = '/static/userAvatar/'+req.file.filename;
 
 	User.updateOne({_id:userid},{$set:{userImage:imgUrl}},(err,result)=>{
 		if (err) throw err;		

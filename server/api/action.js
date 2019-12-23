@@ -184,7 +184,7 @@ router.post('/create',upload.array('images'),(req,res)=>{
     var { description, privacy, userid } = req.body;
     var date = new Date().toString(),images = [];
     if(req.files){
-        images = req.files.map(item=>config.uploadPath+'/action/'+item.filename)   
+        images = req.files.map(item=>'/static/action/'+item.filename)   
     }  
     var action = new Action({
         date,

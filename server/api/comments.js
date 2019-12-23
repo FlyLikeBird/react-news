@@ -53,7 +53,7 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
   var images = [];
   if(req.files){
         req.files.forEach(item=>{
-            var imgUrl = config.uploadPath + '/comment/'+item.filename;
+            var imgUrl = '/static/comment/'+item.filename;
             images.push(imgUrl);
         });
   }
@@ -87,7 +87,7 @@ router.post('/addreplycomment',upload.array('images'),(req,res)=>{
     var date = new Date().toString();
     if(req.files){
           req.files.forEach(item=>{
-              var imgUrl = config.uploadPath + '/comment/'+item.filename;
+              var imgUrl = '/static/comment/'+item.filename;
               images.push(imgUrl);
           });
     }

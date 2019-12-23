@@ -207,6 +207,7 @@ router.get('/getArticleList',(req,res)=>{
 
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
+  mongooseOperations.addThumbnails();
   Article.findOne({'_id':uniquekey})
       .populate({
           path:'shareBy',

@@ -115,7 +115,7 @@ export default class TopicListContainer extends React.Component{
     */
     render(){
         var { topicList, tags, inline, columns, isLoading } = this.state;
-        var { history } = this.props;
+        var { history, onCheckLogin } = this.props;
         
         const content = <div>
                             <h3>什么是话题？</h3>
@@ -188,7 +188,7 @@ export default class TopicListContainer extends React.Component{
                         ?
                         <Spin size="large"/>
                         :
-                        <TopicList data={topicList} inline={inline} forIndex={true} columns={columns} history={history} text="还没有用户发布过话题~"/>
+                        <TopicList data={topicList} inline={inline} forIndex={true} columns={columns} onCheckLogin={onCheckLogin} history={history} text="还没有用户发布过话题~"/>
                     }
                     <Button onClick={this._loadMoreTopics.bind(this)}>加载更多话题</Button>
                 </div>
