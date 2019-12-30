@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Icon, Modal, Form, Input, Button } from 'antd';
+import { Upload, Icon, Modal, Form, Input, message, Button } from 'antd';
 
 const FormItem = Form.Item;
 
@@ -10,6 +10,7 @@ class PicturesWall extends React.Component {
     this.state = {
       previewVisible: false,
       previewImage: '',
+      uploadToken:'',
       fileList: []
     }
   }
@@ -40,10 +41,6 @@ class PicturesWall extends React.Component {
     return false;
   }
 
-  checkImageWH(){
-
-  }
-
   getBase64(file){
     return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -66,39 +63,55 @@ class PicturesWall extends React.Component {
   }   
     
   handleChange({ fileList }){
-    this.setState({ fileList });
+    fetch('/api/token')
+        .then(response=>response.json())
+        .then(json=>{
+            this.setState({ fileList, uploadToken:json.data });
+        })
   } 
+  
+  _uploadToQiniu(file, uploadToken){
+      var formData = new FormData();
+      formData.append('file',file.originFileObj);
+      formData.append('token',uploadToken);
+      return new Promise((resolve,reject)=>{
+          fetch('http://upload-z2.qiniup.com',{
+            method:'post',
+            body:formData
+          }).then(response=>response.json())
+            .then(data=>{
+                resolve(data.hash);
+            })
+      })
+  }
 
   handleSubmit(e){
 
     e.preventDefault();
-    
-    var formData = new FormData();
+    var { fileList, uploadToken } = this.state;
+    var { onChangeImgUrl, onModalVisible } = this.props;
+    var userid = localStorage.getItem('userid');
+    var uploadPromise = [];
+    if ( uploadToken && fileList && fileList.length){
+        fileList.forEach(file=>{
+           var promise = this._uploadToQiniu(file, uploadToken);
+           uploadPromise.push(promise);
+        });
+        Promise.all(uploadPromise)
+          .then(([...images])=>{
+              //console.log(images);
+              var imgUrl = images[0];
+              fetch(`/api/usr/changeUserAvatar?url=${imgUrl}&userid=${userid}`)
+                .then(response=>response.json())
+                .then(()=>{
+                    if (onChangeImgUrl) onChangeImgUrl(`http://image.renshanhang.site/${imgUrl}`);
+                    if (onModalVisible) onModalVisible();
+                })
 
-    var fileData = this.props.form.getFieldsValue();
-    
-    formData.append('file',fileData.upload.file);
-    formData.append('userid',localStorage.getItem('userid'));
-    //console.log(fileData.upload.file)
-    
-    fetch('/api/usr/upload',{
-      method:'post',
-      body:formData
-    }).then(response=>response.json())
-      .then(data=>{
-        //console.log(data);
-        var imgUrl = data.data.imgUrl;
-
-        if (this.props.onChangeImgUrl) {
-          this.props.onChangeImgUrl(imgUrl)
-        }
-
-        if(this.props.onModalVisible){
-          this.props.onModalVisible()
-        }
-      })
-      
-
+          })
+    } else {
+        message.error('请先上传图片');
+    }
   }
 
   render() {

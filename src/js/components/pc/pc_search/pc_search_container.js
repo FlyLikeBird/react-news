@@ -99,17 +99,6 @@ export default class PCSearchContainer extends React.Component{
       })   
   }
   
-  _updateSearchList(title){
-        var pattern = /(^\s*)|(\s*$)/g;
-        var title = title.replace(pattern,'');
-        var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];             
-        if (!searchHistory.map(item=>item.title).includes(title)){
-            searchHistory.push({title})
-        }             
-        localStorage.setItem('searchHistory',JSON.stringify(searchHistory));
-        this.setState({searchList:searchHistory});
-  }
-
   render(){
     var { type, newsList, topicList, userList, count, value, isLoading } = this.state;
     var { location, history, socket, onUpdateSearchHistory } = this.props;

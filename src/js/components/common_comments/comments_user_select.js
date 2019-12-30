@@ -30,12 +30,12 @@ class  CommentUserSelect extends React.Component{
         e.persist();
         this.timer = setTimeout(()=>{
             var words = e.target.value;
-            this.setState({isLoading:true}) 
-            fetch(`/api/article/search?words=${words}&type=user`)
+            this.setState({isLoading:true});
+            fetch(`/api/usr/search?words=${words}`)
                 .then(response=>response.json())
                 .then(json=>{
                     var data = json.data;
-                    this.setState({userList:data,isLoading:false});
+                    this.setState({userList:data.data,isLoading:false});
                 })
         },500)
         

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from 'antd';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
 
-
+import style from './news-list-style.css';
 export default class HistoryItem extends React.Component {
   
   handleRemoveHistory( historyId, e){
@@ -51,30 +51,30 @@ export default class HistoryItem extends React.Component {
     return (
 
         
-              <div ref={newsItem=>this.container = newsItem} className="news">                   
+              <div ref={newsItem=>this.container = newsItem} className={style['news']}>                   
                   <div style={{color:'#1890ff',margin:'0 20px'}} dangerouslySetInnerHTML={{__html:this.translateTimeFormat(viewtime?viewtime:'')}}></div> 
                       
                   {
                       hasImg && thumbnails
                       ? 
-                      <div className="news-img" style={{backgroundImage:`url(${thumbnails[0]})`}}></div>
+                      <div className={style['news-img']} style={{backgroundImage:`url(${thumbnails[0]})`}}></div>
                       : 
                       null 
                   }
-                   <div className="news-body">
-                          <div onClick={this.handleGotoDetail.bind(this,articleId._id)}  className="news-title">
+                   <div className={style['news-body']}>
+                          <div onClick={this.handleGotoDetail.bind(this,articleId._id)}  className={style['news-title']}>
                                <span>{title}</span>
                           </div>
                           
                         <div>               
-                          <span className="text">发布时间: <span className="mark">{newstime}</span></span>
+                          <span className={style.text}>发布时间: <span className={style.mark}>{newstime}</span></span>
                           <br />
-                          <span className="text">来源: <span className="mark">{auth}</span></span>
-                          <span className="text">类型: <span className="mark">{type}</span></span>
+                          <span className={style.text}>来源: <span className={style.mark}>{auth}</span></span>
+                          <span className={style.text}>类型: <span className={style.mark}>{type}</span></span>
                         </div>
                         
                     </div>
-                    <Button size="small" className="button" onClick={this.handleRemoveHistory.bind(this, _id)} shape="circle" icon="close"/>
+                    <Button size="small" className={style['button']} onClick={this.handleRemoveHistory.bind(this, _id)} shape="circle" icon="close"/>
                           
               </div>
               

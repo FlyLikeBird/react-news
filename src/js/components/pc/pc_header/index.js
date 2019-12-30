@@ -49,7 +49,7 @@ class PCHeader extends React.Component {
                       <div className="header">
                           <div>  
                               <a href="/" className="logo">
-                                  <img src={ `/static/logo.png` } alt="logo" />
+                                  <img src='http://image.renshanhang.site/logo.png' alt="logo" />
                                   <span>ReactNews</span>
                               </a> 
                           </div>
@@ -67,9 +67,9 @@ class PCHeader extends React.Component {
                             </Menu> 
                             <div className="search">
                               <SearchInput {...this.props} onUpdateSearchHistory={onUpdateSearchHistory}/> 
-                              <Popover content={
-                                    <div style={{width:'200px',height:'200px',backgroundColor:'#000'}}>
-    
+                              <Popover trigger="click" content={
+                                    <div style={{width:'200px',height:'200px'}}>
+                                        <img src='http://image.renshanhang.site/mobile-website.png' />
                                     </div>
                                 }>
                                   <Button type="primary" size="small" shape="circle" icon="mobile" />

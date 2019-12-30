@@ -12,14 +12,14 @@ export default class SideBar extends React.Component {
                 <div className={style["side-bar"]}>
                     <div className={style.modal}>
                         <Link to={`/topNews`}>
-                            <div className={style.bg} style={{backgroundImage:`url(/static/newsIndex.png)`}}>
+                            <div className={style.bg} style={{backgroundImage:`url(http://image.renshanhang.site/newsIndex.png)`}}>
                                 <Icon type="read" /><span>新闻中心</span><Icon type="read" />
                             </div>
                         </Link>
                     </div>                    
                     <div className={style.modal}>
                         <Link to={`/topicIndex`}>
-                            <div className={style.bg} style={{backgroundImage:`url(/static/topicIndex.png)`}}>
+                            <div className={style.bg} style={{backgroundImage:`url(http://image.renshanhang.site/topicIndex.png)`}}>
                                 <Icon type="number" /><span>话题中心</span><Icon type="number" />
                             </div>
                         </Link>

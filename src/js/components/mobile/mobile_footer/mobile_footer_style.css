@@ -10,14 +10,14 @@
     border-top:1px solid #e8e8e8;
 }
 
-.container>a {
-    display:inline-block;
-    text-align:center;
-    height:100%;
+.container .item {
     flex:1;
 }
 
-.container .item {
+.container .item.selected {
+    color:#1890ff;
+}
 
-
+.container .item i{
+    font-size:16px;
 }

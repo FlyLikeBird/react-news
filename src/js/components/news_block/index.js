@@ -25,7 +25,7 @@ export default class PCNewsBlock extends React.Component {
 							<Icon type="fire" theme="filled" style={{color:'rgb(226, 85, 85)'}} className={style.motion}/>
 						}
 						<span className={style["title"]}>{ title } </span>
-						<span className={style.button}><Link to={ forTopic ? '/topicIndex':'/topNews'} >{ forTopic ? "查看更多话题":"查看更多新闻"}<Icon type="right-circle" /></Link></span>
+						<span className={style.button}><Link to={ forTopic ? '/topicIndex':'/newsIndex'} >{ forTopic ? "查看更多话题":"查看更多新闻"}<Icon type="right-circle" /></Link></span>
 					</div>
 					:
 					null

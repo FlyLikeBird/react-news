@@ -2,17 +2,20 @@ import React from 'react';
 import { Button } from 'antd';
 import { parseDate, formatDate, translateType } from '../../../utils/translateDate';
 
-
+import style from './news-list-style.css';
 export default class NewsListItem extends React.Component {
   
   markKeyWords(content){
-    var { location } = this.props;
+    var { location, forMobile, params } = this.props;
     var result = '';
     if (location && content) {
       var search = location.search;
-      
-      var words = search.match(/words=(.*)/)[1];
-      
+      var words;
+      if (forMobile && params){
+          words = params;
+      } else {
+          words = search.match(/words=(.*)/)[1];
+      }
       if (!words.match(/\s+/g)){
           //  单个关键词
           result = content.replace(new RegExp('('+words+')','g'),match=>'<span style="color:#1890ff">'+match+'</span>');
@@ -49,23 +52,23 @@ export default class NewsListItem extends React.Component {
     return (
 
         
-              <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?'news forSimple':forSearch ?'news forSearch' : 'news'}>
+              <div ref={newsItem=>this.container = newsItem} onClick={this.handleGotoDetail.bind(this,_id)} className={forSimple?`${style['news']} ${style['forSimple']}`:forSearch ?`${style['news']} ${style['forSearch']}` : style['news']}>
             
                   {
                       hasImg && thumbnails
                       ? 
-                      <div className="news-img" style={{backgroundImage:`url(${thumbnails[0]})`}}></div>
+                      <div className={style['news-img']} style={{backgroundImage:`url(${thumbnails[0]})`}}></div>
                       : 
                       null 
                   }
-                   <div className="news-body">
-                          <div className="news-title">
+                   <div className={style['news-body']}>
+                          <div className={style['news-title']}>
                                <span>{title}</span>
                           </div>
                           {
                               hasSearchContent 
                               ?
-                              <div className="news-content">
+                              <div className={style['news-content']}>
                                 <div dangerouslySetInnerHTML={{__html:this.markKeyWords(content)}}></div>
                               </div>
                               :
@@ -73,17 +76,13 @@ export default class NewsListItem extends React.Component {
                           }
       
                         <div>               
-                          <span className="text">发布时间: <span className="mark">{newstime}</span></span>
+                          <span className={style.text}>发布时间: <span className={style.mark}>{newstime}</span></span>
                           { forSearch ? null : <br /> }
-                          <span className="text">来源: <span className="mark">{auth}</span></span>
-                          <span className="text">类型: <span className="mark">{type}</span></span>
-                        </div>
-                        
-                    </div>
-                    
+                          <span className={style.text}>来源: <span className={style.mark}>{auth}</span></span>
+                          <span className={style.text}>类型: <span className={style.mark}>{type}</span></span>
+                        </div>                       
+                    </div>                  
               </div>
-              
-        
     )
   }
 }

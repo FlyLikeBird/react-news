@@ -142,7 +142,7 @@ export default class CollectItem extends React.Component {
                 <div className="collect-header" onClick={this.handleShowContent.bind(this)}>
                     <Icon type={iconType} />
                     <div className="collect-card">
-                        <span style={{flex:'1',position:'relative'}}>
+                        <div style={{flex:'1',position:'relative'}}>
                             <span style={{fontSize:'30px',color:'#1890ff'}}><Icon className={className} type="folder-add" theme="filled" /></span>
                             
                                 <span ref={rollOut=>this.rollOut=rollOut} className='motion rollOut'><Icon type="file-text" /></span>
@@ -150,8 +150,8 @@ export default class CollectItem extends React.Component {
                                 <span ref={rollIn=>this.rollIn=rollIn} className='motion rollIn'><Icon type="file-text" /></span>
                             
                             
-                        </span>
-                        <div style={{flex:'7'}}>
+                        </div>
+                        <div style={{flex:'7',marginLeft:'20px'}}>
                             <span style={{color:'#000',fontWeight:'500'}}>{tag}</span>
                             <div>
                                 <span className="text">{`创建于${formatDate(parseDate(createtime))}`}</span>

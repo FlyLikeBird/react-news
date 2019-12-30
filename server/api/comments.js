@@ -12,32 +12,6 @@ var Action  = require('../../models/Action');
 var config = require('../../config/config');
 var userPromise = require('../userPromise');
 
-var createFolder = function(folder){
-    try{
-        fs.accessSync(folder); 
-    }catch(e){
-        fs.mkdirSync(folder);
-    }  
-};
-
-var uploadFolder = path.resolve('./src'+'/images/comment');
-createFolder(uploadFolder);
-// 通过 filename 属性定制
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-
-        cb(null, uploadFolder);    // 保存的路径，备注：需要自己创建
-    },
-    filename: function (req, file, cb) {
-        // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
-        //console.log(file);
-        let type = file.mimetype;
-         
-        cb(null, file.fieldname + '-' + Date.now() +  '.'+type.slice(6,type.length) );  
-    }
-});
-var upload = multer({storage});
-
 function sortList(arr){
   arr.sort((a,b)=>{
     var time1 = Date.parse(a.date);
@@ -48,15 +22,9 @@ function sortList(arr){
 }
 
 
-router.post('/addcomment',upload.array('images'),(req,res)=>{
-  var { userid, uniquekey, content, commentType } = req.body;
-  var images = [];
-  if(req.files){
-        req.files.forEach(item=>{
-            var imgUrl = '/static/comment/'+item.filename;
-            images.push(imgUrl);
-        });
-  }
+router.get('/addcomment', (req,res)=>{
+  var { userid, uniquekey, content, images, commentType } = req.query;
+  images = images ? images : [];
   var comment = new Comment({
       fromUser:userid,
       related:uniquekey,
@@ -77,24 +45,16 @@ router.post('/addcomment',upload.array('images'),(req,res)=>{
       })
   })
 
-  
-  
 })
 
-router.post('/addreplycomment',upload.array('images'),(req,res)=>{
-    let { parentcommentid, fromUser, replyTo, uniquekey, commentType, content, isSub } = req.body;
-    var images = [];
+router.get('/addreplycomment',(req,res)=>{
+    var { parentcommentid, userid, replyTo, uniquekey, images, commentType, content, isSub } = req.query;
+    images = images ? images : [];
     var date = new Date().toString();
-    if(req.files){
-          req.files.forEach(item=>{
-              var imgUrl = '/static/comment/'+item.filename;
-              images.push(imgUrl);
-          });
-    }
     // 判断是父评论还是子评论
     var fromSubTextarea = Boolean(isSub) ? true : false; 
     var comment = new Comment({
-        fromUser:fromUser,
+        fromUser:userid,
         replyTo,
         content,        
         onModel:commentType,

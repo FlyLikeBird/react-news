@@ -44,7 +44,7 @@ export default class PCTagIndex extends React.Component {
         return (
             <Row style={{paddingTop:'30px'}}>
                 <Col span={2}></Col>
-                <Col span={5}><Sidebar /></Col>
+                <Col span={5}>{<Sidebar />}</Col>
                 <Col span={15} style={{paddingLeft:'50px'}}>
                     
                     {
@@ -55,7 +55,9 @@ export default class PCTagIndex extends React.Component {
                         data.length
                         ?
                         <div>
-                            <div style={{height:'150px',marginBottom:'50px'}}><AutoCarousel count={4} history={history}/></div>
+                          <div style={{height:'200px'}}>
+                            <AutoCarousel count={4} history={history} simple={true}/>
+                          </div>
                             {
                                 data.map((item,key)=>(
                                     <TagItem item={item} key={key} history={history}/>

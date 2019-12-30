@@ -12,6 +12,9 @@
     background: #f7f7f7;
     padding: 6px 10px 10px 20px;
     border-radius: 4px;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .imgNewsList.small .news-title {

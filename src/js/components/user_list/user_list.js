@@ -50,7 +50,7 @@ export default class UserList extends React.Component{
 
   render(){
     var { list, visible, toUser, toId }  = this.state;
-    var { socket, history, expand, text } = this.props;
+    var { socket, history, expand, forMobile, text } = this.props;
      
     return(
 
@@ -65,6 +65,7 @@ export default class UserList extends React.Component{
                               key={index}
                               expand={expand}
                               socket={socket} 
+                              forMobile={forMobile}
                               history={history} 
                               onShowChatList={this.handleShowChatList.bind(this)} 
                               item={item} 

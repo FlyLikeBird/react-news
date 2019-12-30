@@ -61,38 +61,12 @@ function checkIsNewTags(tags,resolve){
 }
 
 function checkDeleteNewImg(deleteImage,topicId,resolve){
-    Topic.updateOne({_id:topicId},{$pull:{images:{_id:{$in:deleteImage}}}},(err,result)=>{
+    Topic.updateOne({_id:topicId},{$pull:{images:{$in:deleteImage}}},(err,result)=>{
         Topic.findOne({_id:topicId},(err,topic)=>{
             resolve(topic.images)
         })
     })
 }
-
-var createFolder = function(folder){
-    try{
-        fs.accessSync(folder); 
-    }catch(e){
-        fs.mkdirSync(folder);
-    }  
-};
-var uploadFolder = path.resolve('./src'+'/images/topic');
-createFolder(uploadFolder);
-// 通过 filename 属性定制
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-
-        cb(null, uploadFolder);    // 保存的路径，备注：需要自己创建
-    },
-    filename: function (req, file, cb) {
-        // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
-        //console.log(file);
-        let type = file.mimetype;
-         
-        cb(null, file.fieldname + '-' + Date.now() +  '.'+type.slice(6,type.length) );  
-    }
-});
-var upload = multer({storage});
-
 /*
 
 [ { fieldname: 'images',
@@ -103,20 +77,11 @@ var upload = multer({storage});
     filename: 'images-1565070568159.jpeg',
     path: '/Users/ninsankou/Documents/NodeJs项目/react-news/src/images/topic/images-1565070568159.jpeg',
     size: 57304 } ]
-
 */
-router.post('/upload',upload.array('images'),(req,res)=>{
-    var { title, description, tags, privacy, userid } = req.body;     
-    var date = new Date().toString(), images = [];  
-    if(req.files){
-        req.files.forEach(item=>{
-            var obj = {};
-            obj.filename  = '/static/topic/'+item.filename;
-            obj.originalname = item.originalname;
-            obj.originalpath = item.destination;
-            images.push(obj);
-        });
-    }    
+router.get('/upload',(req,res)=>{
+    var { title, description, tags, privacy, userid, images } = req.query;     
+    var date = new Date().toString();
+    images = images ? images : [];
      //  判断用户是否添加了新标签
     tags = tags ? tags.map ? tags : [tags] : [];
     var promise = new Promise((resolve,reject)=>{
@@ -228,22 +193,11 @@ router.get('/removeTopic',(req,res)=>{
     })
 })
 
-router.post('/edit',upload.array('images'),(req,res)=>{
-    var { title, description, tags, privacy, deleteImage, userid, topicId } = req.body;
-    var images = [];
+router.get('/edit',(req,res)=>{
+    var { title, description, tags, privacy, images, deleteImage, userid, topicId } = req.query;
     tags = tags ? tags.map ? tags : [tags] : [];
-    if (!deleteImage){
-        deleteImage = [];
-    } 
-    if(req.files){        
-        req.files.forEach(item=>{
-            var obj = {};
-            obj.filename  = '/static/topic/'+item.filename;
-            obj.originalname = item.originalname;
-            obj.originalpath = item.destination;
-            images.push(obj);
-        });
-    }    
+    images = images ? images:[];
+    deleteImage = deleteImage ? deleteImage : [];
      //  判断用户是否添加了新标签
     var promise1 = new Promise((resolve,reject)=>{
         checkIsNewTags(tags,resolve);

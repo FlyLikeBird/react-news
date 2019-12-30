@@ -1,39 +1,63 @@
 import React from 'react';
-import { Menu, Icon, Tabs, message, Badge } from 'antd';
+import { Link, withRouter } from 'react-router-dom';
+import { Menu, Icon, Tabs, Input, message, Badge, Dropdown } from 'antd';
 
-import logoUrl from '../../../images/logo.png';
+import style from './mobile-header-style.css';
 
-export default class MobileHeader extends React.Component {
+class MobileHeader extends React.Component {
     
-    render() {
-        var { msg } = this.props;
-        var { hasLogined } = this.state;
+    handleInputFocus(e){
+        var { history } = this.props;
+        if (history) history.push(`/search`)
+        console.log('hello');
+    }
 
-        
+    render() {
+        var { user, searchHistory, onUpdateSearchHistory, onLoginOut } = this.props;
+        var hasLogined = user && user.userid ? true : false;
+        var menu =  <Menu>
+                      <Menu.Item>
+                        <Link to={`/usercenter/${user.userid}`}><Icon type="home" />个人中心</Link>
+                      </Menu.Item>
+                      <Menu.Item>
+                        <span onClick={()=>onLoginOut(true)}><Icon type="logout" />退出登录</span>
+                      </Menu.Item>
+                    </Menu>
+                      
+                    
         return (
         
-            <header>
-                <div className="mobile-header">
-                    <span style={{display:'flex',alignItems:'center'}}>
-                        <span className="img-container" style={{backgroundImage:`url(${logoUrl})`}}></span>
+            <header className={style['header']}>
+                
+                    <div className={style['logo']}>
+                        <span className={style['img-container']} style={{backgroundImage:`url(http://image.renshanhang.site/logo.png)`}}></span>
                         ReactNews
-                    </span>
-                    
+                    </div>
+                    <Input placeholder="请输入查询关键词" onFocus={this.handleInputFocus.bind(this)}/>
                     {
                         hasLogined
                         ?
-                        <div>
-                            <span className="img-container"><img src={avatar} /></span>
+                        <div>                                                                                          
+                            <Dropdown  overlay={menu}>
+                                <div className={style['user-container']}>
+                                    <Link className="ant-dropdown-link" to={`/usercenter/${user.userid}`}>
+                                        <span className={style['img-container']} style={{backgroundImage:`url(${user.avatar})`}}></span>
+                                    </Link>
+                                    <Icon type="down" />
+                                </div>
+                            </Dropdown>                                                                
                         </div>
                         :
-                        <span><Icon type="user" /></span>
+                        <div><Icon type="user" />注册/登录</div>
                     }
                     
-                </div>               
+                      
             </header>
         
 
         )
     }
 }
+
+export default MobileHeader = withRouter(MobileHeader);
 

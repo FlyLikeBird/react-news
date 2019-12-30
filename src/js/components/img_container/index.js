@@ -7,7 +7,7 @@ export default class ImgContainer extends React.Component{
     constructor(){
         super();
         this.state = {
-            img:'',
+            dataURL:'',
             visible:false
         }
     }
@@ -30,7 +30,7 @@ export default class ImgContainer extends React.Component{
         }
     }
 
-    componentDidMount(){
+    _createImgDataURL(resolve){
         var { bg } = this.props;
         var promise = this._fetchImg(bg);
         promise.then(blob=>{
@@ -38,7 +38,12 @@ export default class ImgContainer extends React.Component{
                 this._readImgAsDataURL(blob, resolve);
             });
             promise.then(dataURL=>{
-                this.setState({img:dataURL});
+                if (resolve){
+                    resolve(dataURL);
+                    this.setState({dataURL});
+                } else {
+                    this.setState({dataURL, visible:true});
+                }
             })
         })
     }
@@ -79,11 +84,11 @@ export default class ImgContainer extends React.Component{
         }   
     }
 
-    handlePreview(boolean){
-        this.setState({visible:boolean})
+    handlePreview(){
+        this._createImgDataURL();
     }
 
-    handleDownload(url){
+    _createDownloadLink(url){
         var a = document.createElement('a');
         var event = new MouseEvent('click');
         a.download = url;
@@ -91,22 +96,37 @@ export default class ImgContainer extends React.Component{
         a.dispatchEvent(event);
     }
 
+    handleDownload(){
+        var { dataURL } = this.state;
+        if (!dataURL){
+            var promise = new Promise((resolve, reject)=>{
+                this._createImgDataURL(resolve);
+            });
+            promise.then(url=>{
+                this._createDownloadLink(url);
+            })
+        } else {
+            this._createDownloadLink(dataURL);
+        }
+        
+    }
+
     render(){
-        var { single } = this.props;
-        var { img, visible } = this.state;
+        var { single, bg } = this.props;
+        var { visible, dataURL } = this.state;
         return (
             <div className={ single ? `${style.container} ${style.single}` : style.container}>
-                <div className={style['img-container']} style={{backgroundImage:`url(${img})`}}>
+                <div className={style['img-container']} style={{backgroundImage:`url(${bg})`}}>
                     <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)}  className={style['modal-container']}>
                         <Icon type="eye" onClick={this.handlePreview.bind(this,true)}/>
-                        <Icon type="download" onClick={this.handleDownload.bind(this, img)}/>
+                        <Icon type="download" onClick={this.handleDownload.bind(this)}/>
                     </div>
                 </div>
                 {
                     visible
                     ?
-                    <Modal visible={visible} className="user-preview" footer={null} onCancel={this.handlePreview.bind(this,false)}>
-                        <img src={img} />
+                    <Modal visible={visible} className="user-preview" footer={null} onCancel={()=>this.setState({visible:false})}>
+                        <img src={dataURL} />
                     </Modal>
                     :
                     null

@@ -91,7 +91,7 @@ export default class PCUsercenterTopic extends React.Component{
                             ?
                             <div>
                                 <Button type="primary" style={{fontSize:'12px'}} onClick={this.handleFormShow.bind(this)}>创建话题</Button>                               
-                                <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)}/>                                                         
+                                <TopicForm visible={showForm} onVisible={this.handleFormShow.bind(this)} onUpdate={this.handleUpdateList.bind(this)} forTopic={true}/>                                                         
                             </div>
                             :
                             null

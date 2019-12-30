@@ -126,7 +126,7 @@ componentWillUnmount(){
 }
 
 render(){
-  var { socket, uniquekey, warnMsg , item, commentType, history, onSetScrollTop, onUpdateItemComments, onCheckLogin } = this.props;
+  var { socket, uniquekey, warnMsg , item, noInput, commentType, history, onSetScrollTop, onUpdateItemComments, onCheckLogin } = this.props;
   var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum } = this.state;
   const dropdownStyle = {
     width:'160px',
@@ -135,9 +135,16 @@ render(){
 
   return (
       <div>
-        <div style={{margin:'30px 0'}}>
-            <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/> 
-        </div>                  
+        {
+           noInput
+           ?
+           null
+           :
+           <div style={{margin:'30px 0'}}>
+              <CommentsInput isAddComment socket={socket} commentType={commentType} uniquekey={uniquekey} onAddComment={this.handleAddComment.bind(this)} onCheckLogin={onCheckLogin}/> 
+           </div> 
+        }
+                         
         {
             comments.length 
             ?

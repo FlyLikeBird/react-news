@@ -1,8 +1,8 @@
 import React from 'react';
 import NewsList from '../../news_list/news_list';
 import AutoCarousel from '../../autoCarousel';
-import MobileFooter from '../mobile_footer';
-import { Menu, Spin, Tabs, Carousel } from 'antd';
+import ScrollContainer from '../mobile_scroll_container';
+import { Menu, Spin, Tabs } from 'antd';
 const { TabPane } = Tabs;
 export default class MobileNewsIndex extends React.Component {
     
@@ -11,60 +11,72 @@ export default class MobileNewsIndex extends React.Component {
         this.state = {
             tag:'shehui',
             newsList:[],
-            isLoading:true
+            addNews:[],
+            isLoading:true,
+            autoLoad:false,
+            canScroll:true
         }
 
     }
 
-    _loadNewsList(){
-        var { tag } = this.state;
+    _loadNewsList(tag){
         fetch(`/api/article/getArticleList?type=${tag}&count=20`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
-                this.setState({newsList:data,isLoading:false});       
+                this.setState({newsList:data,addNews:data,isLoading:false});       
             })
     }
 
     componentDidMount(){
-        this._loadNewsList();
+        this._loadNewsList(this.state.tag);
     }
 
     handleChange(activeKey){
-        this.setState({isLoading:true, tag:activeKey});
-        this.setState(()=>{
-            this._loadNewsList();
+        this.setState({tag:activeKey});
+        this.setState((state)=>{
+            this._loadNewsList(state.tag);
         })
     }
 
+    _scrollToBottom(){
+        var { newsList, addNews } = this.state;
+        this.setState({autoLoad:true, canScroll:false});
+        setTimeout(()=>{
+            var arr = newsList.concat(addNews);
+            this.setState({newsList:arr,autoLoad:false});
+        },500);
+        setTimeout(()=>{
+            this.setState({canScroll:true});
+        },2000)
+    }
+
+
     render(){
-        
-        var { isLoading, newsList } = this.state;
+        var { history } = this.props;
+        var { isLoading, newsList, autoLoad, canScroll } = this.state;
         return (
-            <div> 
-                <Carousel autoplay>
+            
+                <ScrollContainer onScrollToBottom={this._scrollToBottom.bind(this)} autoLoad={autoLoad} canScroll={canScroll}>
+                    <div style={{height:'160px'}}>
+                        <AutoCarousel count={4} history={history} simple={true}/>
+                    </div>
+                    
                     {
                         isLoading
                         ?
                         <Spin/>
                         :
-                        newsList.map((item,index)=>(
-                            <div key={index} style={{backgroundImage:`url(${item.thumbnails[0]})`}}></div>
-                        ))
+                        <Tabs defaultActiveKey="shehui" onChange={this.handleChange.bind(this)}>
+                            <TabPane tab="社会" key="shehui"><NewsList data={newsList} hasImg={true} forMobile={true} history={history}/></TabPane> 
+                            <TabPane tab="国内" key="guonei"><NewsList data={newsList} hasImg={true} forMobile={true} history={history}/></TabPane> 
+                            <TabPane tab="国际" key="guoji"><NewsList data={newsList} hasImg={true} forMobile={true} history={history}/></TabPane> 
+                            <TabPane tab="娱乐" key="yule"><NewsList data={newsList} hasImg={true} forMobile={true} history={history}/></TabPane> 
+                            <TabPane tab="科技" key="keji"><NewsList data={newsList} hasImg={true} forMobile={true} history={history}/></TabPane> 
+                        </Tabs>
                     }
-                </Carousel>
+                </ScrollContainer>
                 
-                <Tabs defaultActiveKey="shehui" onChange={this.handleChange.bind(this)}>
-                    { isLoading ? <Spin/> : <TabPane tab="社会" key="shehui"><NewsList data={newsList} hasImg={true}/></TabPane> }
-                    { isLoading ? <Spin/> : <TabPane tab="国内" key="guonei"><NewsList data={newsList} hasImg={true}/></TabPane> }
-                    { isLoading ? <Spin/> : <TabPane tab="国际" key="guoji"><NewsList data={newsList} hasImg={true}/></TabPane> }
-                    { isLoading ? <Spin/> : <TabPane tab="娱乐" key="yule"><NewsList data={newsList} hasImg={true}/></TabPane> }
-                    { isLoading ? <Spin/> : <TabPane tab="科技" key="keji"><NewsList data={newsList} hasImg={true}/></TabPane> }
-                </Tabs>
-                <MobileFooter current="news"/>
-            </div>            
-                      
-                   
         )
     }
 }
