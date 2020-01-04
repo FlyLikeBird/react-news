@@ -173,7 +173,9 @@ export default class PCRouter extends React.Component {
                           />
                           <Route exact path="/search" render={props=>{
                               props.socket = socket;
-                              props.onUpdateSearchHistory = this._updateSearchHistory.bind(this);
+                              props.onCheckLogin = onCheckLogin;
+                              props.searchHistory = searchHistory;
+                              props.onUpdateSearchHistory = onUpdateSearchHistory;
                               return <PCSearchIndex {...props}/>
                           }}
                           /> 

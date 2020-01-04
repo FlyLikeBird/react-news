@@ -20,19 +20,28 @@ export default class UserListItem extends React.Component{
   }
   
   handleAddFollow(id){
-    fetch(`/api/usr/addFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({isFollowed:1});
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/addFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({isFollowed:1});
+          })
+    }
+    
   }
 
   handleRemoveFollow(id){
-    fetch(`/api/usr/removeFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({isFollowed:0})
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/removeFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({isFollowed:0})
+          })
+    }
   }
 
   handleShowChatList(){

@@ -3,7 +3,7 @@ import { Rate, Button, Tooltip } from 'antd';
 
 const desc = ['肺都气炸了', '一肚子槽要吐', '一般无感', '心情愉悦', '开心的飞起来'];
 
-export default class PCDetailRate extends React.Component {
+export default class DetailRate extends React.Component {
   constructor(props){
     super()
     this.state={

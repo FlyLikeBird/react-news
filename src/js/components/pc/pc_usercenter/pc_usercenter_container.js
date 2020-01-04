@@ -45,7 +45,7 @@ export default class PCUserCenterContainer extends React.Component{
                 <div>
                     <Tabs className="usercenter-tabs" style={{paddingLeft:'10px'}} defaultActiveKey="action" tabPosition="left">
                             <TabPane tab={<span><Icon type="share-alt" />{isSelf?"我的动态":"TA的动态"}</span>} key="action" className="background-color">
-                                <UpdateContainer match={match} history={history} socket={socket} isSelf={isSelf} onCheckLogin={onCheckLogin}/>
+                                <UpdateContainer user={user._id} history={history} socket={socket} isSelf={isSelf} onCheckLogin={onCheckLogin}/>
                             </TabPane>
                             <TabPane tab={<span><Icon type="container" />{isSelf?"我的关注":"TA的关注"}</span>} key="follow"> 
                                 <FollowContainer isSelf={isSelf} socket={socket} history={history} match={match} data={userFollows} text="follow"/>
@@ -94,9 +94,11 @@ export default class PCUserCenterContainer extends React.Component{
                             </TabPane>
                     
                     </Tabs>
+                    {/*
                     <div className="chart-container">
                         <Button type="primary"  shape="circle" onClick={this.loadChartSource.bind(this)}><Icon type="bar-chart" /></Button>                       
                     </div>
+                */}
                     { loadChart && <UserChart visible={true} />}
                 </div>    
 

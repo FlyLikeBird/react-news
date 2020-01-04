@@ -38,7 +38,7 @@ export default class MobileIndex extends React.Component {
         //console.log(newsList);
         return (
             <ScrollContainer> 
-                {/*               
+                             
                 <div style={{height:'160px'}}>
                     <AutoCarousel count={4} history={history} simple={true}/>
                 </div>
@@ -58,7 +58,7 @@ export default class MobileIndex extends React.Component {
                     </div>
                     <TopicList data={topicList} forIndex={true} inline={true} columns={2} history={history}/>
                 </div>
-            */}
+        
             </ScrollContainer>
             
         )

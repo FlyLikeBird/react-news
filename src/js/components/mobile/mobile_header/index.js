@@ -9,7 +9,6 @@ class MobileHeader extends React.Component {
     handleInputFocus(e){
         var { history } = this.props;
         if (history) history.push(`/search`)
-        console.log('hello');
     }
 
     render() {

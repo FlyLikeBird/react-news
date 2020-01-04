@@ -9,6 +9,7 @@ var User = require('../../models/User');
 var Article = require('../../models/Article');
 var Topic = require('../../models/Topic');
 var Action  = require('../../models/Action');
+var Message = require('../../models/Message');
 var config = require('../../config/config');
 var userPromise = require('../userPromise');
 
@@ -321,9 +322,10 @@ router.get('/delete',(req,res)=>{
                 })
             });
             deleteCommmentRelated(onModel, related, num);
-        }
-        
-    }) 
+        } 
+        Message.deleteMany({commentid},(err,result)=>{});
+    }) ;
+
 })
 
 module.exports = router;

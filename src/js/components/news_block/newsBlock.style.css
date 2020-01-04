@@ -12,6 +12,7 @@
     min-height:0;
     display:flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 .news-list-container .title-container .motion{

@@ -59,7 +59,7 @@ export default class MessageContainer extends React.Component{
             <div>
                 
                 <Collapse className="message-container" bordered={false} defaultActiveKey={['system','update','user']}>
-                    {/*
+                    
                     <Panel className="bg" header={<Badge count={actionNotRead}><span>@我的消息</span></Badge>} key="update">
                         {
                             actionMsg && actionMsg.length
@@ -83,7 +83,7 @@ export default class MessageContainer extends React.Component{
                         
                         
                     </Panel>
-                    */}
+                
                     <Panel header="系统消息" key="system">
                         {   
                             systemMsg && systemMsg.length

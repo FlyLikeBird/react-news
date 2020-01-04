@@ -10,6 +10,7 @@ export default class SideBar extends React.Component {
         return(
             
                 <div className={style["side-bar"]}>
+                
                     <div className={style.modal}>
                         <Link to={`/topNews`}>
                             <div className={style.bg} style={{backgroundImage:`url(http://image.renshanhang.site/newsIndex.png)`}}>
@@ -25,6 +26,7 @@ export default class SideBar extends React.Component {
                         </Link>
                     </div>
                     <PCNewsImageBlock count={40} type="shehui" size="small" cardTitle="相关推荐" columns={2}/>
+                
                 </div>
                 
         )

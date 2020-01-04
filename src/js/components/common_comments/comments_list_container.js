@@ -126,7 +126,7 @@ componentWillUnmount(){
 }
 
 render(){
-  var { socket, uniquekey, warnMsg , item, noInput, commentType, history, onSetScrollTop, onUpdateItemComments, onCheckLogin } = this.props;
+  var { socket, uniquekey, warnMsg , item, forMobile, commentType, history, onSetScrollTop, onUpdateItemComments, onCheckLogin } = this.props;
   var { comments, total, value, visible, text, translateData, commentid, isLoading, currentPageNum } = this.state;
   const dropdownStyle = {
     width:'160px',
@@ -136,7 +136,7 @@ render(){
   return (
       <div>
         {
-           noInput
+           forMobile
            ?
            null
            :
@@ -177,7 +177,8 @@ render(){
                   comments.map((item,key)=>(
                      <CommentComponent 
                          socket={socket} 
-                         history={history}                         
+                         history={history} 
+                         forMobile={forMobile}                        
                          onCheckLogin={onCheckLogin}
                          onVisible={this.handleShareVisible.bind(this)}
                          onSetScrollTop={onSetScrollTop}

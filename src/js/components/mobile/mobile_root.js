@@ -13,31 +13,31 @@ import MobileSearch from './mobile_search';
 
 const MobileIndex = Loadable({
   loader:()=>import('./mobile_index'),
-  loading:()=><Spin size="large"/>
+  loading:()=><Spin size="large" className="spin"/>
 });
-const MobileDetail = Loadable({
-    loader:()=>import('./mobile_detail'),
-    loading:()=><Spin size="large"/>
+const MobileNewsDetail = Loadable({
+    loader:()=>import('./mobile_news_detail'),
+    loading:()=><Spin size="large" className="spin"/>
 });
 const MobileNewsIndex = Loadable({
     loader:()=>import('./mobile_news'),
-    loading:()=><Spin size="large"/>
+    loading:()=><Spin size="large" className="spin"/>
 });
 const MobileTopicIndex = Loadable({
     loader:()=>import('./mobile_topic'),
-    loading:()=><Spin size="large"/>
+    loading:()=><Spin size="large" className="spin"/>
 });
 const MobileMessage = Loadable({
     loader:()=>import('./mobile_message'),
-    loading:()=><Spin size="large"/>
+    loading:()=><Spin size="large" className="spin"/>
 });
 const MobileUsercenter = Loadable({
     loader:()=>import('./mobile_usercenter'),
-    loading:()=><Spin size="large"/>
+    loading:()=><Spin size="large" className="spin"/>
 });
 const UserOperationDetail = Loadable({
-    loader:()=>import('./mobile_usercenter/user_operation_detail'),
-    loading:()=><Spin size="large"/>
+    loader:()=>import('./user_operation_detail'),
+    loading:()=><Spin size="large" className="spin"/>
 });
 
 
@@ -70,7 +70,7 @@ export default class MobileRouter extends React.Component {
                                 props.user = user;
                                 props.socket = socket;
                                 props.onCheckLogin = onCheckLogin;
-                                return <MobileDetail {...props} />
+                                return <MobileNewsDetail {...props} />
                             }}/>
                         
                             <Route exact path="/newsIndex" component={MobileNewsIndex} />
@@ -94,10 +94,12 @@ export default class MobileRouter extends React.Component {
                             }}/>
                             <Route exact path="/usercenter/:id" render={props=>{
                                 props.socket = socket;
+                               
                                 return <MobileUsercenter {...props} />
                             }}/>
                             <Route exact path="/usercenterDetail" render={props=>{
                                 props.socket = socket;
+                                props.onCheckLogin = onCheckLogin;
                                 return <UserOperationDetail {...props} />
                             }}/>
                         </Switch>

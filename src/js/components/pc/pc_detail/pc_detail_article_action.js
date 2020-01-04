@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, BackTop, Button, Icon, Popover, Modal } from 'antd';
 
-import PCDetailRate from './pc_detail_rate';
+import DetailRate from './detail_rate';
 import ShareModal from '../../shareModal';
 import TopicItemPopover from '../../topic_list/topic_item_popover';
 
@@ -108,7 +108,7 @@ export default class ArticleAction extends React.Component {
                     }
                 </Modal>
                 <Modal className="score-container" visible={rateVisible} footer={null} onCancel={this.handleRateVisible.bind(this)}>
-                    <PCDetailRate uniquekey={uniquekey} onVisible={this.handleRateVisible.bind(this)} onUpdateViewUsers={this.updateViewUsers.bind(this)}/>
+                    <DetailRate uniquekey={uniquekey} onVisible={this.handleRateVisible.bind(this)} onUpdateViewUsers={this.updateViewUsers.bind(this)}/>
                 </Modal>
                 {
                     shareVisible

@@ -17,11 +17,11 @@ export default class HistoryItem extends React.Component {
                 newsItem = this.container;
             }
             if ( newsItem && newsItem.classList){
-                newsItem.classList.add('motion')
+                newsItem.classList.add(style['motion'])
             }
             setTimeout(()=>{
                 if (onDelete) onDelete(historyId);
-                newsItem.classList.remove('motion');
+                newsItem.classList.remove(style['motion']);
             },500)
         })  
   }

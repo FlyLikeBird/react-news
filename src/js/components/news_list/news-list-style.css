@@ -1,0 +1,154 @@
+/*
+
+    个人中心---浏览历史样式
+*/
+
+.news {
+    display:flex;
+    align-items: center;
+    padding:20px 0;
+    margin:10px 0;
+    border:none;
+    cursor: pointer;
+    font-size:12px;
+    border-radius:4px;
+    position:relative;
+    background-color:#fff;
+}
+
+
+.news.motion {
+    animation:newsMotion 0.5s; 
+}
+
+.news.forSimple {
+    margin:0;
+    padding:0;
+    background-color:#f7f7f7;
+}
+
+.news.forSearch {
+    background-color:#f7f7f7;
+    padding:20px 10px;
+}
+
+.news .news-img{
+    width:120px;
+    height:60px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius:4px;
+}
+
+
+.news .news-body {
+    flex: 1;
+    margin: 0px 40px 0 20px;
+    min-width: 0px;
+    white-space:nowrap;
+}
+
+.news .news-content {
+    line-height:25px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    margin-bottom:4px;
+}
+
+.news .news-content p {
+    margin:0;
+}
+
+.news .news-title {
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.news .news-title span{
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.news .button {
+    position:absolute;
+    right:10px;
+    transform:scale(0.7);
+    font-size:12px;
+}
+
+.news .text{
+    display:inline-block;
+    transform-origin: left;
+    transform:scale(0.8);
+}
+
+.news .tags-container span{
+    background-color: #fff;
+    color: #072846;
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transform-origin: left;
+    transform: scale(0.8);
+}
+
+.news .avatar-container {
+    display:inline-block;
+    width:20px;
+    height:20px;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.news .avatar-container img {
+    width:100%;
+    height:100%;
+}
+
+.news .default-topic-bg {
+    height:100%;
+    background-color: rgb(65, 158, 245);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.news .default-topic-bg .icon {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    border-radius: 50%;
+    background-color: #fff;
+    color: rgb(24, 144, 255);
+    display: inline-block;
+    font-weight: 800;
+    box-shadow: 1px 1px 4px rgba(0,0,0,.3);
+}
+
+@media screen and (max-width: 640px) {
+    .news {
+        margin:6px 0;
+        padding:20px;
+    }
+    .news .news-body {
+        margin:0 0 0 20px;
+    }
+}
+
+@keyframes  newsMotion {
+    0%{
+        transform:scaleY(1) translateX(0);
+    }
+    100%{
+        transform:scaleY(0.5) translateX(-500px);
+    }
+}
+

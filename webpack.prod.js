@@ -136,7 +136,7 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         new HtmlWebpackPlugin({
             title:'react-news',
-            template:'./src/index.template.html',
+            template:'./template.html',
             //chunks:['index']
             
         }),

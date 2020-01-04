@@ -67,10 +67,8 @@ class PCHeader extends React.Component {
                             </Menu> 
                             <div className="search">
                               <SearchInput {...this.props} onUpdateSearchHistory={onUpdateSearchHistory}/> 
-                              <Popover trigger="click" content={
-                                    <div style={{width:'200px',height:'200px'}}>
-                                        <img src='http://image.renshanhang.site/mobile-website.png' />
-                                    </div>
+                              <Popover content={
+                                    <div className="mobile-website" style={{backgroundImage:`url(http://image.renshanhang.site/mobile-website.png)`}}></div>
                                 }>
                                   <Button type="primary" size="small" shape="circle" icon="mobile" />
                               </Popover>

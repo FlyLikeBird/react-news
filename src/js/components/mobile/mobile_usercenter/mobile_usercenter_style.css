@@ -1,0 +1,136 @@
+.container {
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:100%;
+    z-index:100;
+    background-color:#fff;
+    overflow-y:scroll;
+    text-align:left;
+}
+
+.container .spin {
+    position:absolute;
+    top:50%;
+    left:50%;
+    margin-left:-15px;
+    margin-top:-15px;
+}
+
+.container .header {
+    height:100px;
+    background-repeat:no-repeat;
+    background-position: center;
+    background-size: cover;
+    position:relative;
+}
+
+.container .avatar-container {
+    width:60px;
+    height:60px;
+    border-radius: 50%;
+    border:2px solid #fff;
+    position:absolute;
+    right:20px;
+    top:0;
+    box-shadow: 1px 4px 6px rgba(10,10,10,.1);
+}
+
+.container .avatar {
+    width:60px;
+    height:60px;
+    background-repeat:no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius: 50%;
+    border:2px solid #fff;
+    overflow:hidden;
+    box-shadow: 1px 4px 6px rgba(10,10,10,.1);
+}
+
+.container .avatar-container .avatar-button {
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    bottom:-10px;
+    background-color:#1890ff;
+    left:50%;
+    margin-left:-10px;
+}
+
+.container .avatar-container .avatar-button i{
+    display:inline-block;
+    width:100%;
+}
+
+.container .info-container {
+    padding:30px 50px;
+    position:relative;
+}
+
+.container .info {
+    padding:20px;
+    border-radius:10px;
+    background-color:#fff;
+}
+
+.container .info>div{
+    padding:4px 0;
+}
+
+.container .list ul{
+    list-style: none;
+    padding:0;
+}
+
+.container .list ul li{
+    padding:10px 30px;
+    display:flex;
+    align-items: center;
+    border-bottom:1px solid #f7f7f7;
+    background-color:#fff;
+}
+
+.container .list ul li i{
+    margin-right:10px;
+}
+
+.container .list ul li .icon{
+    margin-left:auto;
+}
+
+.container .user-level {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 120px;
+    background-color: rgba(24, 144, 255, 0.2);
+    border-radius: 10px;
+    transform: scale(0.9);
+    transform-origin: left;
+}
+
+.container .user-level .num {
+    width: 16px;
+    height: 16px;
+    line-height:16px;
+    text-align:center;
+    display: inline-block;
+    background-color: #1890ff;
+    border-radius: 50%;
+    color:#fff;
+    margin-left: 2px;
+    margin-right:6px;
+}
+
+.container .text {
+    display:inline-block;
+    transform:scale(0.9);
+    transform-origin: left;
+}
+
+.container .fontStyle {
+    color:rgba(0, 0, 0, 0.85);
+    font-weight:500;
+}

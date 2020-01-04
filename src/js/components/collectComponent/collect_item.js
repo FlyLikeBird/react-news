@@ -134,7 +134,7 @@ export default class CollectItem extends React.Component {
     }
 
     render(){
-        var { forUser, isSelf, uniquekey, history, forSimple } = this.props;
+        var { isSelf, uniquekey, history, forSimple, forUser, forMobile } = this.props;
         var { item, iconType, innerIcon, className, isCollected, collectedByUser, addFlash, motion, visible } = this.state;
         var { tag, defaultCollect, privacy, createtime, followedBy, shareBy, collectItem, _id } = item;
         return(
@@ -169,9 +169,8 @@ export default class CollectItem extends React.Component {
                                         ?
                                         null
                                         :
-                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏" history={history}/>}>
-                                            <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>
-                                            
+                                        <Popover trigger={forMobile?'click':'hover'} onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏" history={history}/>}>
+                                            <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>                                           
                                         </Popover>
                                         
                                     }
@@ -185,7 +184,7 @@ export default class CollectItem extends React.Component {
                                         ?
                                         null
                                         :
-                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} text="转发" forShare={true} history={history}/>}>
+                                        <Popover trigger={forMobile?'click':'hover'} onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} text="转发" forShare={true} history={history}/>}>
                                             <span className="text">{`${shareBy?shareBy.length:0}人转发`}<Icon type={innerIcon} /></span>
                                         </Popover>
                                         
