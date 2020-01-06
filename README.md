@@ -17,7 +17,7 @@
 
 ## 技术栈
 * react
-* react-router
+* react-dom
 * react-router-dom
 * react-responsive
 * react-loadable
