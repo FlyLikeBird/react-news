@@ -53,11 +53,13 @@ export default class MessageContainer extends React.Component{
         var { visible, deleteVisible, deleteId, toId, toUser } = this.state;
         var { msg, socket, history } = this.props;
         var { systemMsg, actionMsg, userMsg, total, actionNotRead, systemNotRead, userNotRead } = msg;       
-        
+        console.log('mounted');
         return(
             
             <div>
+                
                 <Collapse className="message-container" bordered={false} defaultActiveKey={['system','update','user']}>
+                    
                     <Panel className="bg" header={<Badge count={actionNotRead}><span>@我的消息</span></Badge>} key="update">
                         {
                             actionMsg && actionMsg.length
@@ -68,7 +70,7 @@ export default class MessageContainer extends React.Component{
                                     history={history}
                                     key={index}                                    
                                     isSub={true}
-                                    comment={item.commentid}
+                                    comment={item.commentid ? item.commentid : {}}
                                     msgId={item._id}
                                     msgRead={item.isRead}
                                     forUser={true}
@@ -81,9 +83,10 @@ export default class MessageContainer extends React.Component{
                         
                         
                     </Panel>
+                
                     <Panel header="系统消息" key="system">
                         {   
-                            systemMsg.length
+                            systemMsg && systemMsg.length
                             ?
                             systemMsg.map((item,index)=>(
                                 <MessageItem 
@@ -104,7 +107,7 @@ export default class MessageContainer extends React.Component{
                     
                     <Panel header="用户消息" key="user">
                         {   
-                            userMsg.length
+                            userMsg && userMsg.length
                             ?
                             userMsg.map((item,index)=>(
                                 <MessageItem 
@@ -123,6 +126,7 @@ export default class MessageContainer extends React.Component{
                     </Panel>
                 
                 </Collapse>
+
                 {
                     visible
                     ?

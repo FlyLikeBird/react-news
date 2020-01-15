@@ -56,7 +56,7 @@ app.use(session({
 app.use(express.static(path.resolve('./src/images')));
 app.use(express.static(path.resolve(__dirname,'./dist')));
 
-app.use('/api', indexRouter)
+app.use('/api',indexRouter);
 
 //  解决跨域问题
 app.all('*', function(req, res, next) {
@@ -83,8 +83,6 @@ server.listen(8081, () => {
 io.on('connection',(socket)=>{
   socketIndex(socket,io);
 });
-
-
 
 
 mongoose.connect(dbUrl, function (err) {

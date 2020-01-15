@@ -20,19 +20,28 @@ export default class UserListItem extends React.Component{
   }
   
   handleAddFollow(id){
-    fetch(`/api/usr/addFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({isFollowed:1});
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/addFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({isFollowed:1});
+          })
+    }
+    
   }
 
   handleRemoveFollow(id){
-    fetch(`/api/usr/removeFollow?userid=${localStorage.getItem('userid')}&followId=${id}`)
-      .then(response=>response.json())
-      .then(data=>{
-        this.setState({isFollowed:0})
-      })
+    var { onCheckLogin } = this.props;
+    var userid = onCheckLogin();
+    if (userid){
+        fetch(`/api/usr/removeFollow?userid=${userid}&followId=${id}`)
+          .then(response=>response.json())
+          .then(data=>{
+            this.setState({isFollowed:0})
+          })
+    }
   }
 
   handleShowChatList(){
@@ -46,8 +55,15 @@ export default class UserListItem extends React.Component{
     history.push(`/usercenter/${id}`);
   }
 
+  gotoMobileUsercenter(id){
+    var { history, forMobile } = this.props;
+    if (history && forMobile){
+        history.push(`/usercenter/${id}`);
+    }
+  }
+  
   render(){
-    var { item, expand } = this.props;
+    var { item, expand, forMobile } = this.props;
     var  { username, description, level, userImage, userFans, userFollows, isLogined, _id } = item;
     var { isFollowed } = this.state;
   
@@ -89,7 +105,7 @@ export default class UserListItem extends React.Component{
       )
 
     return(
-      <div className="user-list-item">
+      <div className="user-list-item" onClick={this.gotoMobileUsercenter.bind(this,_id)}>
          <div className="user-img-container">
             <span><img src={userImage} /></span>
          </div> 
@@ -112,7 +128,7 @@ export default class UserListItem extends React.Component{
               <div className="text-container"><span className="ant-text">{description}</span></div>
          </div>
          {
-          expand
+          expand || forMobile
           ?
           null
           :
@@ -130,7 +146,7 @@ export default class UserListItem extends React.Component{
          
 
          {
-           username === localStorage.getItem('username')
+           username === localStorage.getItem('username') || forMobile
            ?
            null
            :

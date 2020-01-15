@@ -5,13 +5,14 @@
     transition:all 0.3s ease-in;
 }
 
+
 /*transition:all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1); */
 .news-list-container .title-container {
     padding:10px 0;
     min-height:0;
     display:flex;
-    justify-content: space-between;
     align-items: center;
+    white-space: nowrap;
 }
 
 .news-list-container .title-container .motion{
@@ -22,6 +23,8 @@
     font-weight:500;
     font-size:16px;
     color:rgba(0, 0, 0, 0.85);
+    display:inline-block;
+    margin:0 10px;
 }
 
 .news-list-container .button {
@@ -30,6 +33,7 @@
     border-radius:16px;
     color:#fff;
     cursor: pointer;
+    margin-left:auto;
     transition: all .3s cubic-bezier(.645, .045, .355, 1);
 }
 
@@ -138,6 +142,12 @@
 
 .news-list-container .news-item a  {
     color:#666;
+}
+
+@media screen and (max-width: 640px) {
+    .news-list-container {
+        padding:20px 20px 0 20px;
+    }
 }
 
 @keyframes cardHeaderIcon{

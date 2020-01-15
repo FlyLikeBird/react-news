@@ -36,6 +36,7 @@ class TopicForm extends React.Component{
             previewVisible:false,
             previewImage:'',
             topicPreview:false,
+            uploadToken:'',
             previewItem:{},
             prevImages:[],
             deleteImages:[]          
@@ -71,63 +72,119 @@ class TopicForm extends React.Component{
         })        
     }
 
-    _validateFields(isEdit,topicId){
-        var { onUpdate, onVisible, onEditTopicItem, form, forAction } = this.props;
-        var { validateFields, setFieldsValue } = form;        
-        validateFields(['title','description','tag'],{force:true},(errors,values)=>{
-            //console.log(errors);
-            if(!errors){                
-                var formData = new FormData();
-                var { fileList, deleteImages, radioValue } = this.state;
-                var { title, description, tag } = values;
-                var userid = localStorage.getItem('userid'),username = localStorage.getItem('username');
+    _uploadToQiniu(file, uploadToken){
+        var formData = new FormData();
+        formData.append('file',file.originFileObj);
+        formData.append('token',uploadToken);
+        return new Promise((resolve,reject)=>{
+            fetch('http://upload-z2.qiniup.com',{
+              method:'post',
+              body:formData
+            }).then(response=>response.json())
+              .then(data=>{
+                  resolve(data.hash);
+              })
+        })
+    }
 
-                fileList.forEach(file=>{
-                    formData.append('images',file.originFileObj)
+    _resetFormFields(){
+        var { form } = this.props;
+        var { setFieldsValue } = form;
+        setFieldsValue('title','');
+        setFieldsValue('description','');
+        setFieldsValue('tag',[]);
+        this.setState({fileList:[], radioValue:0});
+    }
+    
+    _fetchOwnServer(images){
+        var { form, forEdit, forTopic, forAction, onUpdate, onEditTopicItem, item } = this.props;
+        var { deleteImages, radioValue } = this.state;
+        var { getFieldValue, setFieldsValue } = form;
+        var title = getFieldValue('title');
+        var description = getFieldValue('description');
+        var tag = getFieldValue('tag');
+        var userid = localStorage.getItem('userid'),username = localStorage.getItem('username');
+        var fetchParams = '',params = [];
+        if (tag && tag.length){
+            tag.forEach(tag=>{
+                params.push({key:'tags[]',value:tag})
+            })
+        }       
+        if (images && images.length){
+            for(var i=0,len=images.length;i<len;i++){
+                params.push({key:'images[]',value:images[i]});
+            } 
+        }
+              
+        if ( forEdit ){
+            if ( deleteImages && deleteImages.length){
+                deleteImages.map(item=>{
+                    params.push({key:'deleteImage[]',value:item});
                 })
-                if (tag && tag.length){
-                    for(var i=0,len=tag.length;i<len;i++){
-                        formData.append('tags',tag[i])
-                    }
-                }                
-                if ( isEdit ){
-                    for(var i=0,len=deleteImages.length;i<len;i++){
-                        formData.append('deleteImage',deleteImages[i])
-                    }
-                    formData.append('topicId',topicId);
-                    
-                }                
-                formData.append('title',title);
-                formData.append('description',description);
-                formData.append('privacy',radioValue);
-                formData.append('userid',userid);
-                if ( isEdit ){
-                    fetch('/api/topic/edit',{method:'post',body:formData})
-                    .then(response=>response.json())
-                    .then(json=>{
-                        var data = json.data;
-                        if (onEditTopicItem) onEditTopicItem(data[0]);
-                    })
-                } else if ( forAction ) {
-                    fetch(`/api/action/create`,{method:'post',body:formData})
-                        .then(response=>response.json())
-                        .then(json=>{
-                            var data = json.data;
-                            if ( onUpdate ) onUpdate(data);
-                        })
-                }  else {
-                    fetch('/api/topic/upload',{method:'post',body:formData})                    
-                    .then(response=>response.json())
-                    .then(json=>{
-                        var data = json.data;                           
-                        if ( onUpdate ) onUpdate(data);
-                    })
+            }
+            params.push({key:'topicId',value:item._id}); 
+        }          
+
+        params.push({key:'title',value:title});
+        params.push({key:'description',value:description});
+        params.push({key:'privacy',value:radioValue});
+        params.push({key:'userid',value:userid});
+        //console.log(params);
+        for(var i=0,len=params.length;i<len;i++){
+            fetchParams+=`${params[i].key}=${params[i].value}&`
+        } 
+        if ( forAction ){             
+            fetch(`/api/action/create?${fetchParams}`,)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    if ( onUpdate ) onUpdate(data); 
+                    this._resetFormFields();           
+                })
+
+        } else if (forTopic){
+            fetch(`/api/topic/upload?${fetchParams}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    if (onUpdate) onUpdate(data);
+                    this._resetFormFields();
+                })
+        } else if (forEdit){
+            fetch(`/api/topic/edit?${fetchParams}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    if (onEditTopicItem) onEditTopicItem(data[0]); 
+                    this._resetFormFields();
+                })
+        }
+    }
+
+    _validateFields(){
+        var { onUpdate, onVisible, onEditTopicItem, form, forAction } = this.props;
+        var { uploadToken, fileList } = this.state;
+        var { validateFields, setFieldsValue } = form; 
+             
+        validateFields(['title','description','tag'],{force:true},(errors,values)=>{           
+            if(!errors){                    
+                //  需要上传图片
+                if ( uploadToken && fileList && fileList.length){
+                    var uploadPromise = [];
+                    fileList.forEach(file=>{
+                       var promise = this._uploadToQiniu(file, uploadToken);
+                       uploadPromise.push(promise);
+                    });
+                    Promise.all(uploadPromise)
+                        .then(([...uploadImg])=>{
+                            var images = uploadImg.map(item=>`http://image.renshanhang.site/${item}`);                           
+                            this._fetchOwnServer(images);
+                        })           
+                } else {
+                    this._fetchOwnServer();
                 }
-                setFieldsValue({'title':''});
-                setFieldsValue({'description':''});
-                setFieldsValue({'tags':[]}); 
-                this.setState({fileList:[]});
                 if ( onVisible ) onVisible(false);
+
             }
         })
     }
@@ -180,32 +237,38 @@ class TopicForm extends React.Component{
         
     handleChange({ fileList }){
         var { forEdit } = this.props;
-        if (forEdit){
-            //  编辑表单页面多了验证配图重复性的逻辑
-            var { prevImages } = this.state;
-            if ( fileList && fileList.length ) {
-                var currentImage = fileList[0].name;
-                var exist = false;            
-                for(var i=0,len=prevImages.length;i<len;i++){
-                    if ( prevImages[i].originalname == currentImage){
-                        exist = true;
-                        break;
+        fetch('/api/token')
+            .then(response=>response.json())
+            .then(json=>{
+                var token = json.data;
+                /*
+                if (forEdit){
+                    //  编辑表单页面多了验证配图重复性的逻辑
+                    var { prevImages } = this.state;
+                    if ( fileList && fileList.length ) {
+                        var currentImage = fileList[0].name;
+                        var exist = false;            
+                        for(var i=0,len=prevImages.length;i<len;i++){
+                            if ( prevImages[i].originalname == currentImage){
+                                exist = true;
+                                break;
+                            }
+                        }
+                        if (exist){
+                            message.error('已经存在该配图了!')
+                            
+                        } else {
+                            this.setState({fileList})
+                        }
+                    } else {
+                        //  删除预览图逻辑
+                        this.setState({fileList, uploadToken:token});
                     }
-                }
-                if (exist){
-                    message.error('已经存在该配图了!')
+                    */ 
+                
+                this.setState({fileList, uploadToken:token});
                     
-                } else {
-                    this.setState({fileList})
-                }
-            } else {
-                //  删除预览图逻辑
-                this.setState({fileList})
-            }
-            
-        } else {
-            this.setState({ fileList });
-        }
+            })
         
     } 
 
@@ -341,17 +404,11 @@ class TopicForm extends React.Component{
         }
     }
 
-    handleDeletePrevImages(id){
+    handleDeletePrevImages(index){
         var { prevImages, deleteImages } = this.state;
         var newImages = [...prevImages];
-        deleteImages.push(id);
-        var deleteIndex = 0;
-        prevImages.map((item,index)=>{
-            if (item._id == id){
-                deleteIndex = index
-            }
-        })
-        newImages.splice(deleteIndex,1);
+        newImages.splice(index,1);
+        deleteImages.push(prevImages[index]);
         this.setState({prevImages:newImages,deleteImages});
     }
 
@@ -453,8 +510,8 @@ class TopicForm extends React.Component{
                                                 <div>
                                                     {
                                                         prevImages.map((item,index)=>(
-                                                            <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)} key={index} className="topic-img-container" style={{backgroundImage:`url(${item['filename']})`}}>
-                                                                <div className="topic-form-mask"><Icon type="delete" onClick={this.handleDeletePrevImages.bind(this,item._id)}/></div>
+                                                            <div onMouseOver={this.handleMouseOver.bind(this)} onMouseOut={this.handleMouseOut.bind(this)} key={index} className="topic-img-container" style={{backgroundImage:`url(${item})`}}>
+                                                                <div className="topic-form-mask"><Icon type="delete" onClick={this.handleDeletePrevImages.bind(this,index)}/></div>
                                                             </div>
                                                         ))
                                                     }

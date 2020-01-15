@@ -12,6 +12,9 @@
     background: #f7f7f7;
     padding: 6px 10px 10px 20px;
     border-radius: 4px;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .imgNewsList.small .news-title {
@@ -70,6 +73,7 @@
     background-color:#fff;
     border-radius:4px;
     box-shadow: 1px 1px 1px rgba(222, 222, 222, 1);
+    transition:all 0.3s;
 }
 
 .imgNewsList .imageblock a:hover {

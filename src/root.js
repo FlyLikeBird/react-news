@@ -1,16 +1,15 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import MediaQuery from 'react-responsive';
 import { Spin, message } from 'antd';
 import config from '../config/config';
-import secret from './utils/secret';
 import PCRouter from './js/components/pc/pc_index';
 import MobileRouter from './js/components/mobile/mobile_root';
 import LoginContainer from './js/components/login_container';
 
 import 'antd/dist/antd.css';
+import './css/pc.common.css';
+import './css/mobile.css';
 
 export default class Root extends React.Component {
   constructor(){
@@ -19,7 +18,8 @@ export default class Root extends React.Component {
           user:{},
           msg:{},
           socket:{},
-          visible:false
+          visible:false,
+          searchHistory:[]
       }
   }
 
@@ -36,8 +36,7 @@ export default class Root extends React.Component {
           var username = localStorage.getItem('username');
           var avatar = localStorage.getItem('avatar'); 
           var user = {userid, username, avatar }; 
-      }
-      
+      }    
       if ( userid  ){
           var socket = io.connect(`${config.socket}`);
           socket.on('connect',()=>{
@@ -82,18 +81,51 @@ export default class Root extends React.Component {
 
   componentDidMount(){
       this._handleLogined();
+      this._updateSearchHistory();
   }
-   
+  
+  _updateSearchHistory(title, remove){
+        var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];             
+        if (remove){
+            localStorage.removeItem('searchHistory');
+            this.setState({searchHistory:[]});
+        } else {
+            if (title){
+                var pattern = /(^\s*)|(\s*$)/g;
+                var title = title.replace(pattern,'');
+                if (!searchHistory.map(item=>item.title).includes(title)){
+                    searchHistory.push({title})
+                }             
+                localStorage.setItem('searchHistory',JSON.stringify(searchHistory));
+            }      
+            this.setState({searchHistory});
+        }
+  }
+
+
   render(){
-      var { visible } = this.state;
+      var { visible, searchHistory } = this.state;
       return (
           <div style={{textAlign:'center',height:'100%'}}>            
               <MediaQuery query='(min-device-width:640px)'>
-                  <PCRouter {...this.state} onLoginVisible={this._setLoginVisible.bind(this)} onLoginOut={this.handleLoginOut.bind(this)} onCheckLogin={this._checkUserLogin.bind(this)}/>
-              </MediaQuery>
+                  <PCRouter 
+                      {...this.state} 
+                      onLoginVisible={this._setLoginVisible.bind(this)} 
+                      onLoginOut={this.handleLoginOut.bind(this)} 
+                      onCheckLogin={this._checkUserLogin.bind(this)}
+                      onUpdateSearchHistory={this._updateSearchHistory.bind(this)}
+                  />
+              </MediaQuery>              
               <MediaQuery query='(max-device-width:640px)'>
-                  <MobileRouter {...this.state}/>
-              </MediaQuery>               
+                  <MobileRouter 
+                    {...this.state} 
+                    onLoginVisible={this._setLoginVisible.bind(this)} 
+                    onLoginOut={this.handleLoginOut.bind(this)} 
+                    onCheckLogin={this._checkUserLogin.bind(this)}
+                    onUpdateSearchHistory={this._updateSearchHistory.bind(this)}
+                  />
+              </MediaQuery>  
+                         
               {
                   visible
                   ?

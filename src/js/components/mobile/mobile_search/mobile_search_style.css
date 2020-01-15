@@ -1,0 +1,88 @@
+.search-page {
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:100%;
+    z-index:100;
+    background-color:#fff;
+}
+
+.search-page .search-header {
+    display:flex;
+    padding:0 20px;
+    align-items: center;
+    justify-content: space-between;
+    height:50px;
+    color:#fff;
+    background-color:#1890ff;
+    position:fixed;
+    width:100%;
+    z-index:100;
+}
+
+.search-page .search-header .search-input{
+    flex:0;
+    margin-right:10px;
+    transition:all 0.5s ease-out;
+}
+
+.search-page .search-header .search-input input{
+    border-radius:30px;
+}
+
+.search-page .search-header .search-input.motion {
+    flex:1;
+}
+
+.search-page .search-header .close-button{
+    width:40px;
+}
+
+.search-page .search-body {
+    position:absolute;
+    top:50px;
+    bottom:0;
+    width:100%;
+    overflow-y:scroll;
+    text-align:left;
+}
+
+.search-body .tags {
+    padding:10px 20px;
+}
+
+.search-body .tags .button {
+    color:#1890ff;
+    cursor: pointer;
+    float:right;
+}
+
+.search-body .text {
+    display:inline-block;
+    transform:scale(0.9);
+    transform-origin: left;
+    margin-bottom:4px;
+}
+
+.search-body .tags ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.search-body .tags ul li{
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: #ebf5fd;
+    color: #0c3f6d;
+    margin-right: 4px;
+    margin-top: 4px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-body .search-option {
+    margin:10px 0;
+    padding:0 10px;
+}

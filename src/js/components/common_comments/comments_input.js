@@ -25,75 +25,111 @@ class CommentsInput extends React.Component{
             listContent:[],
             fileList:[],
             searchContent:[],
-            value:''
+            value:'',
+            uploadToken:''
+        }
+    }
+
+    _uploadToQiniu(file, uploadToken){
+        var formData = new FormData();
+        formData.append('file',file.originFileObj);
+        formData.append('token',uploadToken);
+        return new Promise((resolve,reject)=>{
+            fetch('http://upload-z2.qiniup.com',{
+              method:'post',
+              body:formData
+            }).then(response=>response.json())
+              .then(data=>{
+                  resolve(data.hash);
+              })
+        })
+    }
+
+    _resetFormFields(){
+        var { form } = this.props;
+        var { setFieldsValue } = form;
+        setFieldsValue('comments','');
+        this.setState({fileList:[]});
+    }
+
+    _fetchOwnServer(images){
+        var { socket, commentType, uniquekey, isSub, commentid, parentcommentid, isAddComment, onAddComment, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
+        var comments = this.props.form.getFieldValue('comments');
+        var userid = localStorage.getItem('userid');
+        var params = [], fetchParams = '';
+        if (images && images.length){
+            images.forEach(item=>{
+                params.push({key:'images[]',value:item});
+            })
+        }
+        params.push({key:'userid', value:userid});
+        params.push({key:'content', value:comments});
+        params.push({key:'uniquekey', value:uniquekey});
+        params.push({key:'commentType', value:commentType});
+        //  生成一条新评论逻辑
+        if (isAddComment){
+            for(var i=0,len=params.length;i<len;i++){
+                fetchParams+=`${params[i].key}=${params[i].value}&`
+            }          
+            fetch(`/api/comment/addcomment?${fetchParams}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    var { commentid } = data;                       
+                    if(onAddComment) onAddComment(data);
+                    sendActionMsg(comments, userid, commentid, socket); 
+                    this._resetFormFields();                                        
+                })
+        } else {
+            //  回复评论逻辑
+            params.push({key:'replyTo', value:commentid});
+            params.push({key:'parentcommentid', value:isSub? parentcommentid:commentid});
+            params.push({key:'isSub', value:isSub?true:''});   
+            for(var i=0,len=params.length;i<len;i++){
+                fetchParams+=`${params[i].key}=${params[i].value}&`
+            }     
+            fetch(`/api/comment/addreplycomment?${fetchParams}`)
+                .then(response=>response.json())
+                .then(json=>{
+                    var data = json.data;
+                    var { commentid } = data;  
+                    if (isSub){
+                        if (onUpdateFromSub) onUpdateFromSub(data);
+                    } else {
+                        if (onUpdateReplies) onUpdateReplies(data);
+                    }
+                    if (onCloseReply) onCloseReply();
+                    sendActionMsg(comments, userid, commentid, socket);
+                    this._resetFormFields();
+                })        
         }
     }
 
     handleSubmit(e){
         e.preventDefault();
         var { form, onCheckLogin } = this.props;
-        var { validateFields, setFieldsValue } = form;    
-        var { fileList } = this.state;
+        var { validateFields } = form;    
+        var { fileList, uploadToken } = this.state;
         var userid = onCheckLogin();
         if (userid){
             validateFields(['comments'],(errs,values)=>{
-                var { socket, commentType, uniquekey, isAddComment, onAddComment, onUpdateFromSub, onUpdateReplies, onCloseReply } = this.props;
                 if(!errs){
                     var  { comments } = values;
-                    //  生成一条新评论逻辑
-                    if (isAddComment){
-                        var formData = new FormData();
-                        for(var i=0,len=fileList.length;i<len;i++){
-                            formData.append('images',fileList[i].originFileObj);
-                        }
-                        formData.append('userid', userid);
-                        formData.append('content',comments);
-                        formData.append('commentType',commentType);
-                        formData.append('uniquekey',uniquekey)                    
-                        fetch('/api/comment/addcomment',{
-                            method:'post',
-                            body:formData
-                        })
-                        .then(response=>response.json())
-                        .then(json=>{
-                            var data = json.data;
-                            var { commentid } = data;                       
-                            if(onAddComment) onAddComment(data);
-                            sendActionMsg(values['comments'], userid, commentid, socket);                                         
-                        })
+                    if ( uploadToken && fileList && fileList.length){
+                        var uploadPromise = [];
+                        fileList.forEach(file=>{
+                           var promise = this._uploadToQiniu(file, uploadToken);
+                           uploadPromise.push(promise);
+                        });
+                        Promise.all(uploadPromise)
+                            .then(([...uploadImg])=>{
+                                var images = uploadImg.map(item=>`http://image.renshanhang.site/${item}`);                           
+                                this._fetchOwnServer(images);
+                            })           
                     } else {
-                        //  回复评论逻辑
-                        var { isSub, commentType, uniquekey, parentcommentid, commentid } = this.props;
-                        var formData = new FormData();
-                        for(var i=0,len=fileList.length;i<len;i++){
-                            formData.append('images',fileList[i].originFileObj);
-                        }
-                        formData.append('fromUser',userid);
-                        formData.append('content',comments);
-                        formData.append('replyTo',commentid);
-                        formData.append('commentType', commentType);
-                        formData.append('parentcommentid', isSub? parentcommentid:commentid);
-                        formData.append('isSub',isSub?true:'');
-                        formData.append('uniquekey',uniquekey)        
-                        fetch(`/api/comment/addreplycomment`,{
-                            method:'post',
-                            body:formData
-                        })
-                        .then(response=>response.json())
-                        .then(json=>{
-                            var data = json.data;
-                            var { commentid } = data;  
-                            if (isSub){
-                                if (onUpdateFromSub) onUpdateFromSub(data);
-                            } else {
-                                if (onUpdateReplies) onUpdateReplies(data);
-                            }
-                            if (onCloseReply) onCloseReply();
-                            sendActionMsg(values['comments'], userid, commentid, socket);
-                        })        
+                        this._fetchOwnServer();
                     }
-                    setFieldsValue({'comments':''});
-                    this.setState({fileList:[]})
+                    
                 }
             })
         }
@@ -120,7 +156,6 @@ class CommentsInput extends React.Component{
                 },100)                      
                               
             }
-            
         }
     }
     
@@ -178,7 +213,11 @@ class CommentsInput extends React.Component{
     }   
         
     handleChange({ fileList }){
-        this.setState({ fileList });
+        fetch('/api/token')
+            .then(response=>response.json())
+            .then(json=>{
+                this.setState({fileList, uploadToken:json.data});
+            })
     } 
 
     setTextareaValue(value){
@@ -203,7 +242,7 @@ class CommentsInput extends React.Component{
     render(){
         
         var  {getFieldDecorator} = this.props.form;
-        var { leftPosition, showSelect, fileList, value } = this.state;
+        var { leftPosition, showSelect, fileList } = this.state;
         const selectStyle = {
             display:'none',
             width:'180px',

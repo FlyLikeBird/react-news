@@ -1,0 +1,40 @@
+
+.header {
+    display:flex;
+    padding:0 10px;
+    align-items: center;
+    justify-content: space-between;
+    height:50px;
+    background-color:#1890ff;
+    position:fixed;
+    width:100%;
+}
+
+.header .logo {
+    display:flex;
+    align-items: center;
+}
+
+.header input {
+    height: 24px;
+    border-radius: 30px;
+    flex: 1;
+    margin: 0 20px;
+}
+
+.header .user-container {
+    display:flex;
+    align-items: center;
+}
+
+.header .img-container {
+    width:24px;
+    height:24px;
+    display:inline-block;
+    overflow: hidden;
+    border-radius:50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    margin-right:6px;
+}

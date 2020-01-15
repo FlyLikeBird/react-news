@@ -4,7 +4,7 @@ var userPromise = require('../userPromise');
 var util = require('../util');
 
 var onlineUsers = {};
-
+onlineUsers['5dfc9a1db919945caaaba177'] = { id:'online'};
 function sort(arr){
   arr.sort((a,b)=>{
     var time1 = Date.parse(a.date);

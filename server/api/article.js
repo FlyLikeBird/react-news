@@ -138,7 +138,7 @@ router.get('/search',(req,res)=>{
 
       _filter = {
         $and:[
-          {content:{$regex:{$regex:new RegExp(words,'g')}}},
+          {content:{$regex:new RegExp(words,'g')}},
           {'newstime':{$gt:start,$lt:end}}
         ]
       }
@@ -169,6 +169,7 @@ router.get('/search',(req,res)=>{
                      obj.newstime = item.newstime;
                      obj.auth = item.auth;
                      obj.type = item.type;
+                     obj._id = item._id;
                      obj.content = selectWords(item.content,words);
                      return obj;
                   })
@@ -207,6 +208,7 @@ router.get('/getArticleList',(req,res)=>{
 
 router.get('/getArticleContent',(req,res)=>{
   let { uniquekey } = req.query;
+  //mongooseOperations.addThumbnails();
   Article.findOne({'_id':uniquekey})
       .populate({
           path:'shareBy',

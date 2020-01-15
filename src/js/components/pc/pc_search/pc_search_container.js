@@ -99,20 +99,9 @@ export default class PCSearchContainer extends React.Component{
       })   
   }
   
-  _updateSearchList(title){
-        var pattern = /(^\s*)|(\s*$)/g;
-        var title = title.replace(pattern,'');
-        var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];             
-        if (!searchHistory.map(item=>item.title).includes(title)){
-            searchHistory.push({title})
-        }             
-        localStorage.setItem('searchHistory',JSON.stringify(searchHistory));
-        this.setState({searchList:searchHistory});
-  }
-
   render(){
     var { type, newsList, topicList, userList, count, value, isLoading } = this.state;
-    var { location, history, socket, onUpdateSearchHistory } = this.props;
+    var { location, history, socket, onCheckLogin, onUpdateSearchHistory } = this.props;
     const dropdownStyle = {
       width:'160px',
       fontSize:'12px'
@@ -146,7 +135,7 @@ export default class PCSearchContainer extends React.Component{
                             { topicList.length ? <Pagination style={{paddingTop:'20px'}} hideOnSinglePage={true} showQuickJumper defaultPageSize={20} total={count} onChange={this.handlePageChange.bind(this)}/> : null }
                         </TabPane>
                         <TabPane tab="用户" key="User">
-                            { isLoading ? <Spin /> : <UserList data={userList} socket={socket} history={history} text="没有找到相关的用户!"/> }
+                            { isLoading ? <Spin /> : <UserList data={userList} onCheckLogin={onCheckLogin} socket={socket} history={history} text="没有找到相关的用户!"/> }
                                                   
                         </TabPane>
                     </Tabs>

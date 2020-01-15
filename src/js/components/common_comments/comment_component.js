@@ -63,7 +63,7 @@ export default class CommentComponent extends React.Component{
         }
         setTimeout(()=>{
             this.commentDom.classList.remove('selected');
-        },3000)
+        },4000)
           
     }
     var str = fromSubTextarea ? replyTo ? `回复@${replyTo.fromUser.username}:${content}` : `${content}` : `${content}` ;
@@ -94,8 +94,13 @@ export default class CommentComponent extends React.Component{
       this.subContainer = null;
   }
 
+  handleGogoMobileUsercenter(id){
+    var { history } = this.props;
+    if (history) history.push(`/usercenter/${id}`);
+  }
+  
   render(){
-    let { parentcommentid, comment, commentType, isSub, socket, uniquekey, history, forUser, forMsg, msgId, msgRead, onDelete, onVisible, hasDelete, onShowList, onCheckLogin, onUpdateReplies, onSetScrollTop, onUpdateFromSub }= this.props;
+    let { parentcommentid, comment, commentType, forMobile, isSub, socket, uniquekey, history, forUser, forMsg, msgId, msgRead, onDelete, onVisible, hasDelete, onShowList, onCheckLogin, onUpdateReplies, onSetScrollTop, onUpdateFromSub }= this.props;
     let { fromUser, toUser, content, date, _id,  likeUsers, dislikeUsers, related, onModel, shareBy, selected, isRead, parent, fromSubTextarea, images } = comment;
     var userid = localStorage.getItem('userid');
     let { previewVisible, img, showReplies, replies, translateData  } = this.state;
@@ -107,6 +112,7 @@ export default class CommentComponent extends React.Component{
       isSub,
       forUser,
       forMsg,
+      forMobile,
       msgId,
       msgRead,
       onDelete,
@@ -137,10 +143,17 @@ export default class CommentComponent extends React.Component{
       <div>
           <div ref={comment=>this.commentDom = comment} className={forUser?'comment user':selected ? 'comment selected' :'comment'}>      
                     <div className="comment-user-info">
-                        <Popover autoAdjustOverflow={false} placement="right" content={<CommentPopoverUserAvatar user={fromUser.username} onCheckLogin={onCheckLogin} history={history}/>}>
-                            <Badge className="avatar-container" count={ forMsg ? msgRead ? 0 : 1 : 0}><img src={fromUser.userImage} /></Badge>
-                        </Popover>
-                        <div>
+                        {
+                            forMobile
+                            ?
+                            <div className="badge-container" onClick={this.handleGogoMobileUsercenter.bind(this,fromUser._id)}><Badge count={ forMsg ? msgRead ? 0 : 1 : 0}><span className="avatar-container" ><img src={fromUser.userImage} /></span></Badge></div>
+                            :
+                            <Popover autoAdjustOverflow={false} placement="right" content={<CommentPopoverUserAvatar user={fromUser.username} onCheckLogin={onCheckLogin} history={history}/>}>
+                                <div className="badge-container"><Badge count={ forMsg ? msgRead ? 0 : 1 : 0}><span className="avatar-container" ><img src={fromUser.userImage} /></span></Badge></div>
+                            </Popover>
+                        }
+                        
+                        <div style={{marginLeft:forUser?'10px':'0'}}>
                             <div><span style={{color:'#000',fontWeight:'500'}}>{fromUser.username}</span>{ owncomment ?<span className="label">用户</span>:null}</div>
                             <span className="text">{`发布于 ${commentDate}`}</span>
                         </div>
@@ -176,6 +189,10 @@ export default class CommentComponent extends React.Component{
                     </div>
                     <div>
                       {
+                        forUser
+                        ?
+                        null
+                        :
                         //  判断images是否存在因为子评论没有images字段
                         images && images.length
                         ?

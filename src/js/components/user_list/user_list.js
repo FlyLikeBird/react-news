@@ -17,7 +17,7 @@ export default class UserList extends React.Component{
   }
   
   _checkUserLoginedAndFollowd(){
-      var { data, socket } = this.props;
+      var { data, socket, forMobile } = this.props;
       var userids = data.map(item=>item._id);
       if (socket){
           socket.emit('checkLogined',userids,localStorage.getItem('userid'));
@@ -50,7 +50,7 @@ export default class UserList extends React.Component{
 
   render(){
     var { list, visible, toUser, toId }  = this.state;
-    var { socket, history, expand, text } = this.props;
+    var { socket, history, onCheckLogin, expand, forMobile, text } = this.props;
      
     return(
 
@@ -64,7 +64,9 @@ export default class UserList extends React.Component{
                           <UserListItem 
                               key={index}
                               expand={expand}
-                              socket={socket} 
+                              socket={socket}
+                              onCheckLogin={onCheckLogin} 
+                              forMobile={forMobile}
                               history={history} 
                               onShowChatList={this.handleShowChatList.bind(this)} 
                               item={item} 
@@ -81,7 +83,7 @@ export default class UserList extends React.Component{
                   }
               </div>
               :
-              <div>{text}</div>
+              <div style={{padding:'10px 20px'}}>{text}</div>
           }
       </div>
       

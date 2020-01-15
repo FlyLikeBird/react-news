@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var multer = require('multer');
 var path = require('path');
 var fs = require('fs');
 var config = require('../../config/config');
@@ -13,32 +12,6 @@ var Article = require('../../models/Article');
 var User = require('../../models/User');
 var Comment = require('../../models/Comment');
 var Collect = require('../../models/Collect');
-
-var createFolder = function(folder){
-    try{
-        fs.accessSync(folder); 
-    }catch(e){
-        fs.mkdirSync(folder);
-    }  
-};
-var uploadFolder = path.resolve('./src'+'/images/action');
-createFolder(uploadFolder);
-// 通过 filename 属性定制
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-
-        cb(null, uploadFolder);    // 保存的路径，备注：需要自己创建
-    },
-    filename: function (req, file, cb) {
-        // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
-        //console.log(file);
-        let type = file.mimetype;
-         
-        cb(null, file.fieldname + '-' + Date.now() +  '.'+type.slice(6,type.length) );  
-    }
-});
-var upload = multer({storage});
-
 
 function getShareBy(Collect, contentId, actionId, res){
     Collect.updateOne({_id:contentId},{$push:{shareBy:actionId}},(err,result)=>{
@@ -176,16 +149,14 @@ function getUserOrSingleActions( res, userid, actionId){
                  
         })
         .then(actions=>{
+            console.log(actions);
             util.responseClient(res, 200, 0, 'ok', actions);
         })
 }
 
-router.post('/create',upload.array('images'),(req,res)=>{
-    var { description, privacy, userid } = req.body;
-    var date = new Date().toString(),images = [];
-    if(req.files){
-        images = req.files.map(item=>config.uploadPath+'/action/'+item.filename)   
-    }  
+router.get('/create',(req,res)=>{
+    var { description, privacy, userid, images } = req.query;
+    var date = new Date().toString();
     var action = new Action({
         date,
         value:description,
@@ -195,6 +166,7 @@ router.post('/create',upload.array('images'),(req,res)=>{
     });
     action.save()
         .then(()=>{
+            console.log(userid);
             getUserOrSingleActions( res, userid);
         })
 })

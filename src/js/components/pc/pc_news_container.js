@@ -46,7 +46,7 @@ export default class PCNewsContainer extends React.Component {
 		var { newsList, topicList, isLoading } = this.state;
 		return(
 
-			<section style={{paddingTop:'30px'}}>
+			<section style={{paddingTop:'30px'}}>				
 				<Row>
 					<Col span={2}></Col>
 					<Col span={15} style={{paddingRight:'30px'}}>
@@ -67,7 +67,7 @@ export default class PCNewsContainer extends React.Component {
 											<PCNewsBlock title="本周热门新闻" data={newsList} hasTitle={true}/>
 										</div>
 										<div style={{width:'50%',padding:'4px 8px 0 12px'}}>
-											<PCNewsBlock title="本周热门话题" data={topicList} hasTitle={true} forTopic/>
+											<PCNewsBlock title="本周热门话题" data={topicList} hasTitle={true} forTopic history={history}/>
 										</div>
 									</div>
 								}
@@ -101,12 +101,12 @@ export default class PCNewsContainer extends React.Component {
 						<PCNewsImageBlock iconType="mobile" count={16} type="keji"  cardTitle="科技新闻"  columns={6}/>
 						<PCNewsImageBlock iconType="mobile" count={16} type="junshi"  cardTitle="军事新闻" columns={6}/>
 						<PCNewsImageBlock iconType="rocket" count={16} type="tiyu"  cardTitle="体育新闻"  columns={6}/>
-					
+						
 					</Col>
 					<Col span={2}></Col>
 
 				</Row>
-
+			
 			</section>
 
 		)

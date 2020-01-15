@@ -134,7 +134,7 @@ export default class CollectItem extends React.Component {
     }
 
     render(){
-        var { forUser, isSelf, uniquekey, history, forSimple } = this.props;
+        var { isSelf, uniquekey, history, forSimple, forUser, forMobile } = this.props;
         var { item, iconType, innerIcon, className, isCollected, collectedByUser, addFlash, motion, visible } = this.state;
         var { tag, defaultCollect, privacy, createtime, followedBy, shareBy, collectItem, _id } = item;
         return(
@@ -142,7 +142,7 @@ export default class CollectItem extends React.Component {
                 <div className="collect-header" onClick={this.handleShowContent.bind(this)}>
                     <Icon type={iconType} />
                     <div className="collect-card">
-                        <span style={{flex:'1',position:'relative'}}>
+                        <div style={{flex:'1',position:'relative'}}>
                             <span style={{fontSize:'30px',color:'#1890ff'}}><Icon className={className} type="folder-add" theme="filled" /></span>
                             
                                 <span ref={rollOut=>this.rollOut=rollOut} className='motion rollOut'><Icon type="file-text" /></span>
@@ -150,8 +150,8 @@ export default class CollectItem extends React.Component {
                                 <span ref={rollIn=>this.rollIn=rollIn} className='motion rollIn'><Icon type="file-text" /></span>
                             
                             
-                        </span>
-                        <div style={{flex:'7'}}>
+                        </div>
+                        <div style={{flex:'7',marginLeft:'20px'}}>
                             <span style={{color:'#000',fontWeight:'500'}}>{tag}</span>
                             <div>
                                 <span className="text">{`创建于${formatDate(parseDate(createtime))}`}</span>
@@ -169,9 +169,8 @@ export default class CollectItem extends React.Component {
                                         ?
                                         null
                                         :
-                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏" history={history}/>}>
-                                            <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>
-                                            
+                                        <Popover trigger={forMobile?'click':'hover'} onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={followedBy} text="收藏" history={history}/>}>
+                                            <span className="text">{`${followedBy?followedBy.length:0}人收藏`}<Icon type={innerIcon} /></span>                                           
                                         </Popover>
                                         
                                     }
@@ -185,7 +184,7 @@ export default class CollectItem extends React.Component {
                                         ?
                                         null
                                         :
-                                        <Popover onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} text="转发" forShare={true} history={history}/>}>
+                                        <Popover trigger={forMobile?'click':'hover'} onVisibleChange={this.handleChangeIcon.bind(this)} autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} text="转发" forShare={true} history={history}/>}>
                                             <span className="text">{`${shareBy?shareBy.length:0}人转发`}<Icon type={innerIcon} /></span>
                                         </Popover>
                                         

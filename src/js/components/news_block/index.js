@@ -5,7 +5,11 @@ import { Card, Icon, Spin } from 'antd';
 import style from './newsBlock.style.css';
 
 export default class PCNewsBlock extends React.Component {
-	
+	handleClick(id){
+		var { history } = this.props;
+		if (history) history.push(`/topic/${id}`)
+	}
+
 	render() {
 		
 		var { data, title, forTopic, hasTitle, fixPosition, fixWidth } = this.props;
@@ -25,7 +29,7 @@ export default class PCNewsBlock extends React.Component {
 							<Icon type="fire" theme="filled" style={{color:'rgb(226, 85, 85)'}} className={style.motion}/>
 						}
 						<span className={style["title"]}>{ title } </span>
-						<span className={style.button}><Link to={ forTopic ? '/topicIndex':'/topNews'} >{ forTopic ? "查看更多话题":"查看更多新闻"}<Icon type="right-circle" /></Link></span>
+						<span className={style.button}><Link to={ forTopic ? '/topicIndex':'/newsIndex'} >{ forTopic ? "查看更多话题":"查看更多新闻"}<Icon type="right-circle" /></Link></span>
 					</div>
 					:
 					null
@@ -41,7 +45,7 @@ export default class PCNewsBlock extends React.Component {
 									?
 									data.map((item,index)=>(
 										<li key={index} className={style["topic-item"]}>
-											<div>
+											<div onClick={this.handleClick.bind(this, item._id)}>
 												<span className={style["icon"]}><Icon type="number" /></span>
 												<span className={style.text}>{item.title}</span>
 											</div>

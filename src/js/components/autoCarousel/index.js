@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, Spin } from 'antd';
 import style from './autoCarousel.style.css';
-var tempArr = [];
+
 export default class AutoCarousel extends React.Component {
     
     constructor(){
@@ -16,7 +16,6 @@ export default class AutoCarousel extends React.Component {
             data:[]
         }
     }
-
     
     componentDidMount(){
         var { count } = this.props;      
@@ -51,7 +50,7 @@ export default class AutoCarousel extends React.Component {
                 }
                 this.setState({thumbnailIndex, prevIndex});
                 this._setMotion(thumbnailIndex);
-            },3000)
+            },4000)
     }
 
     handleMouseOver(index,e){
@@ -79,7 +78,8 @@ export default class AutoCarousel extends React.Component {
         }
     }
     
-    _setMotion(index){      
+    _setMotion(index){   
+        var { simple } = this.props;   
         var { bgIndex, prevIndex } = this.state;
         //console.log('prevIndex',prevIndex);
         //console.log('nextIndex',index);
@@ -90,18 +90,23 @@ export default class AutoCarousel extends React.Component {
         var nextDom = this.bgDom[nextIndex];
         this._clearMotion();
         
+        var showStyle = simple ? style['slideIn'] : style['fadeIn'];
+        var hideStyle = simple ? style['slideOut'] : style['fadeOut'];
         currentDom.classList.remove(style['selected']);
-        prevDom.classList.add(style['fadeOut']);
-        nextDom.classList.add(style['fadeIn']);
+        prevDom.classList.add(hideStyle);
+        nextDom.classList.add(showStyle);
         
         // 当频繁触发monmouseover事件时，取消上一次的mouseover事件
         clearTimeout(this.handTimer);
         this.handTimer = setTimeout(()=>{           
-            prevDom.classList.remove(style['fadeOut']);                   
-            nextDom.classList.remove(style['fadeIn']);
-            nextDom.classList.add(style['selected']);
+            
+            //nextDom.classList.add(style['selected']);
             this.setState({bgIndex:index});
-        },1500);
+            this.setState(()=>{
+                prevDom.classList.remove(hideStyle);                   
+                nextDom.classList.remove(showStyle);
+            })
+        },1400);
            
     }
 
@@ -109,15 +114,21 @@ export default class AutoCarousel extends React.Component {
         this._setTimer();
     }
 
+    gotoDetail(id){
+        var { history } = this.props;
+        if (history) history.push(`/details/${id}`);
+    }
+
     componentWillUnmount(){      
         this.bgDom = null;
-        this.handTimer = null;
         clearInterval(this.autoTimer);
-        this.autoTimer = null;      
+        clearTimeout(this.handTimer);
+        this.autoTimer = null;  
+        this.handTimer = null;    
     }
    
     render() {
-        
+        var { simple } = this.props;
         var { thumbnailIndex, bgIndex, isLoading, data } = this.state;
         return(
 
@@ -135,6 +146,7 @@ export default class AutoCarousel extends React.Component {
                                 data.map((item,index)=>(
                                     <div 
                                         key={index} 
+                                        onClick={this.gotoDetail.bind(item._id)}
                                         ref={ dom=>{if(this.bgDom) this.bgDom[index]=dom} } 
                                         className={ index==bgIndex ? `${style['bg-item']} ${style['selected']}` : style['bg-item']}
                                         style={{backgroundImage:`url(${item.thumbnails[0]})`}}
@@ -143,30 +155,45 @@ export default class AutoCarousel extends React.Component {
                                 ))
                             }
                         </div>
-                        <div className={style["img-container"]}>
-                            {
-                                data.map((item,index)=>(
-                                    <div 
-                                        style={{backgroundImage:`url(${item.thumbnails[0]})`}}
-                                        className={ thumbnailIndex==index?style['selected']:''}
-                                        onClick={this.handleClick.bind(this,item._id)}    
-                                        onMouseOver={this.handleMouseOver.bind(this,index)}
-                                        onMouseOut={this.handleMouseOut.bind(this)}
-                                        key={index} 
-                                        
-                                    >
-                                        <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
-                                    </div>
-                                ))
-                            }
-                        </div>
-                    
+                        {
+                            simple
+                            ?
+                            <div className={style['dot-container']}>
+                                {
+                                    data.map((item,index)=>(
+                                        <span 
+                                            key={index} 
+                                            onMouseOver={this.handleMouseOver.bind(this,index)}
+                                            className={thumbnailIndex == index ? `${style['dot']} ${style['selected']}`:style['dot']}
+                                        ></span>
+                                    ))
+                                }
+                            </div>
+                            :
+                            <div className={style["img-container"]}>
+                                {
+                                    data.map((item,index)=>(
+                                        <div 
+                                            style={{backgroundImage:`url(${item.thumbnails[0]})`}}
+                                            className={ thumbnailIndex==index?style['selected']:''}
+                                            onClick={this.handleClick.bind(this,item._id)}    
+                                            onMouseOver={this.handleMouseOver.bind(this,index)}
+                                            onMouseOut={this.handleMouseOut.bind(this)}
+                                            key={index} 
+                                            
+                                        >
+                                            <span className={style['text-container']}><span className={style.text}>{item.title}</span></span>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        }
+     
                     </div>
                     :
                     null
                                   
-                }
-                
+                }      
                 
             </div>
         )

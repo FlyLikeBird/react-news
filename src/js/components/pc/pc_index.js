@@ -42,20 +42,18 @@ const PCNewsDetail = Loadable({
 
 const PCActionDetail = Loadable({
   loader:()=>import('./pc_action'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 })
 
 const PCSearchIndex = Loadable({
   loader:()=>import('./pc_search/pc_search_index'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 })
 
 const PCTopNews = Loadable({
   loader:()=>import('./pc_topnews'),
-  loading:()=><Spin size="large" />
+  loading:()=><Spin size="large"/>
 });
-
-import '../../../css/pc.common.css';
 
 export default class PCRouter extends React.Component {
     constructor(){
@@ -64,16 +62,17 @@ export default class PCRouter extends React.Component {
           scrollFunc:null,
           allowReload:true,
           reloading:false,
-          isFixed:false,
-          searchHistory:[]
+          isFixed:false
       }
       
     }
   
     _setScrollTop(top){
         var container = this.container;
-        if (container&&container.scrollTo){         
-            container.scrollTo({top:top,behavior:'smooth'})
+        if (container&&container.scrollTo){  
+            setTimeout(()=>{
+                container.scrollTo({top:top,behavior:'smooth'})
+            },1000)         
         }
     }
 
@@ -116,37 +115,14 @@ export default class PCRouter extends React.Component {
         }       
     }
     
-    _updateSearchHistory(title, remove){
-        var searchHistory = localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : [];             
-        if (remove){
-            localStorage.removeItem('searchHistory');
-            this.setState({searchHistory:[]});
-        } else {
-            if (title){
-                var pattern = /(^\s*)|(\s*$)/g;
-                var title = title.replace(pattern,'');
-                if (!searchHistory.map(item=>item.title).includes(title)){
-                    searchHistory.push({title})
-                }             
-                localStorage.setItem('searchHistory',JSON.stringify(searchHistory));
-            }      
-            this.setState({searchHistory});
-        }
-        
-    }
-
-    componentWillMount(){
-        this._updateSearchHistory()
-    }
-
     render(){
-        var { msg, socket, user, onLoginVisible, onCheckLogin } = this.props;
-        var { scrollFunc, allowReload, reloading, isFixed, searchHistory } = this.state;
+        var { msg, socket, user, searchHistory, onUpdateSearchHistory, onLoginVisible, onCheckLogin } = this.props;
+        var { scrollFunc, allowReload, reloading, isFixed } = this.state;
         
         return (                      
                 <Router>                    
                     <div ref={container=>this.container=container} onScroll={scrollFunc} style={{height:'100%',overflowX:'hidden',overflowY:'scroll'}}>
-                        <PCHeader {...this.props} searchHistory={searchHistory} onUpdateSearchHistory={this._updateSearchHistory.bind(this)}/>
+                        <PCHeader {...this.props} searchHistory={searchHistory} onUpdateSearchHistory={onUpdateSearchHistory}/>
                         <Switch>
                           <Route exact path="/" component={PCNewsContainer} />                          
                           <Route exact path="/usercenter/:id" render={(props)=>{
@@ -165,7 +141,10 @@ export default class PCRouter extends React.Component {
                             }} 
                           />
                           
-                          <Route exact path="/topicIndex" component={PCTopicIndex} />
+                          <Route exact path="/topicIndex" render={props=>{
+                              props.onCheckLogin = onCheckLogin;
+                              return <PCTopicIndex {...props} />
+                            }}/>
                           <Route exact path="/topic/:id" render={props=>{
                             props.onSetScrollTop = this._setScrollTop.bind(this);
                             props.onCheckLogin = onCheckLogin;
@@ -181,7 +160,7 @@ export default class PCRouter extends React.Component {
                           }}
                           />
                           
-                          <Route exact path="/topNews" render={props=>{
+                          <Route exact path="/newsIndex" render={props=>{
                               props.onHandleScroll = this.handleScroll.bind(this);
                               props.onLoadScrollFunc = this.loadScrollFunc.bind(this);
                               props.onStopAutoLoad=this._stopAutoLoad.bind(this);
@@ -194,7 +173,9 @@ export default class PCRouter extends React.Component {
                           />
                           <Route exact path="/search" render={props=>{
                               props.socket = socket;
-                              props.onUpdateSearchHistory = this._updateSearchHistory.bind(this);
+                              props.onCheckLogin = onCheckLogin;
+                              props.searchHistory = searchHistory;
+                              props.onUpdateSearchHistory = onUpdateSearchHistory;
                               return <PCSearchIndex {...props}/>
                           }}
                           /> 

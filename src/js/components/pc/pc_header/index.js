@@ -3,7 +3,6 @@ import { Link, withRouter } from 'react-router-dom';
 import { Row, Col, Menu, Icon, Dropdown, Tabs, message, Form, Input, Button, CheckBox, Modal, Popover, Badge } from 'antd';
 
 import SearchInput from '../../search_container/pc_search_input';
-import imgURL from '../../../../images/logo.png';
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
@@ -50,7 +49,7 @@ class PCHeader extends React.Component {
                       <div className="header">
                           <div>  
                               <a href="/" className="logo">
-                                  <img src={ imgURL } alt="logo" />
+                                  <img src='http://image.renshanhang.site/logo.png' alt="logo" />
                                   <span>ReactNews</span>
                               </a> 
                           </div>
@@ -69,9 +68,7 @@ class PCHeader extends React.Component {
                             <div className="search">
                               <SearchInput {...this.props} onUpdateSearchHistory={onUpdateSearchHistory}/> 
                               <Popover content={
-                                    <div style={{width:'200px',height:'200px',backgroundColor:'#000'}}>
-    
-                                    </div>
+                                    <div className="mobile-website" style={{backgroundImage:`url(http://image.renshanhang.site/mobile-website.png)`}}></div>
                                 }>
                                   <Button type="primary" size="small" shape="circle" icon="mobile" />
                               </Popover>

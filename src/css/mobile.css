@@ -1,24 +1,97 @@
-.mobile-header {
-    height:50px;
-    background-color:#1890ff;
+.mobile-container {
+    height:100%;
+    position:relative;
+
+}
+
+.mobile-container .spin {
+    position:absolute;
+    top:50%;
+    left:50%;
+    margin-left:-15px;
+    margin-top:-15px;
+}
+
+.mobile-container .ant-form .ant-form-item {
+    margin:0;
+}
+
+.nav-container {
     display:flex;
-    align-items: center;
-    justify-content: space-between;
-    padding:0 10px;
+    align-items:center;
+    height:100px;
+    margin:20px 0;
+}
+
+.nav-container>div {
+    flex:1;
+    height:100px;
+    line-height:100px;
+    text-align: center;
     color:#fff;
-}
-
-.mobile-header .logo-container {
-
-}
-.mobile-header .img-container {
-    width:30px;
-    height:30px;
-    display:inline-block;
-    overflow: hidden;
-    border-radius:50%;
-    background-repeat: no-repeat;
+    border-radius:10px;
+    background-repeat:no-repeat;
     background-position: center;
     background-size: cover;
 }
 
+.content-container {
+    overflow-y: scroll;
+    overflow-x:hidden;
+    position:absolute;
+    top:50px;
+    bottom:50px;
+    width:100%;
+    text-align:center;
+}
+
+.content-container .ant-tabs .ant-tabs-content {
+    background-color:#f7f7f7;
+}
+
+.news-container {
+    background-color:#f7f7f7;
+}
+
+.news-title-container {
+    margin-bottom:2px;
+    background: #f7f7f7;
+    padding: 6px 10px 10px 20px;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.news-title-container .text {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: 500;
+}
+
+.news-title-container i {
+    margin-right:4px;
+}
+
+.article-container {
+    padding:20px;
+}
+
+.mobile-container sup.ant-scroll-number {
+    transform:translate(60%, -20%) scale(0.8);
+}
+
+.ant-drawer.topic-drawer .tag-container {
+    display:flex;
+    flex-wrap: wrap;
+}
+
+.ant-drawer.topic-drawer .tag-container .item{
+    width:16%;
+    padding:4px;
+    flex:1;
+}
+
+.ant-drawer.topic-drawer .tag-container .item .topic-tag{
+    background-color: #ebf5fd;
+    color: #0c3f6d;
+}

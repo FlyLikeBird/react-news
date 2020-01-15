@@ -16,19 +16,17 @@
     width:100%;
     height:100%; 
     position:absolute;   
-    background-repeat: no-repeat;
+    background-repeat:no-repeat;
     background-position: center;
     background-size: cover;
     border-radius:4px;
     text-align:center;
     cursor: pointer;
-    transform:translateY(-400px);
     opacity:0;
 }
 
 .auto-carousel .bg .bg-item.selected {
     opacity:1;
-    transform:translateY(0);
 }
 
 .auto-carousel .bg .bg-item.fadeOut {
@@ -55,6 +53,16 @@
 .auto-carousel .bg .bg-item:nth-child(4) {
     z-index:7;
 }
+
+.auto-carousel .bg .bg-item.slideIn {
+    z-index:100;
+    animation:slideIn 1.5s ease-out;
+}
+
+.auto-carousel .bg .bg-item.slideOut {
+    opacity:1;
+}
+
 
 .auto-carousel .text-container {
     white-space: nowrap;
@@ -108,6 +116,23 @@
     }
 }
 
+
+@keyframes slideIn {
+    0% {
+        transform:translateX(300px);
+        opacity:0;
+    }
+    30% {
+        transform:translateX(0);
+        opacity:0.5;
+    }
+    100%{
+        transform:translateX(0);
+        opacity:1;
+    }
+}
+
+
 .auto-carousel .img-container {
     display:flex;
     position:absolute;
@@ -143,6 +168,26 @@
     margin-left:20px;
 }
 
+.auto-carousel .dot-container {
+    position:absolute;
+    bottom:0;
+    right:10px;
+    z-index:100;
+}
+
+.auto-carousel .dot-container .dot{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    margin:0 4px;
+    background-color:rgba(255,255,255,0.5);
+}
+
+.auto-carousel .dot-container .dot.selected{
+    background-color:#fff;
+}
+
 /*
     移动端轮播图样式
 
@@ -150,6 +195,10 @@
 @media screen and (max-width: 640px) {
     .auto-carousel .bg {
         border-radius:0;
+    }
+
+    .auto-carousel .bg .bg-item {
+        border-radius: 0;
     }
 }
 

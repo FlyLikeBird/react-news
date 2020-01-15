@@ -31,13 +31,19 @@ export default class TopicListItem extends React.Component {
     }
 
     markKeyWords(content){
-        var { location, forSearch } = this.props;
+        var { location, forSearch, forMobile, params } = this.props;
         var result = '';
         if (!forSearch){
             return result = content;
         } 
-        if (location && content) {         
-          var words = location.search.match(/\?words=(.*)/)[1];      
+        if (location && content) {
+            var words; 
+            if ( forMobile && params ) {
+                words = params;
+            } else {
+                words = location.search.match(/\?words=(.*)/)[1]; 
+            }
+              
           if (!words.match(/\s+/g)){
               //  单个关键词
               result = content.replace(new RegExp('('+words+')','g'),match=>'<span style="color:#1890ff">'+match+'</span>');
@@ -139,7 +145,7 @@ export default class TopicListItem extends React.Component {
     }
 
     render(){
-        var {  inline, columns, forSimple, isSelf, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
+        var {  inline, columns, forSimple, isSelf, onCheckLogin, history, forUser, forDetail, forSearch, forIndex, forPreview } = this.props;
         var {   isFollowed, item, followIcon, shareIcon } = this.state;
         var {  privacy, user, _id, tags, images, follows, replies, shareBy, title, description, view } = item;
         
@@ -165,7 +171,7 @@ export default class TopicListItem extends React.Component {
                             :
                             <div className='user-container'>
                                 发起人：                          
-                                <Popover content={<CommentPopoverUserAvatar user={user?user.username:''}/>}>
+                                <Popover content={<CommentPopoverUserAvatar history={history} onCheckLogin={onCheckLogin} user={user?user.username:''}/>}>
                                     <span className='avatar-container'>
                                         <img src={user?user.userImage:''} />
                                     </span>
@@ -220,10 +226,10 @@ export default class TopicListItem extends React.Component {
                                 ?                             
                                 inline  //  内联模式下只显示一张缩略图
                                 ?
-                                <div className='topic-img-container'  style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33.3%', backgroundImage:`url(${images[0]['filename']})`}}></div>                                   
+                                <div className='topic-img-container'  style={{width:columns == 4 ? '100%' : columns == 2 ? '50%' :'33.3%', backgroundImage:`url(${images[0]})`}}></div>                                   
                                 :
                                 images.map((item,index)=>(
-                                    <ImgContainer key={index} bg={item.filename} />
+                                    <ImgContainer key={index} bg={item} />
                                 ))                                                      
                                 :
                                 null                                

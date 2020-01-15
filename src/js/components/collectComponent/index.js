@@ -104,7 +104,7 @@ export default class CollectContainer extends React.Component {
 
     render(){
         var { show, isLoading, userCollect, followedCollect, value, visible, shareVisible, collectItem, deleteId } = this.state;
-        var { isSelf, uniquekey, onModel, history, forUser } = this.props;
+        var { isSelf, uniquekey, onModel, history, forUser, forMobile } = this.props;
         
         return(
             
@@ -123,7 +123,7 @@ export default class CollectContainer extends React.Component {
                 {
                     isLoading
                     ?
-                    <Spin/>
+                    <Spin className="spin" size="large"/>
                     :
                     <Tabs defaultActiveKey="0">
                         <TabPane tab={isSelf ? "我创建的":"TA创建的"} key="0">
@@ -135,6 +135,7 @@ export default class CollectContainer extends React.Component {
                                         data={item}
                                         key={index}
                                         forUser={forUser}
+                                        forMobile={forMobile}
                                         isSelf={isSelf}
                                         history={history}
                                         uniquekey={uniquekey}
@@ -159,6 +160,7 @@ export default class CollectContainer extends React.Component {
                                         <CollectItem  
                                             data={item} 
                                             forUser={forUser}
+                                            forMobile={forMobile}
                                             key={index}
                                             history={history}
                                             isSelf={false}

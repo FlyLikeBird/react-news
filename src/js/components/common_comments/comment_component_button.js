@@ -16,7 +16,9 @@ export default class CommentComponentButton extends React.Component{
       dislikeUsers:[],
       shareBy:[],
       visible:false,
-      iconType:'caret-left'     
+      likeIcon:'caret-left',
+      dislikeIcon:'caret-left',
+      shareIcon:'caret-left'
     }
   }
 
@@ -64,10 +66,7 @@ export default class CommentComponentButton extends React.Component{
             setTimeout(()=>span.classList.remove('addFlash'),500)
           }
         }    
-    } else {
-        message.warning('请先登录之后再操作!')
     } 
-     
   }
 
   _setPropsToState(props){
@@ -100,7 +99,6 @@ export default class CommentComponentButton extends React.Component{
   }
 
   handleDeleteMsg(msgId){
-      console.log(msgId);
       var { socket } = this.props;
       socket.emit('deleteMsg',localStorage.getItem('userid'), msgId);
   }
@@ -143,9 +141,38 @@ export default class CommentComponentButton extends React.Component{
       })
   }
 
+  handlePopoverVisible(type, visible){
+      var name = type;
+      if (visible){
+          switch(type){
+              case 'likeIcon':
+                  this.setState({likeIcon:'caret-down'});
+                  break;
+              case 'dislikeIcon':
+                  this.setState({dislikeIcon:'caret-down'});
+                  break;
+              case 'shareIcon':
+                  this.setState({shareIcon:'caret-down'});
+                  break;
+          }
+      } else {
+          switch(type){
+              case 'likeIcon':
+                  this.setState({likeIcon:'caret-left'});
+                  break;
+              case 'dislikeIcon':
+                  this.setState({dislikeIcon:'caret-left'});
+                  break;
+              case 'shareIcon':
+                  this.setState({shareIcon:'caret-left'});
+                  break;
+          }
+      }
+  }
+
   render(){
-    var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, iconType, visible } = this.state;
-    var { history, isSub,  uniquekey, fromUser, commentid, parentcommentid, commentType, showReplies, socket, forUser, forMsg, msgId, msgRead, replies, owncomment, onCheckLogin, hasDelete } = this.props;
+    var { isLiked, isdisLiked, hide, likeUsers, dislikeUsers, shareBy, isRead, likeIcon, dislikeIcon, shareIcon, visible } = this.state;
+    var { history, isSub,  uniquekey, fromUser, commentid, parentcommentid, commentType, showReplies, socket, forUser, forMobile, forMsg, msgId, msgRead, replies, owncomment, onCheckLogin, hasDelete } = this.props;
     //  父评论的id传递到子评论组件
     const commentsInputProps = {
       socket,
@@ -160,7 +187,6 @@ export default class CommentComponentButton extends React.Component{
       onUpdateReplies:this.props.onUpdateReplies,
       onCloseReply:this.handleReply.bind(this)
     }
-    //console.log(hasDelete);
     return (
       <div>
           <div className="comment-user-action">
@@ -180,23 +206,41 @@ export default class CommentComponentButton extends React.Component{
                       <span onClick={this.handleDeleteMsg.bind(this, msgId)} ><span className="text"><Icon type="close" />删除</span></span>
                   </div>
                   :
-                  <div>
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}>
-                          <span ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this, commentid,'like',isLiked?'true':'')}><span className="text"><Icon type="like" className="motion" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span><Icon className="caret" type={iconType}/></span></span>
-                      </Popover> 
-                      <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}>
-                          <span ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this, commentid ,'dislike',isdisLiked?'true':'')}><span className="text"><Icon className="motion" type="dislike" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}} />{isdisLiked?'取消反对':'反对'}<span className="num">{ dislikeUsers.length }</span><Icon className="caret" type={iconType}/></span></span>
-                      </Popover>
+                  <div>                      
+                      <span>
+                          <span style={{width:'60px'}} className="text" ref={span=>this.likeDom=span} onClick={this.handleUserAction.bind(this, commentid,'like',isLiked?'true':'')}>
+                              <Icon type="like" className="motion" theme={isLiked?'filled':'outlined'} style={{color:isLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isLiked?'取消点赞':'赞成' }<span className="num">{ likeUsers.length  }</span>                                  
+                          </span>
+                          <Popover onVisibleChange={this.handlePopoverVisible.bind(this,'likeIcon')} trigger={forMobile?'click':'hover'} content={<TopicItemPopover data={likeUsers} history={history} text="赞" />}>
+                              <span className="text"><Icon className="caret" type={likeIcon}/></span>
+                          </Popover>
+                      </span>
                       
+                      <span>
+                          <span style={{width:'60px'}} className="text" ref={span=>this.dislikeDom=span} onClick={this.handleUserAction.bind(this, commentid,'dislike',isdisLiked?'true':'')}>
+                              <Icon type="dislike" className="motion" theme={isdisLiked?'filled':'outlined'} style={{color:isdisLiked?'#1890ff':'rgba(0, 0, 0, 0.45)'}}/>{isdisLiked?'取消反对':'反对' }<span className="num">{ dislikeUsers.length  }</span>                                  
+                          </span>
+                          <Popover onVisibleChange={this.handlePopoverVisible.bind(this, 'dislikeIcon')} trigger={forMobile?'click':'hover'} content={<TopicItemPopover data={dislikeUsers} history={history} text="踩" />}>
+                              <span className="text"><Icon className="caret" type={dislikeIcon}/></span>
+                          </Popover>
+                      </span>
+
                       <span onClick={this.handleReply.bind(this)} ><span className="text"><Icon type="edit" />回复{isSub?null:<span className="num">{ replies.length }</span>}</span></span>
-                      
-                                     
+                                                           
                       {
                           hasDelete
                           ?
                           null
                           :
-                          <Popover autoAdjustOverflow={false} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}><span onClick={this.handleShare.bind(this,commentid)} ><span className="text"><Icon type="export" />转发 <span className="num">{ shareBy.length }</span><Icon className="caret" type={iconType}/></span></span></Popover>
+                          <span>
+                              <span style={{width:'60px'}} className="text" onClick={this.handleShare.bind(this,commentid)} >
+                                  <Icon type="export"/>转发<span className="num">{ shareBy.length  }</span>                                  
+                              </span>
+                              <Popover onVisibleChange={this.handlePopoverVisible.bind(this, 'shareIcon')} trigger={forMobile?'click':'hover'} content={<TopicItemPopover data={shareBy} forShare={true} history={history} text="转发" />}>
+                                  <span className="text"><Icon className="caret" type={shareIcon}/></span>
+                              </Popover>
+                          </span>
+                          
                       }
                       
                       {

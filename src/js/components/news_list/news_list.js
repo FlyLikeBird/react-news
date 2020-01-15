@@ -17,8 +17,8 @@ export default class NewsList extends React.Component{
 
   componentWillReceiveProps(newProps){
     //  搜索页面的新闻列表当页码变化时强制更新
-    var { forSearch, data } = this.props;
-    if ( forSearch ) {
+    var { forSearch, forMobile, data } = this.props;
+    if ( forSearch || forMobile ) {
         this.setState({list:newProps.data});
         return ;
     } 
@@ -29,9 +29,8 @@ export default class NewsList extends React.Component{
   
 
   render(){
-    var { hasImg, hastime, hasSearchContent, location, history, text, forSimple, forUser, forSearch } = this.props;
+    var { hasImg, hastime, hasSearchContent, location, history, text, forMobile, params, forSimple, forUser, forSearch } = this.props;
     var { list, visible } = this.state;
-
     return(    
       
       <div style={{textAlign:'left'}}>
@@ -50,6 +49,8 @@ export default class NewsList extends React.Component{
                               history={history}
                               hastime={hastime}
                               hasImg={hasImg}
+                              forMobile={forMobile}
+                              params={params}
                               location={location}
                               hasSearchContent={hasSearchContent} 
                           />

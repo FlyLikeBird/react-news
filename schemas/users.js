@@ -3,7 +3,6 @@
  */
 
 var mongoose = require('mongoose');
-var config = require('../config/config');
 var Schema = mongoose.Schema;
 
 module.exports = new Schema({
@@ -19,7 +18,7 @@ module.exports = new Schema({
     message:[{type:Schema.Types.ObjectId, ref:'Message'}],
     description:{type:String,default:'还未设置签名～'},
     level:{type:Number,default:0},
-    userImage:{type:String,default:`${config.uploadPath}/defaultAvatar.jpg`},
+    userImage:{type:String,default:'http://image.renshanhang.site/defaultAvatar.jpg'},
     registerTime:{type:String,default:''},
     loginTime:{type:String,default:''},
     lastLoginTime:{type:String,default:''},

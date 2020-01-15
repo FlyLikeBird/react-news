@@ -26,9 +26,8 @@ export default class UpdateContainer extends React.Component{
     }
 
     componentDidMount(){
-        var { match } = this.props;
-        var userid = match.params.id
-        fetch(`/api/action/getUserActions?userid=${userid}`)
+        var { user } = this.props;
+        fetch(`/api/action/getUserActions?userid=${user}`)
             .then(response=>response.json())
             .then(json=>{
                 var data = json.data;
@@ -84,7 +83,7 @@ export default class UpdateContainer extends React.Component{
     }
 
     render(){
-        var { history, socket, onCheckLogin, isSelf } = this.props;
+        var { history, onCheckLogin, isSelf } = this.props;
         var { userActions, currentData, visible, deleteId, actionInfo, actionId, shareVisible, showForm, isLoading, selectValue, dateValue } = this.state;
 
         return(
@@ -127,7 +126,7 @@ export default class UpdateContainer extends React.Component{
                                         data={item} 
                                         history={history} 
                                         isSelf={isSelf}
-                                        socket={socket}
+                                
                                         onCheckLogin={onCheckLogin} 
                                         onVisible={this.handleModalVisible.bind(this)}
                                         onShareVisible={this.handleShareVisible.bind(this)}

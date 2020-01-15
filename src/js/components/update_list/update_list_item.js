@@ -158,7 +158,7 @@ export default class UpdateItem extends React.Component{
     render(){
 
         var { item, translateData, finalText, isLiked, isdisLiked, likeIconType, dislikeIconType, shareByIconType, visible } = this.state;
-        var { history, onCheckLogin, socket, loaction, forSimple, noAction, noLink, isSelf } = this.props;
+        var { history, onCheckLogin, loaction, forSimple, noAction, noLink, isSelf } = this.props;
         var { onModel, composeAction, images, user, text, likeUsers, dislikeUsers, shareBy, replies, value, _id, isCreated, contentId, date } = item;
         const menu = (
             <Menu>
