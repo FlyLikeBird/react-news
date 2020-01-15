@@ -161,6 +161,7 @@ router.get('/getChatList',(req,res)=>{
 
 router.get('/usercenter',(req,res)=>{
 	let { userid, isSelf } = req.query;
+	//mongooseOperations.addThumbnails();
 	User.findOne({_id:userid},{password:0,message:0})
 		.populate({path:'userFollows', select:'username level userImage userFans userFollow description'})
 		.populate({path:'userFans', select:'username level userImage userFans userFollow description'})
